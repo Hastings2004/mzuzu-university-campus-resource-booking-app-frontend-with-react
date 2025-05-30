@@ -79,7 +79,9 @@ export default function ViewBooking() {
                         <p className="booking-detail"><strong>Start Time:</strong> {new Date(booking.start_time).toLocaleString()}</p>
                         <p className="booking-detail"><strong>End Time:</strong> {new Date(booking.end_time).toLocaleString()}</p>
 
-
+                        {user.user_type === 'admin' && booking.user && (
+                                <p className="booking-detail"><strong>Booked by:</strong> {booking.user.first_name +" "+booking.user.last_name}</p>
+                        )}
                         
                     </div>
                 ) : (

@@ -8,7 +8,7 @@ import { AppContext } from './context/appContext';
 import Create from './resources/create';
 import Update from './resources/update';
 import View from './resources/view';
-import Drop from './resources/testings'; 
+
 import MyBookings from './Bookings/showsBookings';
 import ViewBooking from './Bookings/viewBooking';
 export default function App() {
@@ -26,7 +26,7 @@ export default function App() {
           
           <Route index element={user ? <Home /> : <Login />} /> 
           <Route path="create" element={<Create />} />
-          <Route path="new" element={<Drop />} />
+          {/*<Route path="new" element={<Drop />} />*/}
           <Route path="resources/:id" element={<View />} />
           <Route path="resources/update/:id" element={<Update />} />
           <Route path="booking" element={<MyBookings />}/>

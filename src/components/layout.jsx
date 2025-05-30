@@ -1,15 +1,12 @@
 import { useContext, useState, useEffect } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom"; // Import NavLink
 import { AppContext } from "../context/appContext";
-import logo from '../assets/logo.png'; 
-
+import logo from '../assets/logo.png';
 
 export default function Layout() {
   const { user, token, setUser, setToken } = useContext(AppContext);
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State to control sidebar visibility
-  
-  // State for dark mode, initialized from localStorage or default to false
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode === 'true' ? true : false;
@@ -36,20 +33,17 @@ export default function Layout() {
     }
   }
 
-  // Toggle sidebar for smaller screens
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     setIsDarkMode(prevMode => !prevMode);
   };
 
-  // Close sidebar by default on smaller screens when component mounts
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) { // Adjust breakpoint as needed
+      if (window.innerWidth <= 768) {
         setIsSidebarOpen(false);
       } else {
         setIsSidebarOpen(true);
@@ -57,12 +51,11 @@ export default function Layout() {
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Call once on mount to set initial state
+    handleResize();
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Effect to apply dark mode class to body and save preference to localStorage
   useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark');
@@ -71,7 +64,7 @@ export default function Layout() {
       document.body.classList.remove('dark');
       localStorage.setItem('darkMode', 'false');
     }
-  }, [isDarkMode]); // Rerun this effect whenever isDarkMode changes
+  }, [isDarkMode]);
 
   return (
     <>
@@ -83,68 +76,69 @@ export default function Layout() {
               <h3>Mzuzu University</h3>
               <p className="text">Resource Booking App</p>
             </center>
-            
           </div>
-          
+
           <ul className="side-menu top">
-            <li className="active">
-              <Link to="/"> 
-                <i className="bx bxs-dashboard"></i> {/* Correct Boxicon for dashboard/home */}
+            {/* Use NavLink for active class behavior */}
+            <li> {/* Remove the 'active' class here, NavLink handles it */}
+              <NavLink to="/">
+                <i className="bx bxs-dashboard"></i>
                 <span className="text">Home</span>
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link to="/profile">
+              <NavLink to="/profile">
                 <i className="bx bx-user"></i>
                 <span className="text">Profile</span>
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link to="/">
-                <i className="bx bxs-component"></i> {/* Changed to a more resource-like icon */}
+              {/* If your / route (Home) also acts as the Resources page, keep it as / */}
+              {/* If Resources has its own page, change the 'to' prop accordingly */}
+              <NavLink to="/"> {/* Assuming / is also the Resources page */}
+                <i className="bx bxs-component"></i>
                 <span className="text">Resources</span>
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link to="/booking">
-                <i className="bx bxs-calendar-check"></i> {/* Changed to a more booking-like icon */}
+              <NavLink to="/booking">
+                <i className="bx bxs-calendar-check"></i>
                 <span className="text">Bookings</span>
-              </Link>
+              </NavLink>
             </li>
-            
+
             <li>
-              <Link to="/">
+              {/* Assuming /notifications is the route for notifications */}
+              <NavLink to="/notifications">
                 <i className="bx bxs-bell"></i>
                 <span className="text">Notification</span>
-              </Link>
+              </NavLink>
             </li>
-           
-             <li>
-              <Link to="/settings">
+
+            <li>
+              <NavLink to="/settings">
                 <i className="bx bxs-cog"></i>
                 <span className="text">Settings</span>
-              </Link>
+              </NavLink>
             </li>
-            <li onClick={handleLogout} >
-              <Link to="#"> {/* Use to="#" or just <a> if not navigating */}
+            <li onClick={handleLogout}>
+              {/* Logout is not a navigation link, so Link/NavLink isn't ideal here. */}
+              {/* Using a simple <a> tag or a button for logout is often better practice. */}
+              <a href="#"> {/* Using href="#" to prevent default navigation */}
                 <i className="bx bxs-log-out-circle"></i>
                 <span className="text">Logout</span>
-              </Link>
+              </a>
             </li>
-          
           </ul>
-         
-           
-            
         </section>
 
         <section id="content">
           <nav>
-            <i className="bx bx-menu" onClick={toggleSidebar}></i> 
+            <i className="bx bx-menu" onClick={toggleSidebar}></i>
             <a href="#" className="nav-link">
               Categories
             </a>
-            <form >
+            <form>
               <div className="form-input">
                 <input type="text" placeholder="Search..." name="search" id="search-field" required />
                 <button type="submit" className="search-btn" name="search-btn">
@@ -152,16 +146,13 @@ export default function Layout() {
                 </button>
               </div>
             </form>
-            {/* The switch for dark mode */}
-            <div>
-              
-            </div>
-            <input 
-              type="checkbox" 
-              id="switch-mode" 
-              hidden 
-              checked={isDarkMode} 
-              onChange={toggleDarkMode} 
+            <div></div> {/* Empty div, consider removing if not needed */}
+            <input
+              type="checkbox"
+              id="switch-mode"
+              hidden
+              checked={isDarkMode}
+              onChange={toggleDarkMode}
             />
             <label htmlFor="switch-mode" className="switch-mode"></label>
 
@@ -170,16 +161,16 @@ export default function Layout() {
               <span className="num">0</span>
             </a>
             <a href="profile-admin.php" className="profile">
-              <img src={logo} alt="Profile" />
+              <img src={user?.profile_picture || logo} alt="Profile" /> {/* Use user profile picture if available */}
             </a>
           </nav>
 
           <main>
             <div className="head-title">
               <div className="left">
-                
-                  <h1>Welcome {user.first_name}</h1>
-                
+                {/* Optional chaining for user properties */}
+                <h1>Welcome {user?.first_name}</h1>
+
                 <br />
                 <ul className="breadcrumb">
                   <li>
@@ -195,7 +186,6 @@ export default function Layout() {
                   </li>
                 </ul>
               </div>
-              
             </div>
             <Outlet />
           </main>

@@ -11,7 +11,7 @@ export default function MyBookings() {
     async function fetchMyBookings() {
         if (!user || !token) {
             setLoading(false);
-            setError("You must be logged in to view bookings."); // Adjusted message
+            setError("You must be logged in to view bookings.");
             return;
         }
 
@@ -22,16 +22,17 @@ export default function MyBookings() {
             const res = await fetch("/api/bookings", {
                 method: 'get',
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json' // Good practice to include
                 }
             });
 
             const data = await res.json();
 
             if (res.ok) {
-                setBookings(data); // This data will either be all bookings (for admin) or user's own (for others)
+                setBookings(data);
             } else {
-                setError(data.message || "Failed to fetch bookings."); // Adjusted message
+                setError(data.message || "Failed to fetch bookings.");
                 console.error("Failed to fetch bookings:", data);
             }
         } catch (err) {
@@ -43,7 +44,15 @@ export default function MyBookings() {
     }
 
     useEffect(() => {
-        fetchMyBookings();
+        // Only fetch if user and token are available
+        if (user && token) {
+            fetchMyBookings();
+        } else {
+            // If user or token disappear (e.g., logout), clear bookings and set error
+            setBookings([]);
+            setLoading(false);
+            setError("Please log in to view bookings.");
+        }
     }, [user, token]); // Re-fetch if user or token changes
 
     if (loading) {
@@ -54,11 +63,15 @@ export default function MyBookings() {
         return <p className="error-message">{error}</p>;
     }
 
+    // Safely check user and user.user_type before rendering
+    if (!user || !user.user_type) {
+        return <p className="error-message">User data not available. Please log in.</p>;
+    }
+
     return (
         <div className="my-bookings-container">
-            {/* The heading can be dynamic if you want to differentiate */}
             <h1 className="my-bookings-title">
-                {user?.roles?.some(role => role.name === 'staff') ? "All System Bookings" : "My Bookings"}
+                {user.user_type === 'admin' ? "All System Bookings" : "My Bookings"}
             </h1>
             {bookings.length > 0 ? (
                 <div className="bookings-list">
@@ -76,11 +89,15 @@ export default function MyBookings() {
                             <p className="booking-detail"><strong>Purpose:</strong> {booking.purpose}</p>
                             <p className="booking-detail"><strong>Start Time:</strong> {new Date(booking.start_time).toLocaleString()}</p>
                             <p className="booking-detail"><strong>End Time:</strong> {new Date(booking.end_time).toLocaleString()}</p>
-                            <Link to={`/booking/${booking.id}`} className="booking-detail">View Details</Link>
-                            {user?.roles?.some(role => role.name === 'admin') && booking.user && (
-                                <p className="booking-detail"><strong>Booked by:</strong> {booking.user.name}</p>
+
+                            {/* Conditionally display "Booked by" only for admins */}
+                            {user.user_type === 'admin' && booking.user && (
+                                <p className="booking-detail"><strong>Booked by:</strong> {booking.user.first_name +" "+booking.user.last_name}</p>
                             )}
-                            
+
+                            {/* Add a generic "View Details" link for consistency */}
+                            <Link to={`/booking/${booking.id}`} className="view-details-button">View Details</Link>
+
                             {/* You can add more details or action buttons like "Cancel Booking" here */}
                             <div className="booking-actions">
                                 {/* Example: Link to cancel/edit booking, if you have those routes */}
@@ -91,7 +108,7 @@ export default function MyBookings() {
                 </div>
             ) : (
                 <p className="no-bookings-message">
-                    {user?.roles?.some(role => role.name === 'admin') ? "No bookings in the system yet." : "You have no bookings yet. Go book some resources!"}
+                    {user.user_type === 'admin' ? "No bookings in the system yet." : "You have no bookings yet. Go book some resources!"}
                 </p>
             )}
         </div>

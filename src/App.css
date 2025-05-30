@@ -436,8 +436,14 @@ body {
     align-items: center;
 }
 
-#sidebar.hide .side-menu li.active {
+#sidebar.hide .side-menu li a.active {
     border-radius: 50%; /* Maintain circular active state */
+    color: var(--green-color); /* Assuming you have a CSS variable for green */
+    background: var(--light-green-bg);
+}
+
+#sidebar .side-menu li a.active i {
+    color: var(--green-color); /* Make the icon green too */
 }
 
 #sidebar.hide .side-menu li.active::before,
@@ -1567,6 +1573,22 @@ body {
     color: var(--primary-color);
     text-decoration: none;
     transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.booking-card .view-details-button {
+    display: inline-block;
+    margin-top: auto; /* Pushes the button to the bottom of the card */
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    align-self: center; /* Center button horizontally within the card */
+    width: fit-content; /* Only take content width */
+    white-space: nowrap; /* Prevent button text from wrapping */
+    box-sizing: border-box;
 }
 
 .booking-card-title .resource-link:hover {
