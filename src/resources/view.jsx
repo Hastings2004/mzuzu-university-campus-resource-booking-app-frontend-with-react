@@ -89,7 +89,7 @@ export default function View() {
             const data = await res.json();
 
             if (res.ok) {
-                setBookingMessage("Booking request submitted successfully! Status: " + bookingData.booking_status);
+                setBookingMessage("Booking request submitted successfully! Status: " + bookingData.status);
                 setStartTime("");
                 setEndTime("");
                 setPurpose("");
@@ -147,7 +147,9 @@ export default function View() {
                         <p className="single-resource-detail"><strong>Description:</strong> {resource.description}</p>
                         <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
                         <p className="single-resource-detail"><strong>Capacity:</strong> {resource.capacity}</p>
-
+                        <span className="">
+                                    Availability status: <span className={resource.status === 'available' ? 'status-available' : 'status-booked'}>{resource.status}</span>
+                        </span>
                         
                         {user ? ( // Only show booking form if user is logged in
                             <div className="booking-form-section">

@@ -38,9 +38,13 @@ export default function Home() {
                         {resources.map(resource => (
                             <div key={resource.id} className="resource-card"> {/* Individual card */}
                                 <h3 className="resource-title">{resource.name}</h3>
+                                {/* Dynamic class for status */}
                                 <p className="resource-description"><strong>Description:</strong> {resource.description}</p>
                                 <p className="resource-location"><strong>Location:</strong> {resource.location}</p>
                                 <p className="resource-capacity"><strong>Capacity:</strong> {resource.capacity} people</p>
+                                <span className="resource-description">
+                                    Availability status: <span className={resource.status === 'available' ? 'status-available' : 'status-booked'}>{resource.status}</span>
+                                </span>
                                 <Link to={`/resources/${resource.id}`} className="view-details-button">View Details</Link>
                             </div>
                         ))}

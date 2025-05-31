@@ -95,7 +95,7 @@ export default function Layout() {
             <li>
               {/* If your / route (Home) also acts as the Resources page, keep it as / */}
               {/* If Resources has its own page, change the 'to' prop accordingly */}
-              <NavLink to="/"> {/* Assuming / is also the Resources page */}
+              <NavLink to="/createResource"> {/* Assuming / is also the Resources page */}
                 <i className="bx bxs-component"></i>
                 <span className="text">Resources</span>
               </NavLink>
@@ -169,7 +169,7 @@ export default function Layout() {
             <div className="head-title">
               <div className="left">
                 {/* Optional chaining for user properties */}
-                <h1>Welcome {user?.first_name}</h1>
+                <h1>Welcome {user.user_type === 'admin'? 'Admin '+user.first_name:" "+ user.first_name}</h1>
 
                 <br />
                 <ul className="breadcrumb">

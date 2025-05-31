@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
 
-/* Basic Resets & Global Styles - Common to both, so only defined once */
 * {
     margin: 0;
     padding: 0;
@@ -15,13 +14,6 @@ a {
 li {
     list-style: none;
 }
-
-/* Consolidated Root Variables */
-/* These variables are for the entire application, including both auth and dashboard.
-   The primary-color, primary-light, primary-dark, accent-blue, accent-yellow,
-   accent-red, text-dark, text-light, bg-light, bg-grey, border-color,
-   shadow-light, shadow-medium, and dark-grey are already consistent,
-   so no conflict there. Added fonts from the second CSS. */
 :root {
     --poppins: 'Poppins', sans-serif;
     --lato: 'Lato', sans-serif;
@@ -59,9 +51,7 @@ body.dark {
 }
 
 /* Body Styling for Dashboard Layout */
-/* This is specifically for the dashboard, making the body a flex container
-   to manage sidebar and content. It assumes the body directly contains
-   .dashboard-container. */
+
 body {
     font-family: var(--poppins);
     background: var(--bg-grey);
@@ -73,12 +63,6 @@ body {
 }
 
 /* --- AUTHENTICATION PAGE STYLES --- */
-/* These styles are specifically for the authentication container.
-   They are designed to center the form on the page.
-   The `body` style for `display: flex` and `min-height: 100vh`
-   from the auth CSS is now handled by the dashboard body style.
-   We need to ensure .auth-container still centers its content. */
-
 .auth-container {
     display: flex;
     justify-content: center;
@@ -87,10 +71,6 @@ body {
     width: 100%;
     padding: 20px;
     box-sizing: border-box;
-    /* When a dashboard is present, auth-container should take precedence
-       or be a separate page. If auth is intended to be a *full page* layout,
-       it needs to override or coexist with the dashboard's body layout.
-       For simplicity here, we assume auth-container takes over the viewport. */
     position: absolute; /* Position absolutely to break out of dashboard flex flow if needed */
     top: 0;
     left: 0;
@@ -1121,94 +1101,23 @@ body {
     margin-bottom: 0;
 }
 
-/* Specific product/notification styles (from previous code) */
-/* The input and button styles inside #content main .table-data .notification
-   were already present in the dashboard CSS but have more specific selectors,
-   ensuring they don't collide with the general .auth-container .input or button. */
-#content main .table-data .products {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--bg-grey);
-    padding: 15px;
-    gap: 15px;
-}
-
-#content main .table-data .products li {
-    background: var(--bg-light);
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    display: block;
-    margin-right: 0;
-    box-shadow: 0 2px 4px var(--shadow-light);
-}
-
-#content main .table-data .notification {
-    background-color: var(--bg-light);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 10px;
-    width: calc(40% - 20px);
-    box-shadow: 0 2px 4px var(--shadow-light);
-}
-#content main .table-data .notification img {
-    width: 100%;
-    max-width: 250px;
-    height: auto;
-    display: block;
-    margin: 0 auto 15px;
-    border-radius: 8px;
-}
-#content main .table-data .notification input {
-    border-radius: 8px;
-    height: 38px;
-    width: 100%;
-    margin-top: 8px;
-    margin-bottom: 8px;
-    padding: 0 12px;
-    border: 1px solid var(--border-color);
-    outline: none;
-    font-family: var(--poppins);
-    color: var(--text-dark);
-    background-color: var(--bg-grey);
-}
-#content main .table-data .notification button {
-    border-radius: 8px;
-    height: 40px;
-    width: 100%;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    background-color: var(--primary-color);
-    color: var(--text-light);
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-#content main .table-data .notification button:hover {
-    background-color: var(--primary-dark);
-}
-
 /* --- resource Cards Styling --- */
-/* The #content main in your main dashboard CSS already handles overall padding and manages overflow.
-   We just need to ensure the cards within it are responsive and their content doesn't overflow. */
 
 .home-dashboard-section h1 {
-    font-size: 28px; /* Slightly smaller than main title for section heading */
+    font-size: 28px; 
     font-weight: 600;
     color: var(--text-dark);
-    margin-bottom: 25px; /* Space below heading */
-    text-align: left; /* Align to left */
+    margin-bottom: 25px; 
+    text-align: left; 
 }
 
 .resource-cards-container {
     display: grid;
    
-    margin-right: 25%;
+    margin-right: 22%;
     flex-wrap: wrap;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px; /* Consistent space between cards */
+    gap: 24px; 
 }
 
 .resource-card {
@@ -1220,11 +1129,120 @@ body {
     flex-direction: column;
     gap: 8px; /* Space between card elements */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    /* Ensure card itself respects its boundaries */
-    box-sizing: border-box; /* Include padding in the element's total width and height */
-    min-width: 0; /* Important for flex/grid items to shrink below their content size if needed */
+    box-sizing: border-box; 
+    min-width: 0; 
 }
 
+
+/* Specific styles for the Update button */
+/* Container for the action buttons */
+.single-resource-container .booking-actions {
+    margin-top: 30px; 
+    display: flex;
+    gap: 20px; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+/* Base styles for all buttons within .booking-actions */
+.single-resource-container .booking-actions .button {
+    padding: 12px 28px; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 1.05rem; 
+    text-decoration: none; 
+    display: inline-flex; 
+    align-items: center; /* Centers content vertically */
+    justify-content: center; 
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transitions for hover effects */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
+    min-width: 150px; 
+}
+
+/* Specific styles for the Update button */
+.single-resource-container .booking-actions .update-button {
+    background-color: #28a745; 
+    color: white; /* White text for contrast */
+}
+
+.single-resource-container .booking-actions .update-button:hover {
+    background-color: #218838; /* Darker green on hover */
+    transform: translateY(-3px); /* Slightly more lift effect */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+/* Specific styles for the Delete button */
+.single-resource-container .booking-actions .delete-button {
+    background-color: #dc3545; /* Standard danger red */
+    color: white; /* White text for contrast */
+}
+
+.single-resource-container .booking-actions .delete-button:hover {
+    background-color: #c82333; /* Darker red on hover */
+    transform: translateY(-3px); /* Slightly more lift effect */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+/* Optional: Additional styles for the surrounding card to ensure good spacing */
+.single-resource-card {
+    background-color: #ffffff;
+    border-radius: 12px; /* Slightly more rounded card corners */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Softer, larger shadow for the card */
+    padding: 30px 40px; /* More padding inside the card */
+    max-width: 650px; /* Adjust max width as needed */
+    margin: 50px auto; /* Centered with more top/bottom margin */
+    text-align: left;
+    border: 1px solid #e0e0e0; /* Subtle border */
+}
+
+.single-resource-title {
+    color: #343a40; /* Darker text for titles */
+    margin-bottom: 25px;
+    font-size: 2.2em; /* Larger title */
+    text-align: center;
+    border-bottom: 2px solid #f0f0f0; /* Underline for title */
+    padding-bottom: 15px;
+}
+
+.booking-detail {
+    margin-bottom: 12px; /* More space between detail lines */
+    color: #495057; /* Slightly softer text color */
+    line-height: 1.6;
+    font-size: 1.05rem; /* Slightly larger detail text */
+}
+
+.booking-detail strong {
+    color: #343a40;
+    min-width: 130px; /* Ensure strong alignment for labels */
+    display: inline-block;
+}
+
+/* Existing status styles (ensure these are also present in your CSS) */
+.status-approved {
+    color: #28a745; /* Match update button green */
+    font-weight: bold;
+}
+
+.status-pending {
+    color: #ffc107; /* A clear amber/orange for pending */
+    font-weight: bold;
+}
+
+.status-rejected {
+    color: #dc3545; /* Match delete button red */
+    font-weight: bold;
+}
+.resource-card .status-available {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.resource-card .status-booked {
+    color: var(--accent-red);
+    font-weight: bold;
+}
 .resource-card:hover {
     transform: translateY(-5px); /* Lift effect on hover */
     box-shadow: 0 6px 12px var(--shadow-medium); /* Enhanced shadow on hover */
@@ -1249,16 +1267,14 @@ body {
     font-size: 15px;
     color: var(--text-dark);
     line-height: 1.4;
-    /* --- Overflow handling for description, location, capacity --- */
-    word-wrap: break-word; /* Allows long words to break and wrap to the next line */
-    overflow-wrap: break-word; /* Modern equivalent of word-wrap */
-    /* For descriptions, you might want to limit lines */
-    display: -webkit-box; /* For multi-line ellipsis in Webkit browsers */
-    -webkit-line-clamp: 3; /* Limit description to 3 lines */
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
+     display: -webkit-box;
+    -webkit-line-clamp: 3; 
     -webkit-box-orient: vertical;
-    overflow: hidden; /* Hide content beyond the line limit */
-    text-overflow: ellipsis; /* Add ellipsis if truncated */
-    max-width: 100%; /* Ensure it respects parent width */
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    max-width: 100%; 
 }
 
 .resource-card .resource-description strong,
@@ -1270,7 +1286,7 @@ body {
 
 .resource-card .view-details-button {
     display: inline-block;
-    margin-top: auto; /* Pushes the button to the bottom of the card */
+    margin-top: auto; 
     padding: 10px 15px;
     background-color: var(--primary-color);
     color: var(--text-light);
@@ -1329,6 +1345,16 @@ body {
     word-wrap: break-word; /* Ensure long titles break */
     overflow-wrap: break-word;
     line-height: 1.2;
+}
+
+.single-resource-card .status-available{
+    color: green;
+    font-weight: bold;
+}
+
+.single-resource-card .status-booked{
+    font-weight: bold;
+    color: var(--accent-red);
 }
 
 .single-resource-card .single-resource-detail {
@@ -1556,6 +1582,20 @@ body {
     border: 1px solid var(--border-color); /* A subtle border */
 }
 
+/* Styles for booking status */
+.booking-card .status-approved, .single-resource-container .status-approved {
+    color: green;
+    font-weight: bold;
+}
+
+.booking-card .status-pending, .single-resource-container .status-pending {
+    color: orange; /* Or red, depending on your preference for pending */
+    font-weight: bold;
+}
+.booking-card .status-rejected, .single-resource-container .status-rejected {
+    color: var(--accent-red); /* Typically red for rejected */
+    font-weight: bold;
+}
 .booking-card:hover {
     transform: translateY(-8px); /* Lift card slightly on hover */
     box-shadow: 0 12px 25px var(--shadow-medium); /* More pronounced shadow on hover */
@@ -1678,7 +1718,193 @@ body {
     border-color: #dc3545;
     background-color: #f8d7da;
 }
+/* General Container and Page Layout */
+.container {
+    max-width: 800px;
+    margin-left: 40px auto;
+    padding: 20px;
+    background-color: var(--bg-light); /* Uses light background by default, dark in dark mode */
+    border-radius: 10px;
+    box-shadow: 0 4px 15px var(--shadow-light); /* Uses dynamic shadow */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
 
+.content {
+    background-color: var(--bg-medium); /* White background for form */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px var(--shadow-medium); /* Lighter shadow for the inner content */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Header and Status Display */
+.content h3 {
+    font-size: 2.2em;
+    color: var(--text-dark); /* Uses main text color */
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 2px solid var(--border-color); /* Uses dynamic border color */
+    padding-bottom: 15px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.content p {
+    font-size: 1.1em;
+    color: var(--text-dark); /* Uses main text color */
+    text-align: center;
+    margin-bottom: 25px;
+    transition: color 0.3s ease;
+}
+
+/* Status Badges */
+.status-approved {
+    color: var(--status-approved-text);
+    font-weight: bold;
+    background-color: var(--status-approved-bg);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.status-pending {
+    color: var(--status-pending-text);
+    font-weight: bold;
+    background-color: var(--status-pending-bg);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.status-rejected {
+    color: var(--status-rejected-text);
+    font-weight: bold;
+    background-color: var(--status-rejected-bg);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+/* Form Layout */
+.form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-detail {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-detail label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dark); /* Uses main text color */
+    font-size: 1em;
+    transition: color 0.3s ease;
+}
+
+.form-detail .input {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color); /* Uses dynamic border color */
+    border-radius: 6px;
+    font-size: 1em;
+    color: var(--text-dark); /* Uses main text color */
+    background-color: var(--bg-dark); /* Uses specific background for inputs */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-detail .input:focus {
+    border-color: #007bff; /* Still a primary blue for focus, can be a variable too */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.form-detail textarea.input {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Error Messages */
+.error {
+    color: var(--accent-red); /* Using the rejected status text color for errors */
+    font-size: 0.9em;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+/* Submit Button (Colors remain hardcoded or specific variables if they don't change with theme) */
+.form-detail button[type="submit"] {
+    background-color:green;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    width: 100%;
+    margin-top: 15px;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+}
+
+.form-detail button[type="submit"]:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
+}
+
+.form-detail button[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+}
+
+
+/* Responsive Adjustments (apply to both themes) */
+@media (max-width: 768px) {
+    .container {
+        margin: 20px;
+        padding: 15px;
+    }
+    .content {
+        padding: 20px;
+    }
+    .content h3 {
+        font-size: 1.8em;
+    }
+    .form-detail .input,
+    .form-detail textarea.input {
+        padding: 10px 12px;
+        font-size: 0.95em;
+    }
+    .form-detail button[type="submit"] {
+        padding: 12px 25px;
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 10px;
+        padding: 10px;
+    }
+    .content {
+        padding: 15px;
+    }
+    .content h3 {
+        font-size: 1.5em;
+    }
+    .form-detail button[type="submit"] {
+        font-size: 0.95em;
+        padding: 10px 20px;
+    }
+}
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
     .my-bookings-title {
@@ -2110,5 +2336,263 @@ body {
 
     #content main .box-info {
         grid-template-columns: 1fr;
+    }
+}
+
+/* --- Main Container and Card Styles --- */
+.profile-container {
+    max-width: 700px; /* Slightly wider for more content */
+    margin-right: 500px auto;
+    padding: 30px;
+    background-color: var(--bg-light); /* Lighter background for the main container */
+    border-radius: 12px;
+    box-shadow: 0 8px 20px var(--shadow-light); /* More pronounced shadow */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+    color: var(--text-dark);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
+
+.profile-card {
+    padding: 20px;
+    background-color: var(--text-light); /* Pure white/lightest dark for the inner card */
+    border-radius: 10px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-title {
+    font-size: 2.8em; /* Larger title */
+    color: var(--primary-color); /* Primary color for title */
+    text-align: center;
+    margin-bottom: 35px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid var(--border-color); /* Thicker border */
+    position: relative;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+/* --- Profile Detail View Mode Styles --- */
+.profile-detail {
+    display: flex;
+    align-items: center; /* Vertically align content */
+    margin-bottom: 18px;
+    padding: 8px 0; /* Some padding for each detail row */
+    border-bottom: 1px dotted var(--border-color); /* Subtle separator */
+    transition: border-color 0.3s ease;
+}
+
+.profile-detail:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.detail-label {
+    flex: 0 0 160px; /* Consistent width for labels */
+    font-weight: 700; /* Bolder label */
+    color: var(--text-dark);
+    font-size: 1.1em;
+    padding-right: 15px;
+    transition: color 0.3s ease;
+}
+
+.detail-value {
+    flex-grow: 1;
+    font-size: 1.05em;
+    color: var(--text-dark); /* Use text-dark for values */
+    transition: color 0.3s ease;
+}
+
+/* --- Messages (Loading, Error, Success) --- */
+.loading-message, .no-profile-data-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: var(--primary-color);
+    margin-top: 30px;
+    font-weight: 500;
+}
+
+.error-message, .profile-error { /* For general fetch errors or update errors */
+    color: var(--danger-color);
+    background-color: var(--danger-bg-light);
+    border: 1px solid var(--danger-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.profile-success-message {
+    color: var(--success-color);
+    background-color: var(--success-bg-light);
+    border: 1px solid var(--success-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+
+/* --- Form Styles (Edit Mode) --- */
+.profile-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* More space between form groups */
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 0; /* Gap handles spacing */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px; /* Space below label */
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 1em;
+    transition: color 0.3s ease;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 12px 15px; /* More padding */
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* Slightly more rounded */
+    font-size: 1.05em;
+    color: var(--text-dark);
+    background-color: var(--bg-dark); /* Using the darker background for inputs */
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); /* Subtle focus glow */
+    outline: none;
+    background-color: var(--text-light); /* White/lighter dark background on focus */
+}
+
+.input-error {
+    border-color: var(--danger-color) !important; /* Important to override default border */
+}
+
+.input-error-text {
+    color: var(--danger-color);
+    font-size: 0.9em; /* Slightly larger error text */
+    margin-top: 6px;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+/* --- Button Styles --- */
+.profile-actions, .form-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between buttons */
+}
+
+.edit-profile-button,
+.save-profile-button,
+.cancel-edit-button {
+    padding: 14px 30px; /* Larger buttons */
+    border: none;
+    border-radius: 8px; /* More rounded buttons */
+    font-size: 1.1em;
+    font-weight: 700; /* Bolder text */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    text-decoration: none; /* For Link component if used */
+    display: inline-flex; /* For consistent button styling */
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-profile-button, .save-profile-button {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25);
+}
+
+.edit-profile-button:hover, .save-profile-button:hover {
+    background-color: var(--primary-hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.35);
+}
+
+.cancel-edit-button {
+    background-color: rgb(36, 79, 1) ;
+    color: var(--text-light);
+    box-shadow: 0 4px 10px rgba(108, 117, 125, 0.2);
+}
+
+.cancel-edit-button:hover {
+    background-color: var(--secondary-hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 20px;
+        padding: 20px;
+    }
+    .profile-card {
+        padding: 15px;
+    }
+    .profile-title {
+        font-size: 2em;
+        margin-bottom: 25px;
+    }
+    .profile-detail {
+        flex-direction: column; /* Stack details vertically on small screens */
+        align-items: flex-start; /* Align labels to the left */
+        margin-bottom: 12px;
+    }
+    .detail-label {
+        flex: auto; /* Allow label to take natural width */
+        margin-bottom: 5px; /* Space between label and value */
+        padding-right: 0;
+    }
+    .form-group input {
+        padding: 10px 12px;
+    }
+    .profile-actions, .form-actions {
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .edit-profile-button, .save-profile-button, .cancel-edit-button {
+        width: 100%;
+        margin: 0;
+        padding: 12px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    .profile-card {
+        padding: 10px;
+    }
+    .profile-title {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+    }
+    .detail-label, .detail-value, .form-group label, .form-group input {
+        font-size: 0.95em;
+    }
+    .input-error-text {
+        font-size: 0.8em;
     }
 }

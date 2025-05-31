@@ -89,10 +89,24 @@ export default function MyBookings() {
                             <p className="booking-detail"><strong>Purpose:</strong> {booking.purpose}</p>
                             <p className="booking-detail"><strong>Start Time:</strong> {new Date(booking.start_time).toLocaleString()}</p>
                             <p className="booking-detail"><strong>End Time:</strong> {new Date(booking.end_time).toLocaleString()}</p>
-
+                            <p className="booking-detail"><strong>Booking Status:</strong>
+                                <span className={
+                                    booking.status === 'approved'
+                                        ? 'status-approved'
+                                        : booking.status === 'pending'
+                                            ? 'status-pending'
+                                            : 'status-rejected'
+                                    }>
+                                    {booking.status}
+                                </span>
+                            </p>
                             {/* Conditionally display "Booked by" only for admins */}
                             {user.user_type === 'admin' && booking.user && (
-                                <p className="booking-detail"><strong>Booked by:</strong> {booking.user.first_name +" "+booking.user.last_name}</p>
+                                <div>
+                                    <p className="booking-detail"><strong>Booked by:</strong> {booking.user.first_name +" "+booking.user.last_name}</p>
+                                    <p className="booking-detail"><strong>Email:</strong> {booking.user.email}</p>
+                                    
+                                </div>
                             )}
 
                             {/* Add a generic "View Details" link for consistency */}
