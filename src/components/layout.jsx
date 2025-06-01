@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom"; // Import NavLink
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
 
@@ -66,6 +66,14 @@ export default function Layout() {
     }
   }, [isDarkMode]);
 
+  // Handle the top navigation bar search (optional: redirect to /search page)
+  const handleTopNavbarSearch = (e) => {
+    e.preventDefault();
+    const searchValue = e.target.elements.search.value;
+    // You could pass the search value as state or query param
+    navigate(`/search?keyword=${encodeURIComponent(searchValue)}`);
+  };
+
   return (
     <>
       <div className={`dashboard-container ${isSidebarOpen ? "" : "sidebar-closed"}`}>
@@ -79,13 +87,20 @@ export default function Layout() {
           </div>
 
           <ul className="side-menu top">
-            {/* Use NavLink for active class behavior */}
-            <li> {/* Remove the 'active' class here, NavLink handles it */}
+            <li>
               <NavLink to="/">
                 <i className="bx bxs-dashboard"></i>
                 <span className="text">Home</span>
               </NavLink>
             </li>
+            {user && user.user_type === 'admin' && ( // Conditional rendering for admin dashboard
+              <li>
+                <NavLink to="/statistical">
+                  <i className="bx bx-chart"></i>
+                  <span className="text">Statistical Dashboard</span>
+                </NavLink>
+              </li>
+            )}
             <li>
               <NavLink to="/profile">
                 <i className="bx bx-user"></i>
@@ -93,9 +108,14 @@ export default function Layout() {
               </NavLink>
             </li>
             <li>
-              {/* If your / route (Home) also acts as the Resources page, keep it as / */}
-              {/* If Resources has its own page, change the 'to' prop accordingly */}
-              <NavLink to="/createResource"> {/* Assuming / is also the Resources page */}
+              {/* NEW: NavLink for the dedicated search page */}
+              <NavLink to="/search">
+                <i className="bx bx-search-alt"></i> {/* Changed icon to search */}
+                <span className="text">Resource Search</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/createResource"> {/* Assuming /createResource is for managing resources */}
                 <i className="bx bxs-component"></i>
                 <span className="text">Resources</span>
               </NavLink>
@@ -106,15 +126,12 @@ export default function Layout() {
                 <span className="text">Bookings</span>
               </NavLink>
             </li>
-
             <li>
-              {/* Assuming /notifications is the route for notifications */}
               <NavLink to="/notifications">
                 <i className="bx bxs-bell"></i>
                 <span className="text">Notification</span>
               </NavLink>
             </li>
-
             <li>
               <NavLink to="/settings">
                 <i className="bx bxs-cog"></i>
@@ -122,9 +139,7 @@ export default function Layout() {
               </NavLink>
             </li>
             <li onClick={handleLogout}>
-              {/* Logout is not a navigation link, so Link/NavLink isn't ideal here. */}
-              {/* Using a simple <a> tag or a button for logout is often better practice. */}
-              <a href="#"> {/* Using href="#" to prevent default navigation */}
+              <a href="#">
                 <i className="bx bxs-log-out-circle"></i>
                 <span className="text">Logout</span>
               </a>
@@ -138,10 +153,11 @@ export default function Layout() {
             <a href="#" className="nav-link">
               Categories
             </a>
-            <form>
+            {/* Modified: Make the top navbar search redirect to the search page */}
+            <form onSubmit={handleTopNavbarSearch}>
               <div className="form-input">
                 <input type="text" placeholder="Search..." name="search" id="search-field" required />
-                <button type="submit" className="search-btn" name="search-btn">
+                <button type="submit" className="search-btn">
                   <i className="bx bx-search"></i>
                 </button>
               </div>
@@ -156,21 +172,19 @@ export default function Layout() {
             />
             <label htmlFor="switch-mode" className="switch-mode"></label>
 
-            <a href="notification-admin.php" className="notification">
+            <a href="/notifications" className="notification"> {/* Changed to React Router link */}
               <i className="bx bxs-bell"></i>
-              <span className="num">0</span>
+              <span className="num">0</span> {/* This '0' would typically be dynamic */}
             </a>
-            <a href="profile-admin.php" className="profile">
-              <img src={user?.profile_picture || logo} alt="Profile" /> {/* Use user profile picture if available */}
+            <a href="/profile" className="profile"> {/* Changed to React Router link */}
+              <img src={user?.profile_picture || logo} alt="Profile" />
             </a>
           </nav>
 
           <main>
             <div className="head-title">
               <div className="left">
-                {/* Optional chaining for user properties */}
-                <h1>Welcome {user.user_type === 'admin'? 'Admin '+user.first_name:" "+ user.first_name}</h1>
-
+                <h1>Welcome {user ? (user.user_type === 'admin' ? `Admin ${user.first_name}` : user.first_name) : 'Guest'}</h1>
                 <br />
                 <ul className="breadcrumb">
                   <li>

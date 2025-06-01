@@ -12,6 +12,8 @@ import ViewBooking from './Bookings/viewBooking';
 import UpdateBooking from './Bookings/updateBooking';
 import ShowProfile from './profile/showProfile';
 import CreateResource from './resources/create';
+import Statistical from './resources/statistical';
+import ResourceSearch from './resources/searchResource';
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -29,9 +31,10 @@ export default function App() {
           <Route path="resources/:id" element={<View />} />
           <Route path="bookings/:id/edit" element={<UpdateBooking />} /> 
           <Route path='profile' element={<ShowProfile />} />
-         
+          <Route path='statistical' element={<Statistical />}/>
           <Route path="booking" element={<MyBookings />}/>
           <Route path="booking/:id" element={<ViewBooking />} />
+          <Route path="search" element={< ResourceSearch />} />
         </Route>
 
         

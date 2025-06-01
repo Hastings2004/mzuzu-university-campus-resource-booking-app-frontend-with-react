@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
+import { Bar } from "react-chartjs-2";
 
 export default function Home() {
     const { token } = useContext(AppContext);
@@ -32,6 +33,9 @@ export default function Home() {
                 So, this div just needs to organize the internal elements. */}
             <div className="home-dashboard-section">
                 <h1>Available Resources</h1>
+                 
+                       
+                        
 
                 {resources.length > 0 ? (
                     <div className="resource-cards-container"> {/* Container for the cards */}
