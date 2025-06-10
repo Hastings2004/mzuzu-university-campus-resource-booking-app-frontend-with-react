@@ -107,6 +107,7 @@ export default function MyBookings() {
             if (res.ok) {
                 setMessage(data.message || `Booking ${newStatus}d successfully!`);
                 fetchBookings(); // Re-fetch bookings to update the table
+                
             } else {
                 setMessage(data.message || `Failed to ${newStatus} booking.`);
                 console.error(`Failed to ${newStatus} booking:`, data);
