@@ -12,26 +12,30 @@ export default function Layout() {
     return savedMode === 'true' ? true : false;
   });
 
-  async function handleLogout(e) {
-    e.preventDefault();
-
-    const response = await fetch("/api/logout", {
-      method: "post",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-    console.log(data);
-
-    if (response.ok) {
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem("token");
-      navigate("/");
+  const handleLogout = async () => {
+    // 1. Ask for Confirmation FIRST
+    if (!window.confirm("Are you sure you want to logout?")) {
+      return;
     }
-  }
+
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error("Server logout failed:", response.status, await response.text());
+      }
+    } catch (error) {
+      console.error("Network error during server logout:", error);
+    }
+
+    navigate('/'); // Redirect to login page or home page
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -41,9 +45,15 @@ export default function Layout() {
     setIsDarkMode(prevMode => !prevMode);
   };
 
+  // State to track if it's a small device
+  const [isSmallDevice, setIsSmallDevice] = useState(window.innerWidth <= 768);
+
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
+      const newIsSmallDevice = window.innerWidth <= 768;
+      setIsSmallDevice(newIsSmallDevice);
+      // Only set sidebar to false initially on small devices, not when resizing larger
+      if (newIsSmallDevice) {
         setIsSidebarOpen(false);
       } else {
         setIsSidebarOpen(true);
@@ -51,7 +61,7 @@ export default function Layout() {
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize();
+    handleResize(); // Call once on mount
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -65,6 +75,13 @@ export default function Layout() {
       localStorage.setItem('darkMode', 'false');
     }
   }, [isDarkMode]);
+
+  // New function to close sidebar on link click if it's a small device
+  const handleNavLinkClick = () => {
+    if (isSmallDevice) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   // Handle the top navigation bar search (optional: redirect to /search page)
   const handleTopNavbarSearch = (e) => {
@@ -88,52 +105,60 @@ export default function Layout() {
 
           <ul className="side-menu top">
             <li>
-              <NavLink to="/">
+              <NavLink to="/" onClick={handleNavLinkClick}>
                 <i className="bx bxs-dashboard"></i>
                 <span className="text">Home</span>
               </NavLink>
             </li>
             {user && user.user_type === 'admin' && ( // Conditional rendering for admin dashboard
-              <li>
-                <NavLink to="/statistical">
-                  <i className="bx bx-chart"></i>
-                  <span className="text">Statistical Dashboard</span>
-                </NavLink>
-              </li>
+              <>
+                <li>
+                  <NavLink to="/statistical" onClick={handleNavLinkClick}>
+                    <i className="bx bx-chart"></i>
+                    <span className="text">Statistical Dashboard</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/users" onClick={handleNavLinkClick}>
+                    <i className="bx bx-user"></i>
+                    <span className="text">User Management</span>
+                  </NavLink>
+                </li>
+              </>
             )}
             <li>
-              <NavLink to="/profile">
+              <NavLink to="/profile" onClick={handleNavLinkClick}>
                 <i className="bx bx-user"></i>
                 <span className="text">Profile</span>
               </NavLink>
             </li>
             <li>
               {/* NEW: NavLink for the dedicated search page */}
-              <NavLink to="/search">
+              <NavLink to="/search" onClick={handleNavLinkClick}>
                 <i className="bx bx-search-alt"></i> {/* Changed icon to search */}
                 <span className="text">Resource Search</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/createResource"> {/* Assuming /createResource is for managing resources */}
+              <NavLink to="/createResource" onClick={handleNavLinkClick}> {/* Assuming /createResource is for managing resources */}
                 <i className="bx bxs-component"></i>
                 <span className="text">Resources</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/booking">
+              <NavLink to="/booking" onClick={handleNavLinkClick}>
                 <i className="bx bxs-calendar-check"></i>
                 <span className="text">Bookings</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/notifications">
+              <NavLink to="/notifications" onClick={handleNavLinkClick}>
                 <i className="bx bxs-bell"></i>
                 <span className="text">Notification</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/settings">
+              <NavLink to="/settings" onClick={handleNavLinkClick}>
                 <i className="bx bxs-cog"></i>
                 <span className="text">Settings</span>
               </NavLink>

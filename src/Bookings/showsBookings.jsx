@@ -1,30 +1,30 @@
 import { useContext, useEffect, useState, useCallback } from "react";
 import { AppContext } from "../context/appContext";
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate for redirects
-import moment from 'moment'; // For date formatting
+import { Link, useNavigate } from "react-router-dom";
+import moment from 'moment';
 
 export default function MyBookings() {
     const { user, token, setUser } = useContext(AppContext);
-    const navigate = useNavigate(); // Hook for programmatic navigation
+    const navigate = useNavigate();
 
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [message, setMessage] = useState(''); // For action success/error messages
+    const [message, setMessage] = useState('');
 
     const fetchBookings = useCallback(async () => {
         if (!token) {
             setLoading(false);
             setError("You must be logged in to view bookings.");
-            // Optionally redirect to login if token is missing
+            // Consider redirecting to login if token is definitely missing and this page requires it
             // navigate('/login');
             return;
         }
 
         try {
             setLoading(true);
-            setError(null); // Clear previous errors
-            setMessage(''); // Clear previous messages
+            setError(null);
+            setMessage('');
 
             const res = await fetch("/api/bookings", {
                 method: 'GET',
@@ -34,45 +34,56 @@ export default function MyBookings() {
                 }
             });
 
-            const data = await res.json();
+            const data = await res.json(); // Data will be { success: true, bookings: [...] }
 
             if (res.ok) {
-                setBookings(data);
+                // *** IMPORTANT FIX HERE ***
+                if (data.success && Array.isArray(data.bookings)) {
+                    setBookings(data.bookings); // Set the actual array of bookings
+                } else {
+                    // Handle unexpected success response structure
+                    setError(data.message || "Received unexpected data format for bookings.");
+                    setBookings([]); // Clear bookings if data is malformed
+                }
             } else {
                 setError(data.message || "Failed to fetch bookings.");
                 console.error("Failed to fetch bookings:", data);
-                // If token is invalid/expired, clear user and redirect
+
                 if (res.status === 401 || res.status === 403) {
                     alert("Your session has expired or is invalid. Please log in again.");
-                    setUser(null);
-                    navigate('/login');
+                    setUser(null); // Clear user context
+                    navigate('/login'); // Redirect to login
                 }
             }
         } catch (err) {
-            setError("An error occurred while fetching bookings.");
+            setError("An error occurred while fetching bookings. Please check your network connection.");
             console.error("Network or API error:", err);
-            // If network error, also consider redirecting
+            // Optionally redirect on severe network error
             // alert("A network error occurred. Please check your connection. Redirecting to login.");
             // setUser(null);
             // navigate('/login');
         } finally {
             setLoading(false);
         }
-    }, [user, token, navigate, setUser]); // Added user, navigate, setUser to dependencies
+    }, [token, navigate, setUser]); // user is not directly used within fetchBookings, but token is
 
     useEffect(() => {
-        // Only fetch if user and token are available
-        if (user && token) {
+        // Only fetch if user and token are available, and after initial render
+        if (token && user) { // Ensure user object is also available
             fetchBookings();
         } else {
-            // If user or token disappear (e.g., logout), clear bookings and set error
             setBookings([]);
             setLoading(false);
-            setError("Please log in to view bookings.");
+            // Only set error if no user or token, otherwise fetchBookings handles it
+            if (!user) {
+                setError("Please log in to view bookings.");
+            }
         }
     }, [user, token, fetchBookings]); // Re-fetch if user, token, or fetchBookings changes
 
     // --- Action Handlers (Admin Only) ---
+    // These handlers look mostly correct assuming your backend routes are /api/bookings/{id}/approve and /api/bookings/{id}/reject
+    // and that hasRole method on user works correctly.
     const handleStatusUpdate = async (bookingId, newStatus) => {
         if (!user || user.user_type !== 'admin') {
             setMessage("Unauthorized to perform this action.");
@@ -87,9 +98,11 @@ export default function MyBookings() {
             const res = await fetch(`/api/bookings/${bookingId}/${newStatus}`, { // e.g., /api/bookings/1/approve
                 method: 'POST', // Assuming your approve/reject endpoints are POST
                 headers: {
-                    
+                    'Accept': 'application/json', // Good practice
+                    'Content-Type': 'application/json', // If sending a body, though not needed for these
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                // No body needed for these simple status updates if your backend just uses URL params
             });
 
             const data = await res.json();
@@ -108,7 +121,7 @@ export default function MyBookings() {
     };
 
     const handleDeleteBooking = async (bookingId) => {
-        if (!user || user.user_type !== 'admin') { // Only admin can delete
+        if (!user || user.user_type !== 'admin') { // Only admin can delete based on your logic
             setMessage("Unauthorized to perform this action.");
             return;
         }
@@ -121,6 +134,7 @@ export default function MyBookings() {
             const res = await fetch(`/api/bookings/${bookingId}`, {
                 method: 'DELETE',
                 headers: {
+                    'Accept': 'application/json',
                     'Authorization': `Bearer ${token}`
                 }
             });
@@ -149,8 +163,9 @@ export default function MyBookings() {
         return <p className="error-message">{error}</p>;
     }
 
+    // This check is important as `user` might be null initially or after logout
     if (!user || !user.user_type) {
-        return <p className="error-message">User data not available. Please log in.</p>;
+        return <p className="error-message">User data not available or not logged in. Please log in.</p>;
     }
 
     const isAdmin = user.user_type === 'admin';
@@ -221,14 +236,19 @@ export default function MyBookings() {
                                             </td>
                                             <td className="booking-actions-cell">
                                                 <Link to={`/booking/${booking.id}`} className="action-button view-button">View</Link>
-                                                <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
-                                                {booking.status === 'pending' && (
+                                                {/* Edit button for admin or owner if pending/approved */}
+                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
+                                                    <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
+                                                )}
+
+                                                {booking.status === 'pending' && isAdmin && (
                                                     <>
                                                         <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button">Approve</button>
                                                         <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button">Reject</button>
                                                     </>
                                                 )}
-                                                {(booking.status === 'approved' || booking.status === 'rejected' || booking.status === 'cancelled') && (
+                                                {/* Allow delete for admin, or for owner if status is specific (e.g., pending, rejected, cancelled) */}
+                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'rejected', 'cancelled'].includes(booking.status))) && (
                                                     <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Delete</button>
                                                 )}
                                             </td>
@@ -238,7 +258,7 @@ export default function MyBookings() {
                             </table>
                         </div>
                     ) : (
-                        // --- Non-Admin Card View (Existing Layout) ---
+                        // --- Non-Admin Card View ---
                         <div className="bookings-list">
                             {bookings.map(booking => (
                                 <div key={booking.id} className="booking-card">
@@ -252,8 +272,8 @@ export default function MyBookings() {
                                         )}
                                     </h2>
                                     <p className="booking-detail"><strong>Purpose:</strong> {booking.purpose}</p>
-                                    <p className="booking-detail"><strong>Start Time:</strong> {new Date(booking.start_time).toLocaleString()}</p>
-                                    <p className="booking-detail"><strong>End Time:</strong> {new Date(booking.end_time).toLocaleString()}</p>
+                                    <p className="booking-detail"><strong>Start Time:</strong> {moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</p>
+                                    <p className="booking-detail"><strong>End Time:</strong> {moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</p>
                                     <p className="booking-detail"><strong>Booking Status:</strong>
                                         <span className={
                                             booking.status === 'approved' ? 'status-approved' :
@@ -264,7 +284,7 @@ export default function MyBookings() {
                                         </span>
                                     </p>
                                     {/* Conditionally display "Booked by" only for admins (in card view, though table is preferred for admin) */}
-                                    {user.user_type === 'admin' && booking.user && (
+                                    {isAdmin && booking.user && ( // Only show if admin and user data exists
                                         <div>
                                             <p className="booking-detail"><strong>Booked by:</strong> {booking.user.first_name + " " + booking.user.last_name}</p>
                                             <p className="booking-detail"><strong>Email:</strong> {booking.user.email}</p>
@@ -272,6 +292,10 @@ export default function MyBookings() {
                                     )}
                                     <Link to={`/my-bookings/${booking.id}`} className="view-details-button">View Details</Link>
                                     {/* You can add more details or action buttons like "Cancel Booking" here */}
+                                    {/* Allow owner to cancel if pending/approved */}
+                                    {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
+                                        <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Cancel Booking</button>
+                                    )}
                                 </div>
                             ))}
                         </div>

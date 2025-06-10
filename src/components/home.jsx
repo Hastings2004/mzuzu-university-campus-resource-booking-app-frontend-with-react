@@ -1,48 +1,81 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
-import { Bar } from "react-chartjs-2";
+// import { Bar } from "react-chartjs-2"; // Not used in this snippet, can be removed if not needed elsewhere
 
 export default function Home() {
     const { token } = useContext(AppContext);
 
-    const [resources, setresources] = useState([]);
+    const [resources, setResources] = useState([]); // Renamed for consistency
+    const [loading, setLoading] = useState(true); // Add loading state
+    const [error, setError] = useState(null); // Add error state
 
-    async function getresources() {
-        const response = await fetch("/api/resources", {
-            method: 'get',
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+    // Use useCallback to memoize the function, good practice for functions in useEffect dependencies
+    const getResources = useCallback(async () => {
+        setLoading(true); // Start loading
+        setError(null);   // Clear previous errors
 
-        const data = await response.json();
-
-        if (response.ok) {
-            setresources(data);
+        if (!token) {
+            setError("Authentication token missing. Please log in.");
+            setLoading(false);
+            return;
         }
-    }
+
+        try {
+            const response = await fetch("/api/resources", {
+                method: 'GET', // Conventionally 'GET' for fetching data
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json' // Good practice to include
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // IMPORTANT: Access the 'resources' array from the data object
+                if (data.success && Array.isArray(data.resources)) {
+                    setResources(data.resources);
+                } else {
+                    // Handle cases where success is false or resources is not an array
+                    setError(data.message || "Invalid data format received from server.");
+                }
+            } else {
+                // Handle HTTP errors (e.g., 401, 403, 404, 500)
+                setError(data.message || `Failed to fetch resources: ${response.status} ${response.statusText}`);
+                console.error("API error:", data);
+            }
+        } catch (err) {
+            // Handle network errors or other exceptions
+            setError("An error occurred while fetching resources. Please check your network connection.");
+            console.error("Fetch error:", err);
+        } finally {
+            setLoading(false); // End loading
+        }
+    }, [token]); // Add token to dependency array for useCallback
 
     useEffect(() => {
-        getresources();
-    }, []);
+        getResources(); // Call the memoized function
+    }, [getResources]); // Depend on the memoized function
 
     return (
         <>
-            {/* The #content main in your CSS already handles padding and overflow.
-                So, this div just needs to organize the internal elements. */}
             <div className="home-dashboard-section">
                 <h1>Available Resources</h1>
-                 
-                       
-                        
 
-                {resources.length > 0 ? (
-                    <div className="resource-cards-container"> {/* Container for the cards */}
+                {loading && <p className="loading-message">Loading resources...</p>}
+                {error && <p className="error-message">{error}</p>}
+
+                {!loading && !error && resources.length > 0 ? (
+                    <div className="resource-cards-container">
                         {resources.map(resource => (
-                            <div key={resource.id} className="resource-card"> {/* Individual card */}
+                            <div key={resource.id} className="resource-card">
                                 <h3 className="resource-title">{resource.name}</h3>
-                                {/* Dynamic class for status */}
+                                {/* Assuming 'image' field exists and is a URL */}
+                                {//resource.image && (
+                                    //<img src={resource.image} alt={resource.name} className="resource-card-image" />
+                                //)
+                                }
                                 <p className="resource-description"><strong>Description:</strong> {resource.description}</p>
                                 <p className="resource-location"><strong>Location:</strong> {resource.location}</p>
                                 <p className="resource-capacity"><strong>Capacity:</strong> {resource.capacity} people</p>
@@ -53,9 +86,9 @@ export default function Home() {
                             </div>
                         ))}
                     </div>
-                ) : (
+                ) : (!loading && !error && (
                     <p className="no-resources-message">No resources available.</p>
-                )}
+                ))}
             </div>
         </>
     );

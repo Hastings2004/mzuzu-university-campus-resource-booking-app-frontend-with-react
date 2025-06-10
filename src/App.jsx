@@ -12,8 +12,11 @@ import ViewBooking from './Bookings/viewBooking';
 import UpdateBooking from './Bookings/updateBooking';
 import ShowProfile from './profile/showProfile';
 import CreateResource from './resources/create';
-import Statistical from './resources/statistical';
+import Statistical from './admin/statistical';
 import ResourceSearch from './resources/searchResource';
+import UserManagement from './admin/userManagement';
+import Settings from './components/settings';
+import Notifications from './components/notifications';
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -32,9 +35,12 @@ export default function App() {
           <Route path="bookings/:id/edit" element={<UpdateBooking />} /> 
           <Route path='profile' element={<ShowProfile />} />
           <Route path='statistical' element={<Statistical />}/>
+          <Route path="users" element={<UserManagement />} />
           <Route path="booking" element={<MyBookings />}/>
           <Route path="booking/:id" element={<ViewBooking />} />
           <Route path="search" element={< ResourceSearch />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         
