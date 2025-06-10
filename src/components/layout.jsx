@@ -11,53 +11,46 @@ export default function Layout() {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode === 'true' ? true : false;
   });
+
   async function handleLogout(e) {
+    e.preventDefault();
 
-        e.preventDefault();
-
-        if (!window.confirm("Are you sure you want to logout?")) {
-          return;
-        }
-        const res = await fetch('/api/logout', {
-            method: "post",
-            headers:{
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        const data = await res.json();
-       
-        if(res.ok){
-            setUser(null);
-            setToken(null);
-            localStorage.removeItem("token");
-            navigate("/");
-        }
+    if (!window.confirm("Are you sure you want to logout?")) {
+      return;
     }
-  // const handleLogout = async () => {
-  //   // 1. Ask for Confirmation FIRST
-  //   if (!window.confirm("Are you sure you want to logout?")) {
-  //     return;
-  //   }
 
-  //   try {
-  //     const response = await fetch('/api/logout', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': `Bearer ${token}`
-  //       }
-  //     });
+    try {
+      const res = await fetch('/api/logout', {
+        method: "POST", // Make sure it's POST
+        headers: {
+          'Content-Type': 'application/json', // Add Content-Type header
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  //     if (!response.ok) {
-  //       console.error("Server logout failed:", response.status, await response.text());
-  //     }
-  //   } catch (error) {
-  //     console.error("Network error during server logout:", error);
-  //   }
-
-  //   navigate('/login'); // Redirect to login page or home page
-  // };
+      // Always clear local state regardless of server response
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("token");
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Logout successful:', data);
+      } else {
+        console.log('Server logout failed, but local logout completed');
+      }
+      
+      navigate("/login"); // Navigate to login page instead of "/"
+      
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear local state even if server request fails
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -185,11 +178,27 @@ export default function Layout() {
                 <span className="text">Settings</span>
               </NavLink>
             </li>
-            <li onClick={handleLogout}>
-              <a href="#">
+            {/* Fixed logout button - using button instead of anchor */}
+            <li>
+              <button 
+                onClick={handleLogout}
+                className="logout-btn"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '12px 16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'inherit',
+                  fontSize: 'inherit'
+                }}
+              >
                 <i className="bx bxs-log-out-circle"></i>
                 <span className="text">Logout</span>
-              </a>
+              </button>
             </li>
           </ul>
         </section>
