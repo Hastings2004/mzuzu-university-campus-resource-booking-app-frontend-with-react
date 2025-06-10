@@ -3994,3 +3994,34 @@ input:checked + .slider:before {
         margin-left: auto; /* Push switch to the right */
     }
 }
+
+.booking-controls label {
+    font-weight: 600;
+    color: #333;
+    margin-right: 5px;
+    white-space: nowrap; /* Prevents label from breaking line */
+}
+
+.booking-controls select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 1rem;
+    color: #555;
+    cursor: pointer;
+    min-width: 150px; /* Ensure dropdowns have a minimum width */
+    -webkit-appearance: none; /* Remove default browser styling */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%20197.6l-14.7-14.7-117.7-117.7-117.7%20117.7-14.7%2014.7%2029.4%2029.4%20102%20102%20102-102%2029.4-29.4z%22%2F%3E%3C%2Fsvg%3E'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 12px;
+}
+
+.booking-controls select:focus {
+    border-color: #007bff; /* Highlight on focus */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
