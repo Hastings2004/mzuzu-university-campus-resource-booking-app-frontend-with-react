@@ -81,9 +81,6 @@ export default function MyBookings() {
         }
     }, [user, token, fetchBookings]); // Re-fetch if user, token, or fetchBookings changes
 
-    // --- Action Handlers (Admin Only) ---
-    // These handlers look mostly correct assuming your backend routes are /api/bookings/{id}/approve and /api/bookings/{id}/reject
-    // and that hasRole method on user works correctly.
     const handleStatusUpdate = async (bookingId, newStatus) => {
         if (!user || user.user_type !== 'admin') {
             setMessage("Unauthorized to perform this action.");
@@ -291,8 +288,7 @@ export default function MyBookings() {
                                         </div>
                                     )}
                                     <Link to={`/my-bookings/${booking.id}`} className="view-details-button">View Details</Link>
-                                    {/* You can add more details or action buttons like "Cancel Booking" here */}
-                                    {/* Allow owner to cancel if pending/approved */}
+                                    
                                     {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
                                         <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Cancel Booking</button>
                                     )}
