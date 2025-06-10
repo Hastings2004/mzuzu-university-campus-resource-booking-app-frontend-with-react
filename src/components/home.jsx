@@ -1,14 +1,13 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
-// import { Bar } from "react-chartjs-2"; // Not used in this snippet, can be removed if not needed elsewhere
 
 export default function Home() {
     const { token } = useContext(AppContext);
 
-    const [resources, setResources] = useState([]); // Renamed for consistency
-    const [loading, setLoading] = useState(true); // Add loading state
-    const [error, setError] = useState(null); // Add error state
+    const [resources, setResources] = useState([]); 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); 
 
     // Use useCallback to memoize the function, good practice for functions in useEffect dependencies
     const getResources = useCallback(async () => {
@@ -23,17 +22,17 @@ export default function Home() {
 
         try {
             const response = await fetch("/api/resources", {
-                method: 'GET', // Conventionally 'GET' for fetching data
+                method: 'GET', 
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json' // Good practice to include
+                    'Content-Type': 'application/json' 
                 }
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                // IMPORTANT: Access the 'resources' array from the data object
+                
                 if (data.success && Array.isArray(data.resources)) {
                     setResources(data.resources);
                 } else {
@@ -55,8 +54,8 @@ export default function Home() {
     }, [token]); // Add token to dependency array for useCallback
 
     useEffect(() => {
-        getResources(); // Call the memoized function
-    }, [getResources]); // Depend on the memoized function
+        getResources(); 
+    }, [getResources]); 
 
     return (
         <>

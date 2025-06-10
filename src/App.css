@@ -1272,12 +1272,12 @@ body {
     font-weight: bold;
 }
 .resource-card .status-available {
-    color: var(--primary-color);
+    color: var(--accent-red);
     font-weight: bold;
 }
 
 .resource-card .status-booked {
-    color: var(--accent-red);
+    color: var(--accent-green);
     font-weight: bold;
 }
 .resource-card:hover {
@@ -2760,30 +2760,30 @@ body {
 
 .view-button {
     background-color: var(--primary-color);
-    color: var(--text-light-on-dark);
+    color: var(--warning-button-text);
 }
 .view-button:hover { background-color: var(--primary-hover-color); transform: translateY(-1px); }
 
 .edit-button {
-    background-color: var(--warning-button-bg); /* Changed from orange to warning button variable */
+    background-color: var(--accent-yellow); /* Changed from orange to warning button variable */
     color: var(--warning-button-text); /* Assuming light text on warning button */
 }
 .edit-button:hover { background-color: var(--warning-button-hover); transform: translateY(-1px); }
 
 .approve-button {
-    background-color: var(--success-button-bg); /* Changed from green to success button variable */
+    background-color: var(--primary-light); /* Changed from green to success button variable */
     color: var(--success-button-text);
 }
 .approve-button:hover { background-color: var(--success-button-hover); transform: translateY(-1px); }
 
 .reject-button {
-    background-color: var(--info-button-bg); /* Changed from --accent-red to info button (yellowish for reject) */
+    background-color: var(--accent-red); /* Changed from --accent-red to info button (yellowish for reject) */
     color: var(--info-button-text); /* Dark text on yellow */
 }
 .reject-button:hover { background-color: var(--info-button-hover); transform: translateY(-1px); }
 
 .delete-button {
-    background-color: var(--error-button-bg); /* Changed from --accent-red to error button variable */
+    background-color: var(--accent-red); /* Changed from --accent-red to error button variable */
     color: var(--error-button-text);
 }
 .delete-button:hover { background-color: var(--error-button-hover); transform: translateY(-1px); }
@@ -2799,9 +2799,9 @@ body {
 }
 /* Colors for status spans should be defined using variables in your global CSS */
 
-.status-approved { color: var(--success-text); background-color: var(--success-bg); }
-.status-pending { color: var(--warning-text); background-color: var(--warning-bg); }
-.status-rejected { color: var(--error-text); background-color: var(--error-bg); }
+.status-approved { color: var(--primary-color); background-color: var(--success-bg); }
+.status-pending { color: var(--accent-orange); background-color: var(--warning-bg); }
+.status-rejected { color: var(--accent-red); background-color: var(--error-bg); }
 
 
 
@@ -3303,8 +3303,8 @@ body.dark .error-message {
 
 .user-management {
     padding: 20px;
-    max-width: 1000px;
-    margin: 0 auto; /* Corrected margin-left: 40px auto; to center the container */
+    max-width: 1300px;
+    margin: 0px; /* Corrected margin-left: 40px auto; to center the container */
     background-color: var(--bg-secondary); /* Use variable */
     border-radius: 8px;
     box-shadow: 0 4px 8px var(--shadow-medium); /* Changed to use a variable for consistency */
@@ -3398,7 +3398,7 @@ body.dark .error-message {
 
 /* Specific styling for User Type tags */
 .user-type-admin {
-    background-color: var(--tag-admin-bg); /* New variable */
+    background-color: var(--accent-blue); /* New variable */
     color: var(--tag-admin-text); /* New variable */
     padding: 4px 8px;
     border-radius: 4px;
@@ -3408,7 +3408,7 @@ body.dark .error-message {
 }
 
 .user-type-staff {
-    background-color: var(--tag-staff-bg); /* New variable */
+    background-color: var(--accent-green); /* New variable */
     color: var(--tag-staff-text); /* New variable */
     padding: 4px 8px;
     border-radius: 4px;
@@ -3418,7 +3418,7 @@ body.dark .error-message {
 }
 
 .user-type-student {
-    background-color: var(--tag-student-bg); /* New variable */
+    background-color: var(--accent-yellow); /* New variable */
     color: var(--tag-student-text); /* New variable */
     padding: 4px 8px;
     border-radius: 4px;
