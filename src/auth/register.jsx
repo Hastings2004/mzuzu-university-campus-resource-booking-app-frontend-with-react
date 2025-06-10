@@ -4,6 +4,7 @@ import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
 import '../App.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { color } from "chart.js/helpers";
 
 export default function Register() {
     const { setToken } = useContext(AppContext);
@@ -67,6 +68,14 @@ export default function Register() {
         });
     };
 
+    const h2Style = {
+        fontSize: '1.5rem',
+        color: '#333',
+        marginBottom: '1rem',
+        textAlign: 'center',
+        color: 'green',
+        fontWeight: 'bold',
+    };
     return (
         <>
             <div className="auth-container">
@@ -78,7 +87,7 @@ export default function Register() {
                     <div className='content'>
                         <div>
                             <img src={logo} alt="logo" width={110} height={110} />
-                            <h2>Resource Booking App</h2>
+                            <h2 style={h2Style}>Resource Booking App</h2>
                         </div>
                         <div>
                             <h3>Register</h3>
