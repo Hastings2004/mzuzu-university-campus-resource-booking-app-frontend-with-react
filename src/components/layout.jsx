@@ -11,31 +11,53 @@ export default function Layout() {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode === 'true' ? true : false;
   });
+  async function handleLogout(e) {
 
-  const handleLogout = async () => {
-    // 1. Ask for Confirmation FIRST
-    if (!window.confirm("Are you sure you want to logout?")) {
-      return;
-    }
+        e.preventDefault();
 
-    try {
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+        if (!window.confirm("Are you sure you want to logout?")) {
+          return;
         }
-      });
+        const res = await fetch('/api/logout', {
+            method: "post",
+            headers:{
+                Authorization: `Bearer ${token}`,
+            },
+        });
 
-      if (!response.ok) {
-        console.error("Server logout failed:", response.status, await response.text());
-      }
-    } catch (error) {
-      console.error("Network error during server logout:", error);
+        const data = await res.json();
+       
+        if(res.ok){
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem("token");
+            navigate("/");
+        }
     }
+  // const handleLogout = async () => {
+  //   // 1. Ask for Confirmation FIRST
+  //   if (!window.confirm("Are you sure you want to logout?")) {
+  //     return;
+  //   }
 
-    navigate('/'); // Redirect to login page or home page
-  };
+  //   try {
+  //     const response = await fetch('/api/logout', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': `Bearer ${token}`
+  //       }
+  //     });
+
+  //     if (!response.ok) {
+  //       console.error("Server logout failed:", response.status, await response.text());
+  //     }
+  //   } catch (error) {
+  //     console.error("Network error during server logout:", error);
+  //   }
+
+  //   navigate('/login'); // Redirect to login page or home page
+  // };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
