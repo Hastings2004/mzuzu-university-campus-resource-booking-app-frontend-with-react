@@ -1,32 +1,38 @@
+// src/auth/register.jsx
 import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
-import '../App.css';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Ensure these are imported
+import '../App.css'; // Import your CSS for styling
 
 export default function Register() {
-    const { setToken } = useContext(AppContext);
+    // Remove setToken from context, as we won't set it immediately
+    const { setUser } = useContext(AppContext); // Only need setUser if you want to update user in context after registration (optional)
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        first_name: "", // State key
-        last_name: "",   // State key
+        first_name: "",
+        last_name: "",
         email: "",
         user_type: "",
         password: "",
         password_confirmation: "",
+        // student_id: "", // Add if you handle this dynamically and need to store it
+        // staff_id: "",   // Add if you handle this dynamically and need to store it
     });
 
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [successMessage, setSuccessMessage] = useState(null); // New state for success message
 
     async function handleRegistration(e) {
         e.preventDefault();
         setIsLoading(true);
         setErrors({});
+        setSuccessMessage(null); // Clear previous messages
 
         try {
             const response = await fetch("/api/register", {
@@ -39,15 +45,29 @@ export default function Register() {
 
             const data = await response.json();
 
-            if (data.errors) {
-                setErrors(data.errors);
+            if (response.ok) {
+                // Registration successful, backend now returns a message about verification.
+                setSuccessMessage(data.message || "Registration successful! Please check your email to verify your account.");
+                // We do NOT set token or navigate to home/dashboard here.
+                // User must verify email first, then manually go to login.
+                // Optionally: navigate('/registration-success'); to a static page.
+                // Clear form data after successful registration for new entry
+                setFormData({
+                    first_name: "",
+                    last_name: "",
+                    email: "",
+                    user_type: "",
+                    password: "",
+                    password_confirmation: "",
+                });
+            } else {
+                // Handle registration errors (e.g., validation errors)
+                if (data.errors) {
+                    setErrors(data.errors);
+                }
                 if (data.message) {
                     setErrors(prev => ({ ...prev, general: data.message }));
                 }
-            } else {
-                localStorage.setItem("token", data.token);
-                setToken(data.token);
-                navigate("/");
             }
         } catch (error) {
             setErrors(prev => ({ ...prev, general: "Network error. Please try again." }));
@@ -59,12 +79,15 @@ export default function Register() {
 
     const handleInputChange = (e) => {
         // e.target.id will now correctly match the formData keys: 'first_name', 'last_name', etc.
-        setFormData({ ...formData, [e.target.id || e.target.name]: e.target.value });
+        const { id, name, value } = e.target;
+        setFormData({ ...formData, [id || name]: value });
         setErrors(prev => {
             const newErrors = { ...prev };
-            delete newErrors[e.target.id || e.target.name];
+            delete newErrors[id || name];
+            delete newErrors.general; // Clear general error when user types
             return newErrors;
         });
+        setSuccessMessage(null); // Clear success message on input change
     };
 
     return (
@@ -83,18 +106,19 @@ export default function Register() {
                         <div>
                             <h3>Register</h3>
                             {errors.general && <p className='error general-error'>{errors.general}</p>}
+                            {successMessage && <p className='success-message'>{successMessage}</p>} {/* Display success message */}
                         </div>
                         <form onSubmit={handleRegistration} id='form'>
                             <div className='form-content'>
                                 <div className='form-details'>
                                     <input
                                         type="text"
-                                        id="first_name" 
+                                        id="first_name"
                                         className={`input ${errors.first_name ? 'input-error' : ''}`}
                                         placeholder="First Name"
                                         value={formData.first_name}
                                         onChange={handleInputChange}
-                                        autoComplete="given-name" 
+                                        autoComplete="given-name"
                                         required
                                     />
                                     {errors.first_name && <span className="error">{errors.first_name}</span>}
@@ -102,17 +126,17 @@ export default function Register() {
                                 <div className='form-details'>
                                     <input
                                         type="text"
-                                        id="last_name" 
+                                        id="last_name"
                                         className={`input ${errors.last_name ? 'input-error' : ''}`}
                                         placeholder="Last Name"
                                         value={formData.last_name}
                                         onChange={handleInputChange}
-                                        autoComplete="family-name" 
+                                        autoComplete="family-name"
                                         required
                                     />
                                     {errors.last_name && <span className="error">{errors.last_name}</span>}
                                 </div>
-                                
+
                                 <div className='form-details'>
                                     <input
                                         type="email"
@@ -127,7 +151,7 @@ export default function Register() {
                                     {errors.email && <span className="error">{errors.email}</span>}
                                 </div>
 
-                                {/* Student ID input, show only if user_type is 'student' */}
+                                {/* Student ID / Staff ID inputs based on user_type selection */}
                                 {formData.user_type === 'student' && (
                                     <div className='form-details'>
                                         <input
@@ -135,7 +159,7 @@ export default function Register() {
                                             id="student_id"
                                             className={`input ${errors.student_id ? 'input-error' : ''}`}
                                             placeholder="Student ID"
-                                            value={formData.student_id}
+                                            value={formData.student_id || ''} // Ensure value is controlled even if not initially set
                                             onChange={handleInputChange}
                                             required={formData.user_type === 'student'}
                                         />
@@ -146,16 +170,17 @@ export default function Register() {
                                     <div className='form-details'>
                                         <input
                                             type="text"
-                                            id="student_id"
-                                            className={`input ${errors.student_id ? 'input-error' : ''}`}
+                                            id="staff_id" // Changed from student_id for clarity
+                                            className={`input ${errors.staff_id ? 'input-error' : ''}`} // Changed from student_id for clarity
                                             placeholder="Staff ID"
-                                            value={formData.staff_id}
+                                            value={formData.staff_id || ''} // Ensure value is controlled
                                             onChange={handleInputChange}
-                                            required={formData.user_type === 'student'}
+                                            required={formData.user_type === 'staff'} // Required if staff
                                         />
-                                        {errors.student_id && <span className="error">{errors.student_id}</span>}
+                                        {errors.staff_id && <span className="error">{errors.staff_id}</span>} {/* Changed from student_id */}
                                     </div>
                                 )}
+
 
                                 <div className='form-details'>
                                     <select
@@ -169,7 +194,7 @@ export default function Register() {
                                         <option value="">-------------------Select user type---------------------</option>
                                         <option value="student">Student</option>
                                         <option value="staff">Staff</option>
-                                        <option value="guest">Guest</option>
+                                        {/* <option value="guest">Guest</option> - If guest needs verification, keep it. Otherwise, remove for email verification flow */}
                                     </select>
                                     {errors.user_type && <span className="error">{errors.user_type}</span>}
                                 </div>

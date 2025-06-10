@@ -174,7 +174,7 @@ body {
 }
 
 .auth-container .auth-content h2 {
-    color: var(--primary-dark);
+    color: var(--primary-color);
     font-size: 1.8em;
     margin-bottom: 10px;
     font-weight: 700;
@@ -1771,23 +1771,28 @@ body {
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.content {
+.auth-container .content {
     background-color: var(--bg-medium); /* White background for form */
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px var(--shadow-medium); /* Lighter shadow for the inner content */
+    /*border-radius: 10px;
+    box-shadow: 0 2px 8px var(--shadow-medium);  Lighter shadow for the inner content */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
 }
 
 /* Header and Status Display */
 .content h3 {
     font-size: 2.2em;
-    color: var(--text-primary); /* Uses main text color, changed from --text-dark */
+    color: var(--primary-color); /* Uses main text color, changed from --text-dark */
     margin-bottom: 20px;
     text-align: center;
-    border-bottom: 2px solid var(--border-color); /* Uses dynamic border color */
+    /*border-bottom: 2px solid var(--border-color);  Uses dynamic border color */
     padding-bottom: 15px;
     transition: color 0.3s ease, border-color 0.3s ease;
+}
+.content h2 span {
+    color: var(--primary-color); /* Changed from --dark-grey */
+    font-weight: 500;
 }
 
 .content p {
