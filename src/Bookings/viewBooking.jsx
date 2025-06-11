@@ -80,7 +80,7 @@ export default function ViewBooking() {
 
             if (res.ok) {
                 alert(data.message || "Booking deleted successfully!");
-                navigate("/bookings"); // Redirect to a suitable page after deletion
+                navigate("/booking"); // Redirect to a suitable page after deletion
             } else {
                 alert(data.message || "Failed to delete booking.");
                 console.error("Failed to delete booking:", data);
