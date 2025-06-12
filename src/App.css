@@ -1237,17 +1237,15 @@ body {
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
 }
 
-/* Optional: Additional styles for the surrounding card to ensure good spacing */
-/* NOTE: This '.single-resource-card' definition is duplicated later; review and merge. */
 .single-resource-card {
     background-color: var(--bg-light); /* Using variable */
     border-radius: 12px; /* Slightly more rounded card corners */
     box-shadow: 0 6px 20px var(--shadow-medium); /* Softer, larger shadow for the card */
     padding: 30px 40px; /* More padding inside the card */
     max-width: 650px; /* Adjust max width as needed */
-    margin: 50px auto; /* Centered with more top/bottom margin */
     text-align: left;
     border: 1px solid var(--border-color); /* Subtle border */
+     margin-right: 500px;
 }
 
 .single-resource-title {

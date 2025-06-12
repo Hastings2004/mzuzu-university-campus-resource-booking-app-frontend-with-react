@@ -14,6 +14,14 @@ export default function UpdateBooking() {
         end_time: '',
         purpose: '',
     });
+
+    const expiredStyle = {
+        color: 'red',
+        fontWeight: 'bold',
+        backgroundColor: '#f8d7da',
+        
+        padding: '10px',
+    };
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(true);
     const [bookingDetails, setBookingDetails] = useState(null); // To store full booking details
@@ -128,8 +136,7 @@ export default function UpdateBooking() {
     }
 
     if (!bookingDetails) {
-        // This case should ideally be caught by the navigate calls inside getBookingDetails
-        // but it's a good fallback for initial render if bookingDetails is null after loading
+        // If bookingDetails is null, it means the fetch failed or booking not found
         return <div className="container"><p>Booking details could not be loaded. Please try again.</p></div>;
     }
 
@@ -186,10 +193,14 @@ export default function UpdateBooking() {
                                 ></textarea>
                                 {errors.purpose && <p className="error">{errors.purpose[0]}</p>}
                             </div>
-
-                            <div className="form-detail">
+                            {bookingDetails.status === 'expired' || bookingDetails.status === 'rejected' ? (
+                                <div className="form-detail">
+                                    <p style={expiredStyle}>This booking cannot be updated because it is either expired or rejected.</p>
+                                </div>
+                            ) : <div className="form-detail">
                                 <button type="submit">Update Booking</button>
-                            </div>
+                            </div>}
+                            
                         </div>
                     </form>
                 </div>
