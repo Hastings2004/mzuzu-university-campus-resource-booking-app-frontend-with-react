@@ -13,6 +13,20 @@ export default function Layout() {
     return savedMode === 'true' ? true : false;
   });
 
+  const [initials, setInitials] = useState('');
+  useEffect(() => { 
+    if (user) {
+      initialsUserData().then(setInitials);
+    }
+  }, [user]);
+
+  async function initialsUserData() {
+    const firstLetter = user?.first_name?.charAt(0).toUpperCase() || '';
+    const lastLetter = user?.last_name?.charAt(0).toUpperCase() || '';
+
+    return `${firstLetter}${lastLetter}`;
+  }
+
   async function handleLogout(e) {
     e.preventDefault();
 
@@ -110,8 +124,8 @@ export default function Layout() {
       case '/users': return 'User Management';
       case '/profile': return 'Profile';
       case '/search': return 'Resource Search';
-      case '/createResource': return 'Resources'; // This might be a list/creation page
-      case '/booking': return 'Bookings'; // This might be a list of bookings
+      case '/createResource': return 'Resources'; 
+      case '/booking': return 'Bookings'; 
       case '/notifications': return 'Notifications';
       case '/settings': return 'Settings';
     }
@@ -140,11 +154,11 @@ export default function Layout() {
         }
     }
 
-    // 3. Fallback for any other unmatched dynamic paths or unexpected URLs
+    
     const segments = path.split('/').filter(Boolean); // Remove empty strings
     if (segments.length > 0) {
       const lastSegment = segments[segments.length - 1];
-      // Capitalize each word and join by space (e.g., 'my-profile' -> 'My Profile')
+      
       return lastSegment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
 
@@ -260,23 +274,24 @@ export default function Layout() {
                 </button>
               </div>
             </form>
-            <div></div>
-            <input
-              type="checkbox"
-              id="switch-mode"
-              hidden
-              checked={isDarkMode}
-              onChange={toggleDarkMode}
-            />
-            <label htmlFor="switch-mode" className="switch-mode"></label>
+            <div className="left-icons">
+              <input
+                type="checkbox"
+                id="switch-mode"
+                hidden
+                checked={isDarkMode}
+                onChange={toggleDarkMode}
+              />
+              <label htmlFor="switch-mode" className="switch-mode"></label>
 
-            <a href="/notifications" className="notification">
-              <i className="bx bxs-bell"></i>
-              <span className="num">0</span>
-            </a>
-            <a href="/profile" className="profile">
-              <img src={user?.profile_picture || logo} alt="Profile" />
-            </a>
+              <a href="/notifications" className="notification">
+                <i className="bx bxs-bell"></i>
+                <span className="num">0</span>
+              </a>
+              <a href="/profile" className="profile">
+                <h1>{initials}</h1>
+              </a>
+            </div>
           </nav>
 
           <main>
