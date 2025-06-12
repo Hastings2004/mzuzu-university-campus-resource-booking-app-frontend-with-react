@@ -1232,19 +1232,19 @@ body {
 }
 
 .single-resource-container .booking-actions .delete-button:hover {
-    background-color: #c82333; /* Darker red on hover */
-    transform: translateY(-3px); /* Slightly more lift effect */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+    background-color: #c82333; 
+    transform: translateY(-3px); 
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); 
 }
 
 .single-resource-card {
-    background-color: var(--bg-light); /* Using variable */
-    border-radius: 12px; /* Slightly more rounded card corners */
-    box-shadow: 0 6px 20px var(--shadow-medium); /* Softer, larger shadow for the card */
-    padding: 30px 40px; /* More padding inside the card */
-    max-width: 650px; /* Adjust max width as needed */
+    background-color: var(--bg-light); 
+    border-radius: 12px;
+    box-shadow: 0 6px 20px var(--shadow-medium); 
+    padding: 30px 40px; 
+    max-width: 650px; 
     text-align: left;
-    border: 1px solid var(--border-color); /* Subtle border */
+    border: 1px solid var(--border-color); 
      margin-right: 500px;
 }
 
@@ -1412,22 +1412,22 @@ body {
 }
 
 .single-resource-card .single-resource-detail {
-    font-size: 18px; /* Slightly larger text for details */
-    color: var(--text-primary); /* Changed from --text-dark */
+    font-size: 18px; 
+    color: var(--text-primary); 
     line-height: 1.6;
-    word-wrap: break-word; /* Ensure long text breaks */
+    word-wrap: break-word; 
     overflow-wrap: break-word;
-    display: flex; /* Use flexbox for label-value alignment */
-    align-items: baseline; /* Align text baselines */
+    display: flex; 
+    align-items: baseline; 
 }
 
 .single-resource-card .single-resource-detail strong {
-    color: var(--text-secondary); /* Changed from --dark-grey */
+    color: var(--text-secondary); 
     font-weight: 600;
-    min-width: 120px; /* Give strong labels more consistent width for alignment */
-    flex-shrink: 0; /* Prevent label from shrinking */
-    margin-right: 15px; /* Space between label and value */
-    text-align: right; /* Align label text to the right */
+    min-width: 120px; 
+    flex-shrink: 0; 
+    margin-right: 15px; 
+    text-align: right; 
 }
 
 
@@ -1470,11 +1470,11 @@ body {
 .form-input,
 .form-textarea {
     width: 100%;
-    padding: 12px 15px; /* More padding for inputs */
+    padding: 12px 15px; 
     border: 1px solid var(--border-color);
-    border-radius: 8px; /* Slightly more rounded corners */
+    border-radius: 8px; 
     font-size: 16px;
-    color: var(--text-primary); /* Changed from --text-dark */
+    color: var(--text-primary); 
     background-color: var(--bg-light);
     box-sizing: border-box;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -1519,20 +1519,19 @@ body {
     border-radius: 8px;
     font-size: 16px;
     text-align: center;
-    /* Default message style (e.g., info/neutral) */
-    background-color: var(--primary-light-alpha); /* Using a new variable for light alpha primary color */
+    background-color: var(--primary-light-alpha); 
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
     font-weight: 500;
 }
 /* Specific styles for success/error messages */
 .booking-message.success {
-    background-color: var(--success-bg); /* Using new variables */
+    background-color: var(--success-bg); 
     color: var(--success-text);
     border-color: var(--success-border);
 }
 .booking-message.error {
-    background-color: var(--error-bg); /* Using new variables */
+    background-color: var(--error-bg); 
     color: var(--error-text);
     border-color: var(--error-border);
 }
