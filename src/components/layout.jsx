@@ -100,46 +100,56 @@ export default function Layout() {
     navigate(`/search?keyword=${encodeURIComponent(searchValue)}`);
   };
 
-  // --- NEW: Map paths to breadcrumb titles ---
   const getBreadcrumbTitle = () => {
     const path = location.pathname;
-    switch (path) {
-      case '/':
-        return 'Home';
-      case '/statistical':
-        return 'Statistical Dashboard';
-      case '/users':
-        return 'User Management';
-      case '/profile':
-        return 'Profile';
-      case '/search':
-        return 'Resource Search';
-      case '/createResource': 
-        return 'Resources';
-      case '/booking': 
-        return 'Bookings';
-      case '/notifications':
-        return 'Notifications';
-      case '/settings':
-        return 'Settings';
-      
-      // Add more cases for specific routes as needed
-      // For dynamic routes like /booking/123, you might need more complex logic
-      // e.g., if (path.startsWith('/booking/')) return 'Booking Details';
-      default:
-        // You can extract a title from the path for unmatched routes
-        // For example, turn '/something-else' into 'Something Else'
-        if (path === '/') return 'Home';
-        const segments = path.split('/').filter(Boolean); // Remove empty strings
-        if (segments.length > 0) {
-          const lastSegment = segments[segments.length - 1];
-          return lastSegment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-        }
-        return 'Dashboard'; // Fallback
-    }
-  };
 
-  // --- END NEW ---
+    // 1. Handle exact paths first
+    switch (path) {
+      case '/': return 'Home';
+      case '/statistical': return 'Statistical Dashboard';
+      case '/users': return 'User Management';
+      case '/profile': return 'Profile';
+      case '/search': return 'Resource Search';
+      case '/createResource': return 'Resources'; // This might be a list/creation page
+      case '/booking': return 'Bookings'; // This might be a list of bookings
+      case '/notifications': return 'Notifications';
+      case '/settings': return 'Settings';
+    }
+
+    // Check for /resources/{id}
+    if (path.startsWith('/resources/')) {
+        const resourceId = path.substring('/resources/'.length);
+        if (!isNaN(resourceId) && resourceId !== '') {
+            return `Resource Details / (${resourceId})`;
+        }
+    }
+
+    // Check for /bookings/{id} (if you have a single booking detail page)
+    if (path.startsWith('/booking/')) {
+        const bookingId = path.substring('/booking/'.length);
+        if (!isNaN(bookingId) && bookingId !== '') {
+            return `Booking Details / ${bookingId}`;
+        }
+    }
+
+    // Check for /users/{id} (if you have a single user detail page)
+    if (path.startsWith('/users/')) { 
+        const userId = path.substring('/users/'.length);
+        if (!isNaN(userId) && userId !== '') {
+            return `User Details / ${userId}`;
+        }
+    }
+
+    // 3. Fallback for any other unmatched dynamic paths or unexpected URLs
+    const segments = path.split('/').filter(Boolean); // Remove empty strings
+    if (segments.length > 0) {
+      const lastSegment = segments[segments.length - 1];
+      // Capitalize each word and join by space (e.g., 'my-profile' -> 'My Profile')
+      return lastSegment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
+
+    return 'Dashboard'; // Default fallback if nothing matches
+  };
 
   return (
     <>
