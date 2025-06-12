@@ -13,15 +13,16 @@ export default function MyBookings() {
     const [message, setMessage] = useState('');
 
     // --- NEW STATES FOR FILTERING AND SORTING ---
-    const [filterPriority, setFilterPriority] = useState('all'); // 'all', 'low', 'medium', 'high'
-    const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc' (for created_at or start_time)
+    const [filterPriority, setFilterPriority] = useState('all');
+    const [sortOrder, setSortOrder] = useState('desc'); 
+    const [filterStatus, setFilterStatus] = useState('all'); 
     // --- END NEW STATES ---
 
     const fetchBookings = useCallback(async () => {
         if (!token) {
             setLoading(false);
             setError("You must be logged in to view bookings.");
-            // navigate('/login'); // Uncomment if you want immediate redirect
+            navigate('/login'); // Uncomment if you want immediate redirect
             return;
         }
 
@@ -37,6 +38,10 @@ export default function MyBookings() {
             }
             if (sortOrder) {
                 queryParams.append('order', sortOrder);
+            }
+            // Add status filter only if it's not 'all'
+            if (filterStatus !== 'all') {
+                queryParams.append('status', filterStatus);
             }
 
             const url = `/api/bookings?${queryParams.toString()}`;
@@ -75,7 +80,7 @@ export default function MyBookings() {
         } finally {
             setLoading(false);
         }
-    }, [token, navigate, setUser, filterPriority, sortOrder]); // Add filterPriority and sortOrder to dependencies
+    }, [token, navigate, setUser, filterPriority, sortOrder, filterStatus]); // Add filterStatus to dependencies
 
     useEffect(() => {
         if (token && user) {
@@ -158,6 +163,12 @@ export default function MyBookings() {
         }
     };
 
+    // New handler for status filter buttons
+    const handleAdminStatusFilter = (status) => {
+        setFilterStatus(status);
+        // fetchBookings will be called automatically due to filterStatus in useEffect's dependencies
+    };
+
     // --- Render Logic ---
     if (loading) {
         return <p className="loading-message">Loading bookings...</p>;
@@ -184,6 +195,38 @@ export default function MyBookings() {
                     {message}
                 </p>
             )}
+
+            {/* --- ADMIN STATUS FILTER BUTTONS --- */}
+            {isAdmin && (
+                <div className="admin-status-filters" style={{ marginBottom: '15px' }}>
+                    <button
+                        onClick={() => handleAdminStatusFilter('all')}
+                        className={`status-filter-button ${filterStatus === 'all' ? 'active' : ''}`}
+                    >
+                        All Bookings
+                    </button>
+                    <button
+                        onClick={() => handleAdminStatusFilter('pending')}
+                        className={`status-filter-button ${filterStatus === 'pending' ? 'active' : ''}`}
+                    >
+                        Pending
+                    </button>
+                    <button
+                        onClick={() => handleAdminStatusFilter('in_use')}
+                        className={`status-filter-button ${filterStatus === 'in_use' ? 'active' : ''}`}
+                    >
+                        In Use
+                    </button>
+                    <button
+                        onClick={() => handleAdminStatusFilter('expired')}
+                        className={`status-filter-button ${filterStatus === 'expired' ? 'active' : ''}`}
+                    >
+                        Expired
+                    </button>
+                    {/* Add other statuses if needed, e.g., 'approved', 'rejected', 'cancelled', 'completed', 'preempted' */}
+                </div>
+            )}
+            {/* --- END ADMIN STATUS FILTER BUTTONS --- */}
 
             {/* --- NEW FILTER AND SORT CONTROLS --- */}
             <div className="booking-controls">
@@ -225,6 +268,7 @@ export default function MyBookings() {
                                 <thead>
                                     <tr>
                                         <th>ID</th>
+                                        <th>Booking Reference</th>
                                         <th>Resource</th>
                                         <th>Booked By</th>
                                         <th>Start Time</th>
@@ -239,6 +283,7 @@ export default function MyBookings() {
                                     {bookings.map(booking => (
                                         <tr key={booking.id}>
                                             <td>{booking.id}</td>
+                                            <td>{booking.booking_reference || 'N/A'}</td>
                                             <td>
                                                 <Link to={`/resources/${booking.resource?.id}`} className="resource-link">
                                                     {booking.resource?.name || 'N/A'}
@@ -261,7 +306,9 @@ export default function MyBookings() {
                                                 <span className={
                                                     booking.status === 'approved' ? 'status-approved' :
                                                         booking.status === 'pending' ? 'status-pending' :
-                                                            'status-rejected'
+                                                            booking.status === 'in_use' ? 'status-in-use' : // Add class for in_use
+                                                                booking.status === 'expired' ? 'status-expired' : // Add class for expired
+                                                                    'status-rejected'
                                                 }>
                                                     {booking.status}
                                                 </span>
@@ -309,7 +356,9 @@ export default function MyBookings() {
                                         <span className={
                                             booking.status === 'approved' ? 'status-approved' :
                                                 booking.status === 'pending' ? 'status-pending' :
-                                                    'status-rejected'
+                                                    booking.status === 'in_use' ? 'status-in-use' : // Add class for in_use
+                                                        booking.status === 'expired' ? 'status-expired' : // Add class for expired
+                                                            'status-rejected'
                                         }>
                                             {booking.status}
                                         </span>
