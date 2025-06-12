@@ -81,13 +81,13 @@ export default function ShowProfile() {
     // --- Update Profile Data ---
     const handleFormChange = (e) => {
         setUpdateForm({ ...updateForm, [e.target.name]: e.target.value });
-        setUpdateError({ ...updateError, [e.target.name]: '' }); // Clear error on change
+        setUpdateError({ ...updateError, [e.target.name]: '' }); 
     };
 
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
-        setUpdateError({}); // Clear previous errors
-        setUpdateSuccess(''); // Clear previous success messages
+        setUpdateError({}); 
+        setUpdateSuccess(''); 
 
         if (!profileData || !profileData.id) {
             setUpdateError({ general: "User ID not available for update." });
@@ -113,7 +113,7 @@ export default function ShowProfile() {
         if (updateForm.first_name !== profileData.first_name) dataToSend.first_name = updateForm.first_name;
         if (updateForm.last_name !== profileData.last_name) dataToSend.last_name = updateForm.last_name;
         if (updateForm.email !== profileData.email) dataToSend.email = updateForm.email;
-        if (updateForm.password) { // Only include password if user typed something
+        if (updateForm.password) { 
             dataToSend.password = updateForm.password;
             dataToSend.password_confirmation = updateForm.password_confirmation;
         }
@@ -121,14 +121,14 @@ export default function ShowProfile() {
         // Don't send empty requests if nothing changed (except password which is special)
         if (Object.keys(dataToSend).length === 0) {
             setUpdateSuccess("No changes detected.");
-            setIsEditing(false); // Exit edit mode if nothing changed
+            setIsEditing(false);
             return;
         }
 
 
         try {
-            const response = await fetch(`/api/users/${profileData.id}`, { // Use PUT/PATCH to update a specific user
-                method: 'PUT', // Or 'PATCH' depending on your API
+            const response = await fetch(`/api/users/${profileData.id}/update`, { 
+                method: 'PUT', 
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -142,8 +142,8 @@ export default function ShowProfile() {
                 setUpdateSuccess(data.message || "Profile updated successfully!");
 
                 getProfileData();
-                setIsEditing(false); // Exit edit mode
-                setUpdateForm(prev => ({ // Clear password fields after successful update
+                setIsEditing(false); 
+                setUpdateForm(prev => ({ 
                     ...prev,
                     password: '',
                     password_confirmation: ''
@@ -175,7 +175,7 @@ export default function ShowProfile() {
         );
     }
 
-    if (error && !isEditing) { // Display general fetch error if not in edit mode
+    if (error && !isEditing) { 
         return (
             <div className="profile-container">
                 <p className="profile-error">Error: {error}</p>

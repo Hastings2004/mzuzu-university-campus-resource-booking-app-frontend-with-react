@@ -301,13 +301,13 @@ export default function Layout() {
                 <br />
                 <ul className="breadcrumb">
                   <li>
-                    <a href="#">Dashboard</a> {/* You might want to make this a NavLink to / too */}
+                    <a href="#">Dashboard</a> 
                   </li>
                   <li>
                     <i className="bx bx-chevron-right"></i>
                   </li>
                   <li>
-                    {/* --- MODIFIED: Dynamic breadcrumb title --- */}
+                    
                     <a className="active" href="#">
                       {getBreadcrumbTitle()}
                     </a>
