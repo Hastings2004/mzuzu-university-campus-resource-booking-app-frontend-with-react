@@ -689,7 +689,7 @@ body {
 #content nav form {
     max-width: 400px; /* Limit width for search form */
     width: 100%;
-    margin-right: 10px;
+    margin-right: 28%;
 }
 
 #content nav form .form-input {
@@ -2939,8 +2939,8 @@ body {
 /* Statistical.css */
 
 .statistical-dashboard {
-    max-width: 1400px;
-    margin: 20 auto; /* Corrected margin-left: 40px auto; to center the container */
+    max-width: 1000px;
+    margin-left: 20px auto; /* Corrected margin-left: 40px auto; to center the container */
     padding: 30px;
     background-color: var(--bg-light);
     border-radius: 12px;

@@ -153,7 +153,7 @@ export default function Statistical() {
         return (
             <div className="statistical-dashboard">
                 <h2>Admin Statistical Dashboard</h2>
-                {user?.first_name && <p>Welcome, {user.first_name}!</p>}
+                
                 <hr />
 
                 <div className="kpi-cards">
@@ -215,7 +215,7 @@ export default function Statistical() {
         return (
             <div className="statistical-dashboard user-dashboard">
                 <h2>My Resource Usage Dashboard</h2>
-                {user?.first_name && <p>Welcome, {user.first_name}!</p>}
+                
                 <hr />
 
                 <div className="kpi-cards">
