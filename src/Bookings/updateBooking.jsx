@@ -146,7 +146,7 @@ export default function UpdateBooking() {
                 <div className="content">
                     <div>
                         {/* Use optional chaining for resource properties as they might be nested */}
-                        <h3>Update Booking for: {bookingDetails.resource?.name || 'Resource Not Found'}</h3>
+                        <h3>Update Booking for {bookingDetails.resource?.name || 'Resource Not Found'}</h3>
                         <p>Current Status: <span className={
                                 bookingDetails.status === 'approved'
                                     ? 'status-approved'
