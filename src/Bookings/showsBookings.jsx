@@ -336,46 +336,66 @@ export default function MyBookings() {
                         </div>
                     ) : (
                         // --- Non-Admin Card View ---
-                        <div className="bookings-list">
-                            {bookings.map(booking => (
-                                <div key={booking.id} className="booking-card">
-                                    <h2 className="booking-card-title">
-                                        {booking.resource ? (
-                                            <Link to={`/resources/${booking.resource.id}`} className="resource-link">
-                                                {booking.resource.name}
-                                            </Link>
-                                        ) : (
-                                            "Resource Name Not Available"
-                                        )}
-                                    </h2>
-                                    <p className="booking-detail"><strong>Purpose:</strong> {booking.purpose}</p>
-                                    <p className="booking-detail"><strong>Priority:</strong> {booking.priority_level || 'N/A'}</p> {/* Display priority */}
-                                    <p className="booking-detail"><strong>Start Time:</strong> {moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</p>
-                                    <p className="booking-detail"><strong>End Time:</strong> {moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</p>
-                                    <p className="booking-detail"><strong>Booking Status:</strong>
-                                        <span className={
-                                            booking.status === 'approved' ? 'status-approved' :
-                                                booking.status === 'pending' ? 'status-pending' :
-                                                    booking.status === 'in_use' ? 'status-in-use' : // Add class for in_use
-                                                        booking.status === 'expired' ? 'status-expired' : // Add class for expired
-                                                            'status-rejected'
-                                        }>
-                                            {booking.status}
-                                        </span>
-                                    </p>
-                                    {isAdmin && booking.user && (
-                                        <div>
-                                            <p className="booking-detail"><strong>Booked by:</strong> {booking.user.first_name + " " + booking.user.last_name}</p>
-                                            <p className="booking-detail"><strong>Email:</strong> {booking.user.email}</p>
-                                        </div>
-                                    )}
-                                    <Link to={`/my-bookings/${booking.id}`} className="view-details-button">View Details</Link>
+                        <div className="bookings-table-wrapper">
+                            <table className="bookings-table">
+                                <thead>
+                                    <tr>
+                                       
+                                        <th>Booking Reference</th>
+                                        <th>Resource</th>
+                                        <th>Start Time</th>
+                                        <th>End Time</th>
+                                        <th>Purpose</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {bookings.map(booking => (
+                                        <tr key={booking.id}>
+                                            
+                                            <td>{booking.booking_reference || 'N/A'}</td>
+                                            <td>
+                                                <Link to={`/resources/${booking.resource?.id}`} className="resource-link">
+                                                    {booking.resource?.name || 'N/A'}
+                                                </Link>
+                                            </td>
+                                            
+                                            <td>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
+                                            <td>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
+                                            <td>{booking.purpose}</td>
+                                            {/* Display priority */}
+                                            <td>
+                                                <span className={
+                                                    booking.status === 'approved' ? 'status-approved' :
+                                                        booking.status === 'pending' ? 'status-pending' :
+                                                            booking.status === 'in_use' ? 'status-in-use' : // Add class for in_use
+                                                                booking.status === 'expired' ? 'status-expired' : // Add class for expired
+                                                                    'status-rejected'
+                                                }>
+                                                    {booking.status}
+                                                </span>
+                                            </td>
+                                            <td className="booking-actions-cell">
+                                                <Link to={`/booking/${booking.id}`} className="action-button view-button">View</Link>
+                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
+                                                    <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
+                                                )}
 
-                                    {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
-                                        <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Cancel Booking</button>
-                                    )}
-                                </div>
-                            ))}
+                                                {booking.status === 'pending' && isAdmin && (
+                                                    <>
+                                                        <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button">Approve</button>
+                                                        <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button">Reject</button>
+                                                    </>
+                                                )}
+                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'rejected', 'cancelled'].includes(booking.status))) && (
+                                                    <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Delete</button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </>

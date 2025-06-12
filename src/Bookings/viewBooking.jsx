@@ -31,9 +31,7 @@ export default function ViewBooking() {
                 } else {
                     receivedBooking = data; // Assume data itself is the booking object
                 }
-                
-                // Crucial check: Ensure the user is authorized to view this booking.
-                // This is a client-side check for better UX; backend should also enforce.
+                // Check if the user is authorized to view this booking
                 if (user.user_type !== 'admin' && receivedBooking && receivedBooking.user_id !== user.id) {
                     alert("You are not authorized to view this booking.");
                     navigate("/my-bookings"); // Redirect to a safe page
@@ -111,8 +109,6 @@ export default function ViewBooking() {
         );
     }
 
-    // Determine if the current user is the owner or an admin
-    // Ensure 'user' and 'booking' objects are available before accessing their properties
     const isOwner = user && booking.user_id && user.id === booking.user_id;
     const isAdmin = user && user.user_type === 'admin';
     const canModify = isOwner || isAdmin;
@@ -122,6 +118,7 @@ export default function ViewBooking() {
             <div className="single-resource-container">
                 <div key={booking.id} className="single-resource-card">
                     <center><h2 className="single-resource-title">{booking.resource?.name}</h2></center>
+                    <p className="booking-detail"><strong>Reference number:</strong> {booking.booking_reference}</p>
                     <p className="booking-detail"><strong>Description:</strong>{booking.resource?.description}</p>
                     <p className="booking-detail"><strong>Location:</strong> {booking.resource?.location}</p>
                     <p className="booking-detail"><strong>Capacity:</strong> {booking.resource?.capacity}</p>
