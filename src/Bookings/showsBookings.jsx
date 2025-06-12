@@ -14,15 +14,15 @@ export default function MyBookings() {
 
     // --- NEW STATES FOR FILTERING AND SORTING ---
     const [filterPriority, setFilterPriority] = useState('all');
-    const [sortOrder, setSortOrder] = useState('desc'); 
-    const [filterStatus, setFilterStatus] = useState('all'); 
+    const [sortOrder, setSortOrder] = useState('desc');
+    const [filterStatus, setFilterStatus] = useState('all');
     // --- END NEW STATES ---
 
     const fetchBookings = useCallback(async () => {
         if (!token) {
             setLoading(false);
             setError("You must be logged in to view bookings.");
-            navigate('/login'); // Uncomment if you want immediate redirect
+            navigate('/login');
             return;
         }
 
@@ -39,15 +39,14 @@ export default function MyBookings() {
             if (sortOrder) {
                 queryParams.append('order', sortOrder);
             }
-            // Add status filter only if it's not 'all'
             if (filterStatus !== 'all') {
                 queryParams.append('status', filterStatus);
             }
-
+            
+            // If you want to add pagination, you can also append page and limit here
             const url = `/api/bookings?${queryParams.toString()}`;
-            // --- END URL CONSTRUCTION ---
 
-            const res = await fetch(url, { // Use the constructed URL
+            const res = await fetch(url, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -58,10 +57,19 @@ export default function MyBookings() {
             const data = await res.json();
 
             if (res.ok) {
-                if (data.success && Array.isArray(data.bookings)) {
-                    setBookings(data.bookings);
+                
+                if (data.success) {
+                    
+                    if (Array.isArray(data.bookings)) {
+                        setBookings(data.bookings);
+                    } else if (data.data && Array.isArray(data.data.data)) { // For Laravel paginate response
+                        setBookings(data.data.data);
+                    } else {
+                        setError(data.message || "Received unexpected data format for bookings.");
+                        setBookings([]);
+                    }
                 } else {
-                    setError(data.message || "Received unexpected data format for bookings.");
+                    setError(data.message || "Failed to fetch bookings.");
                     setBookings([]);
                 }
             } else {
@@ -69,6 +77,7 @@ export default function MyBookings() {
                 console.error("Failed to fetch bookings:", data);
 
                 if (res.status === 401 || res.status === 403) {
+                    // Using a modal or notification instead of alert for better UX
                     alert("Your session has expired or is invalid. Please log in again.");
                     setUser(null);
                     navigate('/login');
@@ -80,7 +89,7 @@ export default function MyBookings() {
         } finally {
             setLoading(false);
         }
-    }, [token, navigate, setUser, filterPriority, sortOrder, filterStatus]); // Add filterStatus to dependencies
+    }, [token, navigate, setUser, filterPriority, sortOrder, filterStatus]);
 
     useEffect(() => {
         if (token && user) {
@@ -100,6 +109,7 @@ export default function MyBookings() {
             return;
         }
 
+        // Using a custom modal/dialog instead of window.confirm for better UX
         if (!window.confirm(`Are you sure you want to ${newStatus} this booking?`)) {
             return;
         }
@@ -118,7 +128,7 @@ export default function MyBookings() {
 
             if (res.ok) {
                 setMessage(data.message || `Booking ${newStatus}d successfully!`);
-                fetchBookings();
+                fetchBookings(); // Re-fetch bookings to update list
             } else {
                 setMessage(data.message || `Failed to ${newStatus} booking.`);
                 console.error(`Failed to ${newStatus} booking:`, data);
@@ -135,6 +145,7 @@ export default function MyBookings() {
             return;
         }
 
+        // Using a custom modal/dialog instead of window.confirm for better UX
         if (!window.confirm("Are you sure you want to delete this booking? This action cannot be undone.")) {
             return;
         }
@@ -152,7 +163,7 @@ export default function MyBookings() {
 
             if (res.ok) {
                 setMessage(data.message || "Booking deleted successfully!");
-                fetchBookings();
+                fetchBookings(); // Re-fetch bookings to update list
             } else {
                 setMessage(data.message || "Failed to delete booking.");
                 console.error("Failed to delete booking:", data);
@@ -163,10 +174,8 @@ export default function MyBookings() {
         }
     };
 
-    // New handler for status filter buttons
     const handleAdminStatusFilter = (status) => {
         setFilterStatus(status);
-        // fetchBookings will be called automatically due to filterStatus in useEffect's dependencies
     };
 
     // --- Render Logic ---
@@ -187,7 +196,7 @@ export default function MyBookings() {
     return (
         <div className="my-bookings-container">
             <h1 className="my-bookings-title">
-                {isAdmin ? "All System Bookings" : "My Past Bookings"}
+                {isAdmin ? "All System Bookings" : "My Bookings"}
             </h1>
 
             {message && (
@@ -223,12 +232,29 @@ export default function MyBookings() {
                     >
                         Expired
                     </button>
-                    {/* Add other statuses if needed, e.g., 'approved', 'rejected', 'cancelled', 'completed', 'preempted' */}
+                    <button
+                        onClick={() => handleAdminStatusFilter('approved')}
+                        className={`status-filter-button ${filterStatus === 'approved' ? 'active' : ''}`}
+                    >
+                        Approved
+                    </button>
+                     <button
+                        onClick={() => handleAdminStatusFilter('cancelled')}
+                        className={`status-filter-button ${filterStatus === 'cancelled' ? 'active' : ''}`}
+                    >
+                        Cancelled
+                    </button>
+                     <button
+                        onClick={() => handleAdminStatusFilter('rejected')}
+                        className={`status-filter-button ${filterStatus === 'rejected' ? 'active' : ''}`}
+                    >
+                        Rejected
+                    </button>
                 </div>
             )}
             {/* --- END ADMIN STATUS FILTER BUTTONS --- */}
 
-            {/* --- NEW FILTER AND SORT CONTROLS --- */}
+            {/* --- FILTER AND SORT CONTROLS --- */}
             <div className="booking-controls">
                 <label htmlFor="priority-filter">Filter by Priority:</label>
                 <select
@@ -248,157 +274,98 @@ export default function MyBookings() {
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
                 >
-                    <option value="desc">Newest First</option> {/* Corresponds to created_at DESC */}
-                    <option value="asc">Oldest First</option>  {/* Corresponds to created_at ASC */}
+                    <option value="desc">Newest First</option>
+                    <option value="asc">Oldest First</option>
                 </select>
             </div>
-            {/* --- END NEW FILTER AND SORT CONTROLS --- */}
+            {/* --- END FILTER AND SORT CONTROLS --- */}
 
 
             {bookings.length === 0 ? (
                 <p className="no-bookings-message">
-                    {isAdmin ? "No bookings in the system yet." : "You have no past bookings yet."}
+                    {isAdmin ? "No bookings in the system yet with current filters." : "You have no bookings yet with current filters."}
                 </p>
             ) : (
-                <>
-                    {isAdmin ? (
-                        // --- Admin Table View ---
-                        <div className="bookings-table-wrapper">
-                            <table className="bookings-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Booking Reference</th>
-                                        <th>Resource</th>
-                                        <th>Booked By</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                        <th>Purpose</th>
-                                        <th>Priority</th> {/* New column for priority */}
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {bookings.map(booking => (
-                                        <tr key={booking.id}>
-                                            <td>{booking.id}</td>
-                                            <td>{booking.booking_reference || 'N/A'}</td>
-                                            <td>
-                                                <Link to={`/resources/${booking.resource?.id}`} className="resource-link">
-                                                    {booking.resource?.name || 'N/A'}
-                                                </Link>
-                                            </td>
-                                            <td>
-                                                {booking.user ? (
-                                                    <>
-                                                        {booking.user.first_name} {booking.user.last_name}
-                                                        <br />
-                                                        <small>{booking.user.email}</small>
-                                                    </>
-                                                ) : 'N/A'}
-                                            </td>
-                                            <td>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
-                                            <td>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
-                                            <td>{booking.purpose}</td>
-                                            <td>{booking.priority || 'N/A'}</td> {/* Display priority */}
-                                            <td>
-                                                <span className={
-                                                    booking.status === 'approved' ? 'status-approved' :
-                                                        booking.status === 'pending' ? 'status-pending' :
-                                                            booking.status === 'in_use' ? 'status-in-use' : // Add class for in_use
-                                                                booking.status === 'expired' ? 'status-expired' : // Add class for expired
-                                                                    'status-rejected'
-                                                }>
-                                                    {booking.status}
-                                                </span>
-                                            </td>
-                                            <td className="booking-actions-cell">
-                                                <Link to={`/booking/${booking.id}`} className="action-button view-button">View</Link>
-                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
-                                                    <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
-                                                )}
+                <div className="bookings-table-wrapper">
+                    <table className="bookings-table">
+                        <thead>
+                            <tr>
+                                {isAdmin && <th>ID</th>} {/* Only show ID for admin */}
+                                <th>Booking Reference</th>
+                                <th>Resource</th>
+                                {isAdmin && <th>Booked By</th>} {/* Only show Booked By for admin */}
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Purpose</th>
+                                {isAdmin && <th>Priority</th>} {/* Only show Priority for admin */}
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {bookings.map(booking => (
+                                <tr key={booking.id}>
+                                    {isAdmin && <td>{booking.id}</td>} {/* Only show ID for admin */}
+                                    <td>{booking.booking_reference || 'N/A'}</td>
+                                    <td>
+                                        <Link to={`/resources/${booking.resource?.id}`} className="resource-link">
+                                            {booking.resource?.name || 'N/A'}
+                                        </Link>
+                                    </td>
+                                    {isAdmin && ( // Only show Booked By for admin
+                                        <td>
+                                            {booking.user ? (
+                                                <>
+                                                    {booking.user.first_name} {booking.user.last_name}
+                                                    <br />
+                                                    <small>{booking.user.email}</small>
+                                                </>
+                                            ) : 'N/A'}
+                                        </td>
+                                    )}
+                                    <td>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
+                                    <td>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
+                                    <td>{booking.purpose}</td>
+                                    {isAdmin && <td>{booking.priority || 'N/A'}</td>} {/* Only show Priority for admin */}
+                                    <td>
+                                        <span className={
+                                            booking.status === 'approved' ? 'status-approved' :
+                                                booking.status === 'pending' ? 'status-pending' :
+                                                    booking.status === 'in_use' ? 'status-in-use' :
+                                                        booking.status === 'expired' ? 'status-expired' :
+                                                            booking.status === 'cancelled' ? 'status-cancelled' : // Added for cancelled
+                                                                booking.status === 'rejected' ? 'status-rejected' : // Added for rejected
+                                                                    'status-default' // Fallback class
+                                        }>
+                                            {booking.status}
+                                        </span>
+                                    </td>
+                                    <td className="booking-actions-cell">
+                                        <Link to={`/booking/${booking.id}`} className="action-button view-button">View</Link>
+                                        {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
+                                            <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
+                                        )}
 
-                                                {booking.status === 'pending' && isAdmin && (
-                                                    <>
-                                                        <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button">Approve</button>
-                                                        <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button">Reject</button>
-                                                    </>
-                                                )}
-                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'rejected', 'cancelled'].includes(booking.status))) && (
-                                                    <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Delete</button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        // --- Non-Admin Card View ---
-                        <div className="bookings-table-wrapper">
-                            <table className="bookings-table">
-                                <thead>
-                                    <tr>
-                                       
-                                        <th>Booking Reference</th>
-                                        <th>Resource</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                        <th>Purpose</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {bookings.map(booking => (
-                                        <tr key={booking.id}>
-                                            
-                                            <td>{booking.booking_reference || 'N/A'}</td>
-                                            <td>
-                                                <Link to={`/resources/${booking.resource?.id}`} className="resource-link">
-                                                    {booking.resource?.name || 'N/A'}
-                                                </Link>
-                                            </td>
-                                            
-                                            <td>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
-                                            <td>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
-                                            <td>{booking.purpose}</td>
-                                            {/* Display priority */}
-                                            <td>
-                                                <span className={
-                                                    booking.status === 'approved' ? 'status-approved' :
-                                                        booking.status === 'pending' ? 'status-pending' :
-                                                            booking.status === 'in_use' ? 'status-in-use' : // Add class for in_use
-                                                                booking.status === 'expired' ? 'status-expired' : // Add class for expired
-                                                                    'status-rejected'
-                                                }>
-                                                    {booking.status}
-                                                </span>
-                                            </td>
-                                            <td className="booking-actions-cell">
-                                                <Link to={`/booking/${booking.id}`} className="action-button view-button">View</Link>
-                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
-                                                    <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
-                                                )}
-
-                                                {booking.status === 'pending' && isAdmin && (
-                                                    <>
-                                                        <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button">Approve</button>
-                                                        <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button">Reject</button>
-                                                    </>
-                                                )}
-                                                {(isAdmin || (booking.user_id === user.id && ['pending', 'rejected', 'cancelled'].includes(booking.status))) && (
-                                                    <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Delete</button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </>
+                                        {booking.status === 'pending' && isAdmin && (
+                                            <>
+                                                <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button">Approve</button>
+                                                <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button">Reject</button>
+                                            </>
+                                        )}
+                                        {/* Allow user to cancel their own pending/approved bookings */}
+                                        {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
+                                            <button onClick={() => handleStatusUpdate(booking.id, 'cancel')} className="action-button cancel-button">Cancel</button>
+                                        )}
+                                        {/* Admin can delete any booking, especially useful for rejected/cancelled/expired ones */}
+                                        {isAdmin && (
+                                            <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Delete</button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );
