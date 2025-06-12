@@ -25,7 +25,7 @@ export default function GlobalSearch() {
 
     // Define resource types for the dropdown (you might fetch this from an API if dynamic)
     const resourceTypes = [
-        'Meeting Room', 'Projector', 'Vehicle', 'Lab PC', 'Auditorium', 'Conference Hall',
+        'Meeting Room', 'Classrooms', 'Vehicle', 'Lab PC', 'Auditorium',
     ];
 
     // Initialize search type based on admin status
