@@ -56,7 +56,7 @@ export default function GlobalSearch() {
         if (searchType === 'bookings' && endTime) {
             queryParams.append('end_time', endTime);
         }
-        if (isAdmin && userId) { // For admin to filter by user ID (applies to bookings/users)
+        if (isAdmin && userId) { 
             queryParams.append('user_id', userId);
         }
 

@@ -3,7 +3,7 @@ import { AppContext } from "../context/appContext";
 import { useNavigate } from "react-router-dom";
 
 export default function CreateResource() {
-    // Access token and user object from AppContext
+    // Access the context to get the token and user information
     const { token, user } = useContext(AppContext);
     const navigate = useNavigate();
 
@@ -13,8 +13,8 @@ export default function CreateResource() {
         description: "",
         location: "",
         capacity: "",
-        status: "available", // Default status
-        image: null, // To store the File object
+        status: "available", 
+        image: null, 
     });
 
     const [errors, setErrors] = useState({});
@@ -27,8 +27,8 @@ export default function CreateResource() {
     useEffect(() => {
         // If user is not available or not an admin, redirect
         if (!user || user.user_type !== 'admin') {
-            //alert("Unauthorized access. Only administrators can create resources.");
-            navigate('/'); // Redirect to home or a suitable unauthorized page
+            alert("Unauthorized access. Only administrators can create resources.");
+            navigate('/'); 
         }
     }, [user, navigate]); 
 

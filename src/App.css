@@ -1165,8 +1165,7 @@ body {
 
 .resource-cards-container {
     display: grid;
-    /* Consider removing or adjusting 'margin-right: 22%;' if you want a more responsive grid. */
-    /* If you want to center the grid, use: justify-content: center; margin: 0 auto; */
+    margin-right: 20%; 
     flex-wrap: wrap;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 24px;
