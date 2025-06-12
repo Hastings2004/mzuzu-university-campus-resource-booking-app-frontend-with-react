@@ -13,11 +13,11 @@ import UpdateBooking from './Bookings/updateBooking';
 import ShowProfile from './profile/showProfile';
 import CreateResource from './resources/create';
 import Statistical from './admin/statistical';
-import ResourceSearch from './resources/search';
+import ResourceSearch from './components/search';
 import UserManagement from './admin/userManagement';
 import Settings from './components/settings';
 import Notifications from './components/notifications';
-import GlobalSearch from './resources/search';
+import GlobalSearch from './components/search';
 export default function App() {
   const { user } = useContext(AppContext);
 

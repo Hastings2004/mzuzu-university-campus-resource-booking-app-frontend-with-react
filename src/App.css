@@ -3312,7 +3312,7 @@ body.dark .form-group label {
 body.dark .form-group input[type="text"],
 body.dark .form-group input[type="datetime-local"],
 body.dark .form-group select {
-    background: var(--dark-bg-input); /* New variable for dark input background */
+    background: black; /* New variable for dark input background */
     border-color: var(--dark-border-color); /* New variable for dark border */
     color: var(--dark-text-primary); /* New variable for dark text */
 }
@@ -3347,7 +3347,7 @@ body.dark .resource-item p {
 }
 
 body.dark .btn-primary {
-    background-color: var(--dark-primary-button-bg); /* New variable */
+    background-color: var(--primary-light); /* New variable */
 }
 
 body.dark .btn-primary:hover:not(:disabled) {
@@ -3355,7 +3355,7 @@ body.dark .btn-primary:hover:not(:disabled) {
 }
 
 body.dark .btn-secondary {
-    background-color: var(--dark-secondary-button-bg); /* New variable */
+    background-color: var(--accent-red); /* New variable */
 }
 
 body.dark .btn-secondary:hover:not(:disabled) {
