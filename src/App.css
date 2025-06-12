@@ -553,6 +553,22 @@ body {
     box-shadow: -2px 0 5px var(--shadow-light);
 }
 
+/* Styles for the active sidebar link */
+
+#sidebar .side-menu.top li.active {
+    color: var(--blue); /* Your accent color, e.g., blue */
+    background: var(--light-blue); /* A lighter background for the active tab */
+    position: relative; /* Needed for the ::before pseudo-element */
+}
+
+#sidebar .side-menu.top li.active a {
+    color: var(--blue); /* Make the text and icon color active */
+}
+
+#sidebar .side-menu.top li.active a i {
+    color: var(--blue); /* Ensure the icon also gets the active color */
+}
+
 /* Active item corner styling (mimics curved corners) */
 #sidebar .side-menu li.active::before {
     content: '';

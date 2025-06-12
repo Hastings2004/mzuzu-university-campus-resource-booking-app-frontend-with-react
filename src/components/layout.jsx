@@ -1,11 +1,12 @@
 import { useContext, useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
 
 export default function Layout() {
   const { user, token, setUser, setToken } = useContext(AppContext);
   const navigate = useNavigate();
+  const location = useLocation(); // Initialize useLocation
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
@@ -21,30 +22,28 @@ export default function Layout() {
 
     try {
       const res = await fetch('/api/logout', {
-        method: "POST", // Make sure it's POST
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json', // Add Content-Type header
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Always clear local state regardless of server response
       setUser(null);
       setToken(null);
       localStorage.removeItem("token");
-      
+
       if (res.ok) {
         const data = await res.json();
         console.log('Logout successful:', data);
       } else {
         console.log('Server logout failed, but local logout completed');
       }
-      
-      navigate("/login"); // Navigate to login page instead of "/"
-      
+
+      navigate("/login");
+
     } catch (error) {
       console.error('Logout error:', error);
-      // Still clear local state even if server request fails
       setUser(null);
       setToken(null);
       localStorage.removeItem("token");
@@ -60,14 +59,12 @@ export default function Layout() {
     setIsDarkMode(prevMode => !prevMode);
   };
 
-  // State to track if it's a small device
   const [isSmallDevice, setIsSmallDevice] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     const handleResize = () => {
       const newIsSmallDevice = window.innerWidth <= 768;
       setIsSmallDevice(newIsSmallDevice);
-      // Only set sidebar to false initially on small devices, not when resizing larger
       if (newIsSmallDevice) {
         setIsSidebarOpen(false);
       } else {
@@ -76,7 +73,7 @@ export default function Layout() {
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Call once on mount
+    handleResize();
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -91,20 +88,58 @@ export default function Layout() {
     }
   }, [isDarkMode]);
 
-  // New function to close sidebar on link click if it's a small device
   const handleNavLinkClick = () => {
     if (isSmallDevice) {
       setIsSidebarOpen(false);
     }
   };
 
-  // Handle the top navigation bar search (optional: redirect to /search page)
   const handleTopNavbarSearch = (e) => {
     e.preventDefault();
     const searchValue = e.target.elements.search.value;
-    // You could pass the search value as state or query param
     navigate(`/search?keyword=${encodeURIComponent(searchValue)}`);
   };
+
+  // --- NEW: Map paths to breadcrumb titles ---
+  const getBreadcrumbTitle = () => {
+    const path = location.pathname;
+    switch (path) {
+      case '/':
+        return 'Home';
+      case '/statistical':
+        return 'Statistical Dashboard';
+      case '/users':
+        return 'User Management';
+      case '/profile':
+        return 'Profile';
+      case '/search':
+        return 'Resource Search';
+      case '/createResource': 
+        return 'Resources';
+      case '/booking': 
+        return 'Bookings';
+      case '/notifications':
+        return 'Notifications';
+      case '/settings':
+        return 'Settings';
+      
+      // Add more cases for specific routes as needed
+      // For dynamic routes like /booking/123, you might need more complex logic
+      // e.g., if (path.startsWith('/booking/')) return 'Booking Details';
+      default:
+        // You can extract a title from the path for unmatched routes
+        // For example, turn '/something-else' into 'Something Else'
+        if (path === '/') return 'Home';
+        const segments = path.split('/').filter(Boolean); // Remove empty strings
+        if (segments.length > 0) {
+          const lastSegment = segments[segments.length - 1];
+          return lastSegment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+        return 'Dashboard'; // Fallback
+    }
+  };
+
+  // --- END NEW ---
 
   return (
     <>
@@ -125,7 +160,7 @@ export default function Layout() {
                 <span className="text">Home</span>
               </NavLink>
             </li>
-            {user && user.user_type === 'admin' && ( // Conditional rendering for admin dashboard
+            {user && user.user_type === 'admin' && (
               <>
                 <li>
                   <NavLink to="/statistical" onClick={handleNavLinkClick}>
@@ -148,14 +183,13 @@ export default function Layout() {
               </NavLink>
             </li>
             <li>
-              {/* NEW: NavLink for the dedicated search page */}
               <NavLink to="/search" onClick={handleNavLinkClick}>
-                <i className="bx bx-search-alt"></i> {/* Changed icon to search */}
+                <i className="bx bx-search-alt"></i>
                 <span className="text">Resource Search</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/createResource" onClick={handleNavLinkClick}> {/* Assuming /createResource is for managing resources */}
+              <NavLink to="/createResource" onClick={handleNavLinkClick}>
                 <i className="bx bxs-component"></i>
                 <span className="text">Resources</span>
               </NavLink>
@@ -178,9 +212,8 @@ export default function Layout() {
                 <span className="text">Settings</span>
               </NavLink>
             </li>
-            {/* Fixed logout button - using button instead of anchor */}
             <li>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="logout-btn"
                 style={{
@@ -209,7 +242,6 @@ export default function Layout() {
             <a href="#" className="nav-link">
               Categories
             </a>
-            {/* Modified: Make the top navbar search redirect to the search page */}
             <form onSubmit={handleTopNavbarSearch}>
               <div className="form-input">
                 <input type="text" placeholder="Search..." name="search" id="search-field" required />
@@ -218,7 +250,7 @@ export default function Layout() {
                 </button>
               </div>
             </form>
-            <div></div> {/* Empty div, consider removing if not needed */}
+            <div></div>
             <input
               type="checkbox"
               id="switch-mode"
@@ -228,11 +260,11 @@ export default function Layout() {
             />
             <label htmlFor="switch-mode" className="switch-mode"></label>
 
-            <a href="/notifications" className="notification"> {/* Changed to React Router link */}
+            <a href="/notifications" className="notification">
               <i className="bx bxs-bell"></i>
-              <span className="num">0</span> {/* This '0' would typically be dynamic */}
+              <span className="num">0</span>
             </a>
-            <a href="/profile" className="profile"> {/* Changed to React Router link */}
+            <a href="/profile" className="profile">
               <img src={user?.profile_picture || logo} alt="Profile" />
             </a>
           </nav>
@@ -244,14 +276,15 @@ export default function Layout() {
                 <br />
                 <ul className="breadcrumb">
                   <li>
-                    <a href="#">Dashboard</a>
+                    <a href="#">Dashboard</a> {/* You might want to make this a NavLink to / too */}
                   </li>
                   <li>
                     <i className="bx bx-chevron-right"></i>
                   </li>
                   <li>
+                    {/* --- MODIFIED: Dynamic breadcrumb title --- */}
                     <a className="active" href="#">
-                      Home
+                      {getBreadcrumbTitle()}
                     </a>
                   </li>
                 </ul>
