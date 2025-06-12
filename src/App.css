@@ -4105,3 +4105,238 @@ input:checked + .slider:before {
     outline: none;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
+
+
+
+
+/* --- General Styles using Variables --- */
+
+.global-search-container {
+    padding: 1rem;
+    max-width: 48rem;
+    
+    background-color: var(--bg-main);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-container);
+}
+
+.global-search-container h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .form-group {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    width: 8rem;
+    flex-shrink: 0;
+}
+
+.form-group input,
+.form-group select {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border-input);
+    border-radius: 0.375rem;
+    outline: none;
+    background-color: var(--bg-main); /* Ensure input background changes too */
+    color: var(--text-primary); /* Ensure input text color changes */
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 1px var(--accent-blue);
+}
+
+/* Placeholder color for dark mode inputs */
+body.dark .form-group input::placeholder {
+    color: var(--text-secondary); /* or a slightly lighter gray */
+    opacity: 0.7; /* Make it a bit lighter for contrast */
+}
+
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 200ms;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--text-light-on-dark);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color-hover);
+}
+
+.btn-secondary {
+    background-color: var(--bg-button-secondary);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-button-secondary-hover);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: var(--accent-red);
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.search-results {
+    margin-top: 2rem;
+}
+
+.search-results h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.search-results p {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.results-section {
+    margin-bottom: 1.5rem;
+}
+
+.results-section h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.resource-list,
+.booking-list,
+.user-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .resource-list,
+    .booking-list,
+    .user-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.resource-item,
+.booking-item,
+.user-item {
+    background-color: var(--bg-card);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    box-shadow: var(--shadow-card);
+}
+
+.resource-item h5,
+.booking-item h5,
+.user-item h5 {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.resource-item h5 {
+    color: var(--accent-blue); /* Adjusted to general accent-blue */
+}
+
+.booking-item h5 {
+    color: var(--accent-green); /* Adjusted to general accent-green */
+}
+
+.user-item h5 {
+    color: var(--accent-purple); /* Using a new accent for purple */
+}
+
+
+.resource-item p,
+.booking-item p,
+.user-item p {
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.resource-item p:first-of-type,
+.booking-item p:first-of-type,
+.user-item p:first-of-type {
+    margin-top: 0.5rem;
+}
+
+.resource-item .text-sm,
+.booking-item .text-sm,
+.user-item .text-sm {
+    font-size: 0.875rem;
+}
+
+.resource-item .block,
+.booking-item .block,
+.user-item .block {
+    display: block;
+}
+
+.resource-item .text-blue-500, /* This is a link, apply the accent-blue */
+.booking-item .text-blue-500,
+.user-item .text-blue-500 {
+    color: var(--accent-blue);
+}
+
+.resource-item .text-blue-500:hover,
+.booking-item .text-blue-500:hover,
+.user-item .text-blue-500:hover {
+    text-decoration: underline;
+}
+
+/* Specific spacing for description */
+.resource-item p.text-sm {
+    margin-top: 0.5rem;
+}

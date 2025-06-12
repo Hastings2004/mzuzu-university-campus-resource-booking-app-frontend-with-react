@@ -13,10 +13,11 @@ import UpdateBooking from './Bookings/updateBooking';
 import ShowProfile from './profile/showProfile';
 import CreateResource from './resources/create';
 import Statistical from './admin/statistical';
-import ResourceSearch from './resources/searchResource';
+import ResourceSearch from './resources/search';
 import UserManagement from './admin/userManagement';
 import Settings from './components/settings';
 import Notifications from './components/notifications';
+import GlobalSearch from './resources/search';
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -30,7 +31,6 @@ export default function App() {
           
           <Route index element={user ? <Home /> : <Login />} /> 
           <Route path="createResource" element={<CreateResource />} />
-          {/*<Route path="new" element={<Drop />} />*/}
           <Route path="resources/:id" element={<View />} />
           <Route path="bookings/:id/edit" element={<UpdateBooking />} /> 
           <Route path='profile' element={<ShowProfile />} />
@@ -38,7 +38,7 @@ export default function App() {
           <Route path="users" element={<UserManagement />} />
           <Route path="booking" element={<MyBookings />}/>
           <Route path="booking/:id" element={<ViewBooking />} />
-          <Route path="search" element={< ResourceSearch />} />
+          <Route path="search" element={<GlobalSearch />} />
           <Route path="settings" element={<Settings />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
