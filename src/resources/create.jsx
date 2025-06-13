@@ -25,9 +25,9 @@ export default function CreateResource() {
 
     // Effect to check if the user is an admin on component mount
     useEffect(() => {
-        // If user is not available or not an admin, redirect
+        
         if (!user || user.user_type !== 'admin') {
-            alert("Unauthorized access. Only administrators can create resources.");
+            //alert("Unauthorized access. Only administrators can create resources.");
             navigate('/'); 
         }
     }, [user, navigate]); 
@@ -36,23 +36,23 @@ export default function CreateResource() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        setErrors(prevErrors => ({ ...prevErrors, [name]: undefined })); // Clear specific error on change
-        setMessage(''); // Clear general message on change
+        setErrors(prevErrors => ({ ...prevErrors, [name]: undefined })); 
+        setMessage(''); 
     };
 
     // Handle file input changes
     const handleImageChange = (e) => {
-        const file = e.target.files[0]; // Get the first selected file
+        const file = e.target.files[0]; 
         setFormData({ ...formData, image: file });
-        setErrors(prevErrors => ({ ...prevErrors, image: undefined })); // Clear image error
-        setMessage(''); // Clear general message
+        setErrors(prevErrors => ({ ...prevErrors, image: undefined })); 
+        setMessage(''); 
     };
 
     // Handle form submission
     async function handleCreate(e) {
         e.preventDefault();
-        setErrors({}); // Clear previous errors
-        setMessage(''); // Clear previous messages
+        setErrors({}); 
+        setMessage(''); 
 
         // Client-side validation (optional, but good for immediate feedback)
         if (!formData.name.trim()) {
@@ -75,9 +75,7 @@ export default function CreateResource() {
             setErrors({ status: ['Status is required.'] });
             return;
         }
-        // Image is optional, so no required validation here unless you want to make it mandatory
-
-        // Create FormData object for sending multipart/form-data (required for file uploads)
+        
         const dataToSend = new FormData();
         dataToSend.append('name', formData.name);
         dataToSend.append('description', formData.description);
@@ -90,7 +88,7 @@ export default function CreateResource() {
 
         try {
             const response = await fetch("/api/resources", { 
-                method: "POST", // Use POST for creation
+                method: "POST", 
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -101,7 +99,7 @@ export default function CreateResource() {
 
             if (response.ok) {
                 setMessage(data.message || "Resource created successfully!");
-                // Clear the form after successful creation
+                
                 setFormData({
                     name: "",
                     description: "",
@@ -110,14 +108,14 @@ export default function CreateResource() {
                     status: "available",
                     image: null,
                 });
-                // Clear the file input visually
+                
                 if (imageInputRef.current) {
                     imageInputRef.current.value = "";
                 }
-                navigate("/"); // Navigate to home or resource list page
+                navigate("/"); 
             } else {
                 if (response.status === 422 && data.errors) {
-                    setErrors(data.errors); // Set backend validation errors
+                    setErrors(data.errors); 
                     setMessage(data.message || "Please correct the form errors.");
                 } else {
                     setMessage(data.message || "Failed to create resource. Please try again.");
@@ -131,7 +129,7 @@ export default function CreateResource() {
     }
 
     if (!user || user.user_type !== 'admin') {
-        return null; // Or a simple "Access Denied" message
+        return null; 
     }
 
     return (

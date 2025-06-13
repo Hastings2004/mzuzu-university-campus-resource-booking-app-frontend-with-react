@@ -8,6 +8,11 @@ export default function View() {
     const { user, token } = useContext(AppContext);
 
     const [resource, setResource] = useState(null);
+    const [resourceBookings, setResourceBookings] = useState({
+        pending: [],
+        approved: [],
+        in_use: []
+    });
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [purpose, setPurpose] = useState("");
@@ -16,14 +21,20 @@ export default function View() {
     const [bookingMessage, setBookingMessage] = useState("");
     const [validationErrors, setValidationErrors] = useState({});
     const [isResourceAvailable, setIsResourceAvailable] = useState(null); 
+    
     const availabilityStyle = {
         checking: { color: 'blue' , fontWeight: 'bold', backgroundColor: '#e9ecef', padding: '10px', borderRadius: '5px' },
         available: { color: 'green', fontWeight: 'bold', backgroundColor: '#d4edda', padding: '10px', borderRadius: '5px' },
         notAvailable: { color: 'red', fontWeight: 'bold', backgroundColor: '#f8d7da', padding: '10px', borderRadius: '5px' }
-    }
+    };
+
+    const statusStyles = {
+        pending: { color: '#856404', backgroundColor: '#fff3cd', padding: '5px 10px', borderRadius: '3px', fontSize: '12px' },
+        approved: { color: '#155724', backgroundColor: '#d4edda', padding: '5px 10px', borderRadius: '3px', fontSize: '12px' },
+        in_use: { color: '#721c24', backgroundColor: '#f8d7da', padding: '5px 10px', borderRadius: '3px', fontSize: '12px' }
+    };
 
     async function getResource() {
-        // console.log("Attempting to fetch resource with ID:", id, "and token:", token); // Added for debugging
         const res = await fetch(`/api/resources/${id}`, {
             method: 'get',
             headers: {
@@ -33,7 +44,6 @@ export default function View() {
         const data = await res.json();
 
         if (res.ok) {
-            // Adjust based on your resource API response structure
             if (data.resource) {
                 setResource(data.resource);
             } else if (data.data) { 
@@ -49,10 +59,56 @@ export default function View() {
         }
     }
 
+    async function getResourceBookings() {
+        try {
+            const res = await fetch(`/api/resources/${id}/bookings`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                // Organize bookings by status
+                const bookingsByStatus = {
+                    pending: [],
+                    approved: [],
+                    in_use: []
+                };
+
+                if (data.bookings && Array.isArray(data.bookings)) {
+                    data.bookings.forEach(booking => {
+                        const currentTime = new Date();
+                        const startTime = new Date(booking.start_time);
+                        const endTime = new Date(booking.end_time);
+
+                        // Determine status based on booking state and time
+                        if (booking.status === 'pending') {
+                            bookingsByStatus.pending.push(booking);
+                        } else if (booking.status === 'approved') {
+                            // Check if currently in use
+                            if (currentTime >= startTime && currentTime <= endTime) {
+                                bookingsByStatus.in_use.push(booking);
+                            } else {
+                                bookingsByStatus.approved.push(booking);
+                            }
+                        }
+                    });
+                }
+
+                setResourceBookings(bookingsByStatus);
+            } else {
+                console.error("Failed to fetch resource bookings:", data);
+            }
+        } catch (error) {
+            console.error("Error fetching resource bookings:", error);
+        }
+    }
+
     async function handleAvailabilityCheck() {
-        // Clear previous availability message
         setBookingMessage("");
-        setIsResourceAvailable(null); // Reset availability status
+        setIsResourceAvailable(null);
 
         if (!resource) {
             console.warn("Resource data not loaded yet for availability check.");
@@ -65,7 +121,6 @@ export default function View() {
             return;
         }
 
-        // Validate that end time is after start time before checking availability
         const startDateTime = new Date(startTime);
         const endDateTime = new Date(endTime);
 
@@ -81,7 +136,6 @@ export default function View() {
             return;
         }
 
-        // Convert to ISO strings for consistency
         const startDateISO = startDateTime.toISOString();
         const endDateISO = endDateTime.toISOString();
 
@@ -112,20 +166,15 @@ export default function View() {
         }
     }
 
-    // New useEffect to trigger availability check when startTime or endTime changes
     useEffect(() => {
-        // Only trigger if both startTime and endTime are filled
         if (startTime && endTime) {
             handleAvailabilityCheck();
         } else {
-            // Clear availability status if times are not fully entered
             setIsResourceAvailable(null);
             setBookingMessage(""); 
         }
     }, [startTime, endTime]); 
 
-
-    //Booking Handler
     async function handleSubmitBooking(e) {
         e.preventDefault();
         setBookingMessage("");
@@ -133,7 +182,6 @@ export default function View() {
 
         console.log('🔍 Booking submission started');
 
-        // Enhanced validation
         if (!user) {
             setBookingMessage("You must be logged in to book a resource.");
             return;
@@ -149,13 +197,11 @@ export default function View() {
             return;
         }
 
-        // Enhanced client-side validation
-        if (!startTime || !endTime || !purpose || !bookingType) { // Added bookingType to required fields
+        if (!startTime || !endTime || !purpose || !bookingType) {
             setBookingMessage("Please fill in all booking details (Start Time, End Time, Purpose, Booking Type).");
             return;
         }
 
-        // Validate purpose length
         const trimmedPurpose = purpose.trim();
         if (trimmedPurpose.length < 10) {
             setBookingMessage("Purpose must be at least 10 characters long.");
@@ -167,33 +213,28 @@ export default function View() {
             return;
         }
 
-        // Enhanced date validation with proper formatting
         let startDate, endDate;
         try {
             startDate = new Date(startTime);
             endDate = new Date(endTime);
 
-            // Check for invalid dates
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                 setBookingMessage("Invalid date format. Please check your date inputs.");
                 return;
             }
 
-            // Time validations
             if (startDate >= endDate) {
                 setBookingMessage("End time must be after start time.");
                 return;
             }
 
-            // Check if start time is in the past
             const now = new Date();
-            now.setSeconds(now.getSeconds() - 60); // Allow 60 seconds grace period
+            now.setSeconds(now.getSeconds() - 60);
             if (startDate <= now) {
                 setBookingMessage("Start time must be in the future.");
                 return;
             }
 
-            // Check if booking is too far in advance (optional - 3 months limit)
             const threeMonthsFromNow = new Date();
             threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
             if (startDate > threeMonthsFromNow) {
@@ -207,7 +248,6 @@ export default function View() {
             return;
         }
 
-        // Ensure the availability state is true before proceeding with booking
         if (isResourceAvailable !== true) {
             await handleAvailabilityCheck(); 
             if (isResourceAvailable !== true) { 
@@ -216,7 +256,6 @@ export default function View() {
             }
         }
 
-        // Prepare booking data with consistent ISO format
         const bookingData = {
             resource_id: resource.id,
             start_time: startDate.toISOString(),
@@ -225,7 +264,6 @@ export default function View() {
             booking_type: bookingType,
         };
 
-        // Include priority if user is admin and priority is set
         if (user?.user_type === 'admin' && priority && priority.trim() !== '') {
             const priorityNum = parseInt(priority, 10);
             if (!isNaN(priorityNum) && priorityNum >= 1 && priorityNum <= 4) {
@@ -239,21 +277,20 @@ export default function View() {
         console.log('Sending booking data:', bookingData);
         console.log('Exact JSON being sent:', JSON.stringify(bookingData, null, 2));
 
-        // Show loading state
         setBookingMessage("Submitting booking request...");
 
         try {
             const requestOptions = {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json", // Explicitly set content type
+                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify(bookingData)
             };
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
             const res = await fetch("/api/bookings", {
                 ...requestOptions,
@@ -276,7 +313,7 @@ export default function View() {
 
                 if (res.status === 302 || textResponse.includes('login') || textResponse.includes('redirect')) {
                     setBookingMessage("Your session has expired or you need to log in. Redirecting to login...");
-                    navigate('/login'); // Redirect to login
+                    navigate('/login');
                     return;
                 }
 
@@ -287,7 +324,6 @@ export default function View() {
             console.log('Response data:', data);
 
             if (res.ok) {
-                // Handle successful booking
                 let successMsg = data.message || "Booking request submitted successfully!";
 
                 if (data.preempted_bookings && data.preempted_bookings.length > 0) {
@@ -297,23 +333,24 @@ export default function View() {
                 console.log('Booking successful:', successMsg);
                 setBookingMessage(successMsg);
 
-                // Clear form fields on success
                 setStartTime("");
                 setEndTime("");
                 setPurpose("");
                 setPriority("");
                 setBookingType("");
-                setIsResourceAvailable(null); // Reset availability status after booking
+                setIsResourceAvailable(null);
+
+                // Refresh bookings after successful submission
+                getResourceBookings();
 
             } else {
-                // Handle different types of errors
                 console.error('Booking failed with status:', res.status);
                 console.error('Error data:', data);
 
                 switch (res.status) {
                     case 401:
                         setBookingMessage("Your session has expired. Please log in again.");
-                        navigate('/login'); // Redirect to login on 401
+                        navigate('/login');
                         break;
 
                     case 403:
@@ -321,12 +358,9 @@ export default function View() {
                         break;
 
                     case 422:
-                        // Validation errors
                         if (data.errors) {
                             console.log('Validation errors:', data.errors);
                             setValidationErrors(data.errors);
-
-                            // Create a user-friendly error message
                             const errorMessages = Object.values(data.errors).flat();
                             setBookingMessage(`Please correct the following errors: ${errorMessages.join(', ')}`);
                         } else {
@@ -335,7 +369,6 @@ export default function View() {
                         break;
 
                     case 409:
-                        // Conflict errors
                         if (data.conflicting_bookings && data.conflicting_bookings.length > 0) {
                             const conflictDetails = data.conflicting_bookings
                                 .map(conflict => `${conflict.user_name || 'Unknown User'} (${new Date(conflict.start_time).toLocaleString()} - ${new Date(conflict.end_time).toLocaleString()})`)
@@ -344,16 +377,14 @@ export default function View() {
                         } else {
                             setBookingMessage(data.message || 'Resource conflict detected (another booking exists in this slot).');
                         }
-                        setIsResourceAvailable(false); // Resource is not available due to conflict
+                        setIsResourceAvailable(false);
                         break;
 
                     case 429:
-                        // Rate limiting or too many active bookings
                         setBookingMessage(data.message || 'Too many requests. Please try again later, or you have too many active bookings.');
                         break;
 
                     case 500:
-                        // Server error
                         let errorMsg = 'A server error occurred. Please try again later.';
                         if (data.debug_error && process.env.NODE_ENV === 'development') {
                             errorMsg += ` Debug: ${data.debug_error}`;
@@ -375,7 +406,6 @@ export default function View() {
                 stack: error.stack
             });
 
-            // Handle different error types
             if (error.name === 'AbortError') {
                 setBookingMessage("Request timed out. Please check your internet connection and try again.");
             } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -410,13 +440,13 @@ export default function View() {
         if (user && (user.id === resource.user_id || user.user_type === 'admin')) {
             const confirmDelete = window.confirm(`Are you sure you want to delete "${resource.name}"? This action cannot be undone.`);
             if (!confirmDelete) {
-                return; // User cancelled
+                return;
             }
 
             setBookingMessage("Deleting resource...");
             try {
                 const res = await fetch(`/api/resources/${id}`, {
-                    method: "DELETE", // Changed to DELETE for clarity
+                    method: "DELETE",
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -427,14 +457,14 @@ export default function View() {
                 if (contentType && contentType.includes('application/json')) {
                     data = await res.json();
                 } else {
-                    data = { message: await res.text() }; // Get text if not JSON
+                    data = { message: await res.text() };
                 }
 
                 if (res.ok) {
                     setBookingMessage(data.message || "Resource deleted successfully!");
                     setTimeout(() => {
-                        navigate("/"); // Redirect on successful deletion after a short delay
-                    }, 1500); // Give user time to read success message
+                        navigate("/");
+                    }, 1500);
                 } else {
                     console.error("Failed to delete resource:", data);
                     setBookingMessage(`Failed to delete resource: ${data.message || 'Unknown error'}`);
@@ -449,19 +479,13 @@ export default function View() {
         }
     }
 
-
     useEffect(() => {
-        // Only attempt to fetch if id and token are available
         if (id && token) {
             getResource();
-        } else if (!token) {
-            // Optionally, if no token, indicate login is needed or redirect
-            // setBookingMessage("Please log in to view resource details.");
-            // navigate('/login'); // Uncomment if you want to force login immediately
+            getResourceBookings();
         }
-    }, [id, token, navigate]); // Re-run when id, token, or navigate changes
+    }, [id, token, navigate]);
 
-    // Helper to format validation error messages
     const displayError = (field) => {
         if (validationErrors[field]) {
             return <p className="error-message">{validationErrors[field][0]}</p>;
@@ -469,134 +493,180 @@ export default function View() {
         return null;
     };
 
+    const formatDateTime = (dateString) => {
+        return new Date(dateString).toLocaleString();
+    };
+
+    const renderBookingList = (bookings, title, status) => {
+        if (bookings.length === 0) return null;
+        
+        return (
+            <div className="booking-status-section">
+                <h4>{title} ({bookings.length})</h4>
+                <div className="booking-list">
+                    {bookings.map((booking, index) => (
+                        <div key={booking.id || index} className="booking-item">
+                            <div className="booking-info">
+                                <p><strong>User:</strong> {booking.user_name || 'Unknown'}</p>
+                                <p><strong>Time:</strong> {formatDateTime(booking.start_time)} - {formatDateTime(booking.end_time)}</p>
+                                <p><strong>Purpose:</strong> {booking.purpose}</p>
+                                <p><strong>Type:</strong> {booking.booking_type}</p>
+                                {booking.priority && <p><strong>Priority:</strong> {booking.priority}</p>}
+                            </div>
+                            <span style={statusStyles[status]} className="booking-status">
+                                {status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
             <div className="single-resource-container">
-                {resource ? (
-                    <div key={resource.id} className="single-resource-card">
-                        <h2 className="single-resource-title">{resource.name}</h2>
-                        <p className="single-resource-detail"><strong>Description:</strong> {resource.description}</p>
-                        <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
-                        <p className="single-resource-detail"><strong>Capacity:</strong> {resource.capacity}</p>
-                        <span className="">
-                            Availability status: <span className={resource.is_active ? 'status-available' : 'status-booked'}>
-                                {resource.is_active ? 'Available' : 'Unavailable'}
-                            </span>
-                        </span>
+                <div className="resource-content">
+                    <div className="resource-main">
+                        {resource ? (
+                            <div key={resource.id} className="single-resource-card">
+                                <h2 className="single-resource-title">{resource.name}</h2>
+                                <p className="single-resource-detail"><strong>Description:</strong> {resource.description}</p>
+                                <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
+                                <p className="single-resource-detail"><strong>Capacity:</strong> {resource.capacity}</p>
+                                <span className="">
+                                    Availability status: <span className={resource.is_active ? 'status-available' : 'status-booked'}>
+                                        {resource.is_active ? 'Available' : 'Unavailable'}
+                                    </span>
+                                </span>
 
-                        {(user && (user.id === resource.user_id || user.user_type === 'admin')) && (
-                            <div className="action-buttons">
-                                <Link to={`/resources/edit/${resource.id}`} className="action-button edit-button">Edit Resource</Link>
-                                <button onClick={handleDelete} className="action-button delete-button">Delete Resource</button>
-                            </div>
-                        )}
-
-                        {user ? ( // Only show booking form if user is logged in
-                            <div className="booking-form-section">
-                                <h3>Book this Resource</h3>
-                                <form onSubmit={handleSubmitBooking} className="booking-form">
-                                    <div className="form-group">
-                                        <label htmlFor="startTime">Start Time:</label>
-                                        <input
-                                            type="datetime-local"
-                                            id="startTime"
-                                            value={startTime}
-                                            onChange={(e) => setStartTime(e.target.value)}
-                                            required
-                                            className="form-input"
-                                        />
-                                        {displayError('start_time')}
+                                {(user && (user.id === resource.user_id || user.user_type === 'admin')) && (
+                                    <div className="action-buttons">
+                                        <Link to={`/resources/edit/${resource.id}`} className="action-button edit-button">Edit Resource</Link>
+                                        <button onClick={handleDelete} className="action-button delete-button">Delete Resource</button>
                                     </div>
-                                    <div className="form-group">
-                                        <label htmlFor="endTime">End Time:</label>
-                                        <input
-                                            type="datetime-local"
-                                            id="endTime"
-                                            value={endTime}
-                                            onChange={(e) => setEndTime(e.target.value)}
-                                            required
-                                            className="form-input"
-                                        />
-                                        {displayError('end_time')}
+                                )}
+
+                                {user ? (
+                                    <div className="booking-form-section">
+                                        <h3>Book this Resource</h3>
+                                        <form onSubmit={handleSubmitBooking} className="booking-form">
+                                            <div className="form-group">
+                                                <label htmlFor="startTime">Start Time:</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    id="startTime"
+                                                    value={startTime}
+                                                    onChange={(e) => setStartTime(e.target.value)}
+                                                    required
+                                                    className="form-input"
+                                                />
+                                                {displayError('start_time')}
+                                            </div>
+                                            <div className="form-group">
+                                                <label htmlFor="endTime">End Time:</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    id="endTime"
+                                                    value={endTime}
+                                                    onChange={(e) => setEndTime(e.target.value)}
+                                                    required
+                                                    className="form-input"
+                                                />
+                                                {displayError('end_time')}
+                                            </div>
+
+                                            {isResourceAvailable === true && (
+                                                <p style={availabilityStyle.available}>Resource is available for these times.</p>
+                                            )}
+                                            {isResourceAvailable === false && (
+                                                <p style={availabilityStyle.notAvailable}>Resource is NOT available for these times. Please adjust your selection.</p>
+                                            )}
+                                            {isResourceAvailable === null && startTime && endTime && (
+                                                <p style={availabilityStyle.checking}>Checking availability...</p>
+                                            )}
+
+                                            <div className='form-group'>
+                                                <label htmlFor="bookingType">Booking Type:</label>
+                                                <select
+                                                    name="booking_type"
+                                                    id="bookingType"
+                                                    className={`form-input ${validationErrors.booking_type ? 'input-error' : ''}`}
+                                                    value={bookingType}
+                                                    onChange={(e) => setBookingType(e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">-------------------Booking type---------------------</option>
+                                                    <option value="university_activity">University Activity</option>
+                                                    <option value="staff_meeting">Staff Meeting</option>
+                                                    <option value="class">Student Class</option>
+                                                    <option value="student_meeting">Student Activity</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                                {displayError('booking_type')}
+                                            </div>
+                                            <div className="form-group">
+                                                <label htmlFor="purpose">Purpose of Booking:</label>
+                                                <textarea
+                                                    id="purpose"
+                                                    value={purpose}
+                                                    onChange={(e) => setPurpose(e.target.value)}
+                                                    rows="4"
+                                                    required
+                                                    className="form-textarea"
+                                                ></textarea>
+                                                {displayError('purpose')}
+                                            </div>
+
+                                            {user.user_type === 'admin' && (
+                                                <div className="form-group">
+                                                    <label htmlFor="priority">Priority (1=Critical, 4=Low):</label>
+                                                    <input
+                                                        type="number"
+                                                        id="priority"
+                                                        value={priority}
+                                                        onChange={(e) => setPriority(e.target.value)}
+                                                        min="1"
+                                                        max="4"
+                                                        className="form-input"
+                                                        placeholder="e.g., 1 for Critical"
+                                                    />
+                                                    {displayError('priority')}
+                                                </div>
+                                            )}
+
+                                            <button type="submit" className="action-button book-button" disabled={isResourceAvailable === false}>
+                                                Submit Booking
+                                            </button>
+                                        </form>
+                                        {bookingMessage && <p className="booking-message">{bookingMessage}</p>}
                                     </div>
-
-                                    {/* Display availability status here */}
-                                    {isResourceAvailable === true && (
-                                        <p style={availabilityStyle.available}>Resource is available for these times.</p>
-                                    )}
-                                    {isResourceAvailable === false && (
-                                        <p style={availabilityStyle.notAvailable}>Resource is NOT available for these times. Please adjust your selection.</p>
-                                    )}
-                                    {isResourceAvailable === null && startTime && endTime && (
-                                        <p style={availabilityStyle.checking}>Checking availability...</p>
-                                    )}
-
-
-                                    {/* Corrected Booking Type Select */}
-                                    <div className='form-group'> {/* Changed to form-group for consistency */}
-                                        <label htmlFor="bookingType">Booking Type:</label> {/* Added label for accessibility */}
-                                        <select
-                                            name="booking_type" // Changed to booking_type to match backend expectation
-                                            id="bookingType" // Changed id to match label
-                                            className={`form-input ${validationErrors.booking_type ? 'input-error' : ''}`} // Use validationErrors
-                                            value={bookingType} // Use bookingType state
-                                            onChange={(e) => setBookingType(e.target.value)} // Update bookingType state
-                                            required
-                                        >
-                                            <option value="">-------------------Booking type---------------------</option>
-                                            <option value="university_activity">University Activity</option>
-                                            <option value="staff_meeting">Staff Meeting</option>
-                                            <option value="class">Student Class</option>
-                                            <option value="student_meeting">Student Activity</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                        {displayError('booking_type')} {/* Changed to booking_type */}
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="purpose">Purpose of Booking:</label>
-                                        <textarea
-                                            id="purpose"
-                                            value={purpose}
-                                            onChange={(e) => setPurpose(e.target.value)}
-                                            rows="4"
-                                            required
-                                            className="form-textarea"
-                                        ></textarea>
-                                        {displayError('purpose')}
-                                    </div>
-
-                                    {/* Admin-only Priority Input */}
-                                    {user.user_type === 'admin' && (
-                                        <div className="form-group">
-                                            <label htmlFor="priority">Priority (1=Critical, 4=Low):</label>
-                                            <input
-                                                type="number"
-                                                id="priority"
-                                                value={priority}
-                                                onChange={(e) => setPriority(e.target.value)}
-                                                min="1"
-                                                max="4" // Match your backend Enum values (assuming 4, not 5)
-                                                className="form-input"
-                                                placeholder="e.g., 1 for Critical"
-                                            />
-                                            {displayError('priority')}
-                                        </div>
-                                    )}
-
-                                    <button type="submit" className="action-button book-button" disabled={isResourceAvailable === false}>
-                                        Submit Booking
-                                    </button>
-                                </form>
-                                {bookingMessage && <p className="booking-message">{bookingMessage}</p>}
+                                ) : (
+                                    <p className="login-prompt-message">Please <Link to="/login">log in</Link> to book this resource.</p>
+                                )}
                             </div>
                         ) : (
-                            <p className="login-prompt-message">Please <Link to="/login">log in</Link> to book this resource.</p>
+                            <p className="resource-not-found-message">Loading resource or resource not found!</p>
                         )}
                     </div>
-                ) : (
-                    <p className="resource-not-found-message">Loading resource or resource not found!</p>
-                )}
+                </div>
+                <div className="booking-status-sidebar">
+                    <h3>Booking Status</h3>
+                    <div className="booking-status-container">
+                            {renderBookingList(resourceBookings.pending, "Pending Bookings", "pending")}
+                            {renderBookingList(resourceBookings.approved, "Approved Bookings", "approved")}
+                            {renderBookingList(resourceBookings.in_use, "Currently In Use", "in_use")}
+                            
+                            {resourceBookings.pending.length === 0 && 
+                             resourceBookings.approved.length === 0 && 
+                             resourceBookings.in_use.length === 0 && (
+                                <p className="no-bookings">No active bookings for this resource.</p>
+                            )}
+                    </div>
+                </div>
             </div>
+
+            
         </>
     );
 }
