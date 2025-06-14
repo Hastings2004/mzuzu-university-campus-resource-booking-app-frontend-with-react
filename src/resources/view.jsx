@@ -601,12 +601,7 @@ export default function View() {
                                 <p className="single-resource-detail"><strong>Description:</strong> {resource.description}</p>
                                 <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
                                 <p className="single-resource-detail"><strong>Capacity:</strong> {resource.capacity}</p>
-                                <span className="">
-                                    Availability status: <span className={resource.is_active ? 'status-available' : 'status-booked'}>
-                                        {resource.is_active ? 'Available' : 'Unavailable'}
-                                    </span>
-                                </span>
-
+                                
                                 {(user && (user.id === resource.user_id || user.user_type === 'admin')) && (
                                     <div className="action-buttons">
                                         <Link to={`/resources/edit/${resource.id}`} className="action-button edit-button">Edit Resource</Link>
