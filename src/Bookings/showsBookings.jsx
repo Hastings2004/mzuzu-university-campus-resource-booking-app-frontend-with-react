@@ -250,6 +250,12 @@ export default function MyBookings() {
                     >
                         Rejected
                     </button>
+                     <button
+                        onClick={() => handleAdminStatusFilter('completed')}
+                        className={`status-filter-button ${filterStatus === 'rejected' ? 'active' : ''}`}
+                    >
+                        completed
+                    </button>
                 </div>
             )}
             {/* --- END ADMIN STATUS FILTER BUTTONS --- */}
@@ -333,8 +339,9 @@ export default function MyBookings() {
                                                 booking.status === 'pending' ? 'status-pending' :
                                                     booking.status === 'in_use' ? 'status-in-use' :
                                                         booking.status === 'expired' ? 'status-expired' :
-                                                            booking.status === 'cancelled' ? 'status-cancelled' : // Added for cancelled
-                                                                booking.status === 'rejected' ? 'status-rejected' : // Added for rejected
+                                                            booking.status === 'cancelled' ? 'status-cancelled' : 
+                                                                booking.status === 'rejected' ? 'status-rejected' :
+                                                                    booking.status === 'completed' ? 'status-completed':
                                                                     'status-default' // Fallback class
                                         }>
                                             {booking.status}

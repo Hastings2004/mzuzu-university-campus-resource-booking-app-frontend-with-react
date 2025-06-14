@@ -1236,6 +1236,10 @@ body {
     color: var(--accent-red); /* Match delete button red */
     font-weight: bold;
 }
+.status-completed{
+    color: var(--primary-color); /* Match update button green */
+    font-weight: bold;
+}
 .resource-card .status-available {
     color: var(--accent-red);
     font-weight: bold;
