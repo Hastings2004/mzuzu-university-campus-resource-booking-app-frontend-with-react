@@ -1203,71 +1203,6 @@ body {
 }
 
 
-/* Specific styles for the Update button */
-.single-resource-container {
-    display: flex;
-}
-/* Container for the action buttons */
-.single-resource-container .booking-actions {
-    margin-top: 30px;
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Base styles for all buttons within .booking-actions */
-.single-resource-container .booking-actions .button {
-    padding: 12px 28px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1.05rem;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center; /* Centers content vertically */
-    justify-content: center;
-    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transitions for hover effects */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
-    min-width: 150px;
-}
-
-/* Specific styles for the Update button */
-.single-resource-container .booking-actions .update-button {
-    background-color: var(--accent-green); /* Using accent-green for consistency */
-    color: var(--text-light-on-dark); /* White text for contrast */
-}
-
-.single-resource-container .booking-actions .update-button:hover {
-    background-color: var(--primary-dark); /* Darker green on hover, can also use a dedicated accent-green-dark if needed */
-    transform: translateY(-3px); /* Slightly more lift effect */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
-}
-
-/* Specific styles for the Delete button */
-.single-resource-container .booking-actions .delete-button {
-    background-color: var(--accent-red); /* Standard danger red */
-    color: var(--text-light-on-dark); /* White text for contrast */
-}
-
-.single-resource-container .booking-actions .delete-button:hover {
-    background-color: #c82333; 
-    transform: translateY(-3px); 
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); 
-}
-
-
-
-.single-resource-title {
-    color: var(--text-primary); 
-    margin-bottom: 25px;
-    font-size: 2.2em; /* Larger title */
-    text-align: center;
-    border-bottom: 2px solid var(--bg-grey); /* Using variable for light grey border */
-    padding-bottom: 15px;
-}
-
 .booking-detail {
     margin-bottom: 12px; /* More space between detail lines */
     color: var(--text-secondary); /* Using secondary text color */
@@ -1395,7 +1330,37 @@ body {
 }
 .booking-status-section{
     display: flex;
+    flex-direction: column;
+    background-color: var(--bg-light); 
+    padding: 15px;
 }
+ .booking-status-section h4{    
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 20px;  
+    margin-bottom: 15px; 
+    text-align: center;
+    word-wrap: break-word; /* Ensure long titles break */
+    overflow-wrap: break-word;
+    line-height: 1.2;
+
+ }
+
+ .booking-list{
+     background: var(--bg-light);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px var(--shadow-medium); 
+    padding: 30px;
+    width: 100%; 
+    max-width: 700px; 
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    box-sizing: border-box; 
+    overflow: hidden;
+    margin: 20px;
+ }
+
 .single-resource-card .single-resource-title {
     font-size: 36px; /* Larger title */
     font-weight: 700;
@@ -1603,11 +1568,11 @@ body {
 }
 /* --- My Bookings Page Container --- */
 .my-bookings-container {
-    padding-right: 0px; /* Ample padding around the whole section */
-    max-width: 1000px; /* Max width for readability on large screens */
-    margin-right: 20px; /* Center the container */
-    font-family: var(--poppins); /* Changed to use var(--poppins) */
-    margin-left: 20px; /* Modern font stack */
+    padding-right: 0px; 
+    max-width: 1000px;
+    margin-right: 20px; 
+    font-family: var(--poppins); 
+    margin-left: 20px; 
 }
 
 /* Styles for the container of the admin filter buttons */
@@ -1848,34 +1813,478 @@ body {
 /* General Container and Page Layout */
 .container {
     max-width: 800px;
-    margin-left: 40px auto; /* This looks like a typo, should probably be 'margin: 0 auto;' or 'margin-left: 40px; margin-right: auto;' */
+    margin-left: 40px auto; 
     padding: 20px;
-    background-color: var(--bg-light); /* Uses light background by default, dark in dark mode */
+    background-color: var(--bg-light); 
     border-radius: 10px;
-    box-shadow: 0 4px 15px var(--shadow-light); /* Uses dynamic shadow */
+    box-shadow: 0 4px 15px var(--shadow-light); 
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .auth-container .content {
-    background-color: var(--bg-medium); /* White background for form */
+    background-color: var(--bg-medium); 
     padding: 30px;
-    /*border-radius: 10px;
-    box-shadow: 0 2px 8px var(--shadow-medium);  Lighter shadow for the inner content */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 
 }
 
-.booking-status-sidebar{
-    align-items: end;
-    background-color: white;
-    border-radius: 10px;
-    margin: 40px auto;
-    padding: 30px;
+.single-resource-container {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 20px;
+    padding: 20px;
+    max-width: 1300px;
+    margin-right: 20px auto;
+    background-color: var(--bg-secondary-card);
 }
+
+.resource-content {
+    flex: 2; 
+    min-width: 300px; 
+}
+
+.resource-main {
+    background-color: var(--bg-secondary-card);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    padding: 25px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.single-resource-title {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.single-resource-detail {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.single-resource-detail strong {
+    color: var(--text-secondary);
+}
+
+.status-available {
+    color: var(--accent-green);
+    font-weight: bold;
+}
+
+.status-booked {
+    color: var(--accent-red);
+    font-weight: bold;
+}
+
+/* Action Buttons for Edit/Delete */
+.action-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.edit-button {
+    background-color: var(--accent-blue);
+    color: var(--text-light-on-dark);
+}
+
+.edit-button:hover {
+    background-color: darken(var(--accent-blue), 10%);
+}
+
+.delete-button {
+    background-color: var(--accent-red);
+    color: var(--text-light-on-dark);
+}
+
+.delete-button:hover {
+    background-color: darken(var(--accent-red), 10%);
+}
+
+.book-button {
+    background-color: var(--primary-color);
+    color: var(--text-light-on-dark);
+    width: 100%;
+    margin-top: 20px;
+}
+
+.book-button:hover:not(:disabled) {
+    background-color: darken(var(--primary-color), 10%);
+}
+
+.book-button:disabled {
+    background-color: var(--bg-grey);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Booking Form Section */
+.booking-form-section {
+    margin-top: 30px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+}
+
+.booking-form h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+    margin-top: 5px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    color: var(--text-primary);
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+    accent-color: var(--primary-color); /* Styles the radio button itself */
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2); /* Assuming you have primary-color-rgb variable */
+}
+
+.input-error {
+    border-color: var(--accent-red);
+}
+
+.error-message {
+    color: var(--accent-red);
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+/* Availability Messages */
+p[style*="color: rgb(76, 175, 80)"] { 
+    color: var(--accent-green) !important;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+p[style*="color: rgb(244, 67, 54)"] { 
+    color: var(--accent-red) !important;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+p[style*="color: rgb(33, 150, 243)"] {
+    color: var(--accent-blue) !important;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.booking-message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.booking-message.success {
+    background-color: var(--message-bg-info);
+    border: 1px solid var(--message-border-info);
+    color: var(--text-primary); /* Adjust as needed for readability */
+}
+
+.booking-message.error {
+    background-color: var(--message-bg-error);
+    border: 1px solid var(--message-border-error);
+    color: var(--text-light-on-dark);
+}
+
+.login-prompt-message {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 1.1em;
+    color: var(--text-secondary);
+}
+
+.login-prompt-message a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.login-prompt-message a:hover {
+    text-decoration: underline;
+}
+
+.resource-not-found-message {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 1.2em;
+    color: var(--accent-red);
+}
+
+/* Booking Status Sidebar */
+.booking-status-sidebar {
+    flex: 1; 
+    min-width: 280px; 
+    background-color: var(--bg-secondary-card);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    padding: 20px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.booking-status-sidebar h1 , .booking-status-section h4{
+     font-size: 24px; 
+    font-weight: 600;
+    color: var(--accent-green);
+    margin-bottom: 25px;
+    text-align: left;
+    padding-bottom: 0; 
+    border-bottom: none;
+    background-color: transparent; 
+    display: block; 
+
+}
+
+.booking-status-container {
+    padding: 0;
+}
+
+.booking-status-section {
+    margin-bottom: 25px;
+}
+
+/* Modified to align with .home-dashboard-section h1 */
+.booking-status-section h4 {
+    font-size: 24px; 
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    text-align: left;
+    padding-bottom: 0; 
+    border-bottom: none;
+    background-color: transparent; 
+    display: block; 
+}
+
+.booking-list {
+    display: inline;
+    flex-direction: column;
+    gap: 15px; 
+}
+
+/* Modified .booking-item to resemble .resource-card */
+.booking-item {
+    background: var(--bg-light);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    padding: 20px; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    min-width: 0;
+    position: relative; 
+}
+
+.booking-item:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 6px 12px var(--shadow-medium);
+}
+
+/* Modified .booking-info p to resemble .booking-detail */
+.booking-info p {
+    margin-bottom: 12px; /* More space between detail lines */
+    color: var(--text-secondary); /* Using secondary text color */
+    line-height: 1.6;
+    font-size: 1.05rem; /* Slightly larger detail text */
+}
+
+.booking-info p:last-child {
+    margin-bottom: 0; /* No margin after the last detail line */
+}
+
+/* Modified .booking-info p strong to resemble .booking-detail strong */
+.booking-info p strong {
+    color: var(--text-primary); /* Using primary text color */
+    min-width: 80px; /* Adjust min-width for sidebar content, can be tweaked */
+    display: inline-block;
+    margin-right: 5px; /* Space between label and value */
+}
+
+.booking-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.85em;
+    color: var(--text-light-on-dark);
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Add a subtle shadow to the badge */
+}
+
+
+.booking-status[style*="background-color: rgb(76, 175, 80)"] { 
+    background-color: var(--accent-green) !important; 
+}
+
+.booking-status[style*="background-color: rgb(255, 152, 0)"] { 
+    background-color: var(--accent-orange) !important;
+}
+
+.booking-status[style*="background-color: rgb(33, 150, 243)"] { /* in_use */
+    background-color: var(--accent-blue) !important;
+}
+
+/* New status-approved class based on the prompt */
+.status-approved {
+    color: var(--primary-color); 
+    font-weight: bold;
+}
+
+
+.no-bookings {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--bg-grey);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .single-resource-container {
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    .resource-content,
+    .booking-status-sidebar {
+        min-width: unset; 
+        width: 100%;
+    }
+
+    .resource-main,
+    .booking-status-sidebar {
+        padding: 20px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-button {
+        width: 100%;
+    }
+
+    .radio-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    
+    .booking-status {
+        position: static; 
+        margin-top: 10px; 
+        align-self: flex-start; 
+    }
+    .booking-item {
+        align-items: flex-start; 
+    }
+}
+
+@media (max-width: 480px) {
+    .single-resource-title {
+        font-size: 1.5em;
+    }
+
+    .booking-status-section h4 {
+        font-size: 1.2em; 
+        margin-bottom: 20px;
+    }
+
+    .booking-item {
+        padding: 15px; 
+    }
+
+    .booking-info p {
+        font-size: 0.95rem; 
+        margin-bottom: 8px;
+    }
+
+    .booking-info p strong {
+        min-width: 70px; 
+    }
+
+    .booking-status {
+        font-size: 0.8em;
+        padding: 5px 10px;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        width: 100%; 
+        padding: 8px;
+    }
+}
+
 /* Header and Status Display */
 .content h3 {
     font-size: 2.2em;
-    color: var(--primary-color); /* Uses main text color, changed from --text-dark */
+    color: var(--primary-color); 
     margin-bottom: 20px;
     text-align: center;
     /*border-bottom: 2px solid var(--border-color);  Uses dynamic border color */
@@ -1951,8 +2360,8 @@ body {
     border: 1px solid var(--border-color); /* Uses dynamic border color */
     border-radius: 6px;
     font-size: 1em;
-    color: var(--text-primary); /* Uses main text color, changed from --text-dark */
-    background-color: var(--bg-dark); /* Uses specific background for inputs */
+    color: var(--text-primary); 
+    background-color: var(--bg-dark); 
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
     width: 100%;
     box-sizing: border-box;
@@ -3010,8 +3419,8 @@ body {
 /* Dark mode adjustments for card view */
 @media (prefers-color-scheme: dark) {
     .bookings-list {
-        background-color: var(--bg-medium); /* Darker background for list */
-        box-shadow: inset 0 0 10px var(--dark-shadow-inset); /* Using a new variable for dark mode inset shadow */
+        background-color: var(--bg-medium); 
+        box-shadow: inset 0 0 10px var(--dark-shadow-inset); 
     }
     .booking-card {
         background-color: var(--bg-dark); /* Darker card background */
@@ -4372,3 +4781,4 @@ body.dark .form-group input::placeholder {
 }
 
 /* ... other existing styles ... */
+

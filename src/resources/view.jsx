@@ -71,6 +71,7 @@ export default function View() {
                 }
             });
             const data = await res.json();
+            console.log(data);
 
             if (res.ok) {
                 const bookingsByStatus = {
@@ -78,6 +79,8 @@ export default function View() {
                     approved: [],
                     in_use: []
                 };
+
+
 
                 if (data.bookings && Array.isArray(data.bookings)) {
                     data.bookings.forEach(booking => {
@@ -257,7 +260,7 @@ export default function View() {
             const day = today.getDate().toString().padStart(2, '0');
             const dateString = `${year}-${month}-${day}`;
 
-            actualStartTime = new Date(`${dateString}T${startTime}`);
+            actualStartTime = new Date(`${startDate}T${startTime}`);
             actualEndTime = new Date(`${dateString}T${endTime}`);
 
             if (actualStartTime.toDateString() !== actualEndTime.toDateString()) {
@@ -568,16 +571,14 @@ export default function View() {
 
         return (
             <div className="booking-status-section">
-                <h4>{title} ({bookings.length})</h4>
+                <h4>Current Bookings for {resource.name} ({bookings.length})</h4>
                 <div className="booking-list">
                     {bookings.map((booking, index) => (
                         <div key={booking.id || index} className="booking-item">
                             <div className="booking-info">
-                                <p><strong>User:</strong> {booking.user_name || 'Unknown'}</p>
                                 <p><strong>Time:</strong> {formatDateTime(booking.start_time)} - {formatDateTime(booking.end_time)}</p>
                                 <p><strong>Purpose:</strong> {booking.purpose}</p>
-                                <p><strong>Type:</strong> {booking.booking_type}</p>
-                                {booking.priority && <p><strong>Priority:</strong> {booking.priority}</p>}
+                                <p><strong>Type:</strong> {booking.booking_type}</p>                                
                             </div>
                             <span style={statusStyles[status]} className="booking-status">
                                 {status.replace('_', ' ').toUpperCase()}
@@ -641,9 +642,9 @@ export default function View() {
                                                 </div>
                                             </div>
 
-                                            {bookingOption === "multi_day" && (
-                                                <div className="form-group">
-                                                    <label htmlFor="startDate">Start Date:</label>
+                                            
+                                            <div className="form-group">
+                                                <label htmlFor="startDate">Start Date:</label>
                                                     <input
                                                         type="date"
                                                         id="startDate"
@@ -653,8 +654,8 @@ export default function View() {
                                                         className="form-input"
                                                     />
                                                     {displayError('start_date')}
-                                                </div>
-                                            )}
+                                            </div>
+                                            
 
                                             <div className="form-group">
                                                 <label htmlFor="startTime">Start Time:</label>
@@ -772,8 +773,8 @@ export default function View() {
                         )}
                     </div>
                 </div>
-                <div className="booking-status-sidebar">
-                    <h3>Booking Status</h3>
+                <div className="booking-status-sidebar">     
+                    <h1>CURRENT BOOKING</h1>               
                     <div className="booking-status-container">
                         {renderBookingList(resourceBookings.pending, "Pending Bookings", "pending")}
                         {renderBookingList(resourceBookings.approved, "Approved Bookings", "approved")}
