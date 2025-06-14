@@ -571,7 +571,7 @@ export default function View() {
 
         return (
             <div className="booking-status-section">
-                <h4>Current Bookings for {resource.name} ({bookings.length})</h4>
+                <h4>{resource.name} Has {bookings.length} Bookings</h4>
                 <div className="booking-list">
                     {bookings.map((booking, index) => (
                         <div key={booking.id || index} className="booking-item">
@@ -602,13 +602,6 @@ export default function View() {
                                 <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
                                 <p className="single-resource-detail"><strong>Capacity:</strong> {resource.capacity}</p>
                                 
-                                {(user && (user.id === resource.user_id || user.user_type === 'admin')) && (
-                                    <div className="action-buttons">
-                                        <Link to={`/resources/edit/${resource.id}`} className="action-button edit-button">Edit Resource</Link>
-                                        <button onClick={handleDelete} className="action-button delete-button">Delete Resource</button>
-                                    </div>
-                                )}
-
                                 {user ? (
                                     <div className="booking-form-section">
                                         <h3>Book this Resource</h3>
