@@ -13,6 +13,9 @@ export default function View() {
         approved: [],
         in_use: []
     });
+    const [bookingOption, setBookingOption] = useState("single_day"); // New state for booking option
+    const [startDate, setStartDate] = useState(""); // New state for start date
+    const [endDate, setEndDate] = useState("");     // New state for end date
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [purpose, setPurpose] = useState("");
@@ -20,10 +23,10 @@ export default function View() {
     const [priority, setPriority] = useState("");
     const [bookingMessage, setBookingMessage] = useState("");
     const [validationErrors, setValidationErrors] = useState({});
-    const [isResourceAvailable, setIsResourceAvailable] = useState(null); 
-    
+    const [isResourceAvailable, setIsResourceAvailable] = useState(null);
+
     const availabilityStyle = {
-        checking: { color: 'blue' , fontWeight: 'bold', backgroundColor: '#e9ecef', padding: '10px', borderRadius: '5px' },
+        checking: { color: 'blue', fontWeight: 'bold', backgroundColor: '#e9ecef', padding: '10px', borderRadius: '5px' },
         available: { color: 'green', fontWeight: 'bold', backgroundColor: '#d4edda', padding: '10px', borderRadius: '5px' },
         notAvailable: { color: 'red', fontWeight: 'bold', backgroundColor: '#f8d7da', padding: '10px', borderRadius: '5px' }
     };
@@ -46,12 +49,12 @@ export default function View() {
         if (res.ok) {
             if (data.resource) {
                 setResource(data.resource);
-            } else if (data.data) { 
+            } else if (data.data) {
                 setResource(data.data);
-            } else { 
+            } else {
                 setResource(data);
             }
-            setBookingMessage(""); 
+            setBookingMessage("");
         } else {
             console.error("Failed to fetch resource:", data);
             setResource(null);
@@ -70,7 +73,6 @@ export default function View() {
             const data = await res.json();
 
             if (res.ok) {
-                // Organize bookings by status
                 const bookingsByStatus = {
                     pending: [],
                     approved: [],
@@ -80,15 +82,13 @@ export default function View() {
                 if (data.bookings && Array.isArray(data.bookings)) {
                     data.bookings.forEach(booking => {
                         const currentTime = new Date();
-                        const startTime = new Date(booking.start_time);
-                        const endTime = new Date(booking.end_time);
+                        const bookingStartTime = new Date(booking.start_time);
+                        const bookingEndTime = new Date(booking.end_time);
 
-                        // Determine status based on booking state and time
                         if (booking.status === 'pending') {
                             bookingsByStatus.pending.push(booking);
                         } else if (booking.status === 'approved') {
-                            // Check if currently in use
-                            if (currentTime >= startTime && currentTime <= endTime) {
+                            if (currentTime >= bookingStartTime && currentTime <= bookingEndTime) {
                                 bookingsByStatus.in_use.push(booking);
                             } else {
                                 bookingsByStatus.approved.push(booking);
@@ -116,28 +116,67 @@ export default function View() {
             return;
         }
 
-        if (!startTime || !endTime) {
-            setIsResourceAvailable(null); 
-            return;
+        let fullStartTime, fullEndTime;
+
+        if (bookingOption === "single_day") {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`;
+
+            if (!startTime || !endTime) {
+                setIsResourceAvailable(null);
+                return;
+            }
+            fullStartTime = new Date(`${dateString}T${startTime}`);
+            fullEndTime = new Date(`${dateString}T${endTime}`);
+
+        } else { // multi_day
+            if (!startDate || !startTime || !endDate || !endTime) {
+                setIsResourceAvailable(null);
+                return;
+            }
+            fullStartTime = new Date(`${startDate}T${startTime}`);
+            fullEndTime = new Date(`${endDate}T${endTime}`);
         }
 
-        const startDateTime = new Date(startTime);
-        const endDateTime = new Date(endTime);
-
-        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+        if (isNaN(fullStartTime.getTime()) || isNaN(fullEndTime.getTime())) {
             setBookingMessage("Invalid date or time format.");
             setIsResourceAvailable(false);
             return;
         }
 
-        if (startDateTime >= endDateTime) {
+        if (fullStartTime >= fullEndTime) {
             setBookingMessage("End time must be after start time for availability check.");
             setIsResourceAvailable(false);
             return;
         }
 
-        const startDateISO = startDateTime.toISOString();
-        const endDateISO = endDateTime.toISOString();
+        // Check if single-day booking truly spans only one day
+        if (bookingOption === "single_day") {
+            const startDay = fullStartTime.toDateString();
+            const endDay = fullEndTime.toDateString();
+            if (startDay !== endDay) {
+                setBookingMessage("For 'Single Day' booking, start and end times must be on the same day.");
+                setIsResourceAvailable(false);
+                return;
+            }
+        }
+
+        // Check if multi-day booking is actually multi-day or at least 2 days
+        if (bookingOption === "multi_day") {
+            const diffTime = Math.abs(fullEndTime.getTime() - fullStartTime.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays < 2) {
+                setBookingMessage("For '2 Days and Above' booking, the duration must be at least 2 full days.");
+                setIsResourceAvailable(false);
+                return;
+            }
+        }
+
+        const startDateISO = fullStartTime.toISOString();
+        const endDateISO = fullEndTime.toISOString();
 
         try {
             const res = await fetch('/api/bookings/check-availability', {
@@ -167,13 +206,16 @@ export default function View() {
     }
 
     useEffect(() => {
-        if (startTime && endTime) {
+        // Trigger availability check when relevant time/date inputs change
+        if (bookingOption === "single_day" && startTime && endTime) {
+            handleAvailabilityCheck();
+        } else if (bookingOption === "multi_day" && startDate && startTime && endDate && endTime) {
             handleAvailabilityCheck();
         } else {
             setIsResourceAvailable(null);
-            setBookingMessage(""); 
+            setBookingMessage("");
         }
-    }, [startTime, endTime]); 
+    }, [startTime, endTime, startDate, endDate, bookingOption]);
 
     async function handleSubmitBooking(e) {
         e.preventDefault();
@@ -197,9 +239,79 @@ export default function View() {
             return;
         }
 
-        if (!startTime || !endTime || !purpose || !bookingType) {
-            setBookingMessage("Please fill in all booking details (Start Time, End Time, Purpose, Booking Type).");
+        if (!purpose || !bookingType) {
+            setBookingMessage("Please fill in all booking details (Purpose, Booking Type).");
             return;
+        }
+
+        let actualStartTime, actualEndTime;
+
+        if (bookingOption === "single_day") {
+            if (!startTime || !endTime) {
+                setBookingMessage("Please enter start and end times for single-day booking.");
+                return;
+            }
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`;
+
+            actualStartTime = new Date(`${dateString}T${startTime}`);
+            actualEndTime = new Date(`${dateString}T${endTime}`);
+
+            if (actualStartTime.toDateString() !== actualEndTime.toDateString()) {
+                setBookingMessage("For 'Single Day' booking, start and end times must be on the same day.");
+                return;
+            }
+
+        } else { // multi_day
+            if (!startDate || !startTime || !endDate || !endTime) {
+                setBookingMessage("Please enter start date, start time, end date, and end time for multi-day booking.");
+                return;
+            }
+            actualStartTime = new Date(`${startDate}T${startTime}`);
+            actualEndTime = new Date(`${endDate}T${endTime}`);
+
+            const diffTime = Math.abs(actualEndTime.getTime() - actualStartTime.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays < 2) {
+                setBookingMessage("For '2 Days and Above' booking, the duration must be at least 2 full days.");
+                return;
+            }
+        }
+
+        if (isNaN(actualStartTime.getTime()) || isNaN(actualEndTime.getTime())) {
+            setBookingMessage("Invalid date or time format. Please check your inputs.");
+            return;
+        }
+
+        if (actualStartTime >= actualEndTime) {
+            setBookingMessage("End time must be after start time.");
+            return;
+        }
+
+        const now = new Date();
+        now.setSeconds(now.getSeconds() - 60); // Allow for slight delay
+        if (actualStartTime <= now) {
+            setBookingMessage("Start time must be in the future.");
+            return;
+        }
+
+        const threeMonthsFromNow = new Date();
+        threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+        if (actualStartTime > threeMonthsFromNow) {
+            setBookingMessage("Bookings cannot be made more than 3 months in advance.");
+            return;
+        }
+
+        // Re-check availability before final submission if it hasn't been checked or is marked unavailable
+        if (isResourceAvailable !== true) {
+            await handleAvailabilityCheck();
+            if (isResourceAvailable !== true) {
+                setBookingMessage("Resource is not available for the selected time. Please adjust your times.");
+                return;
+            }
         }
 
         const trimmedPurpose = purpose.trim();
@@ -213,53 +325,10 @@ export default function View() {
             return;
         }
 
-        let startDate, endDate;
-        try {
-            startDate = new Date(startTime);
-            endDate = new Date(endTime);
-
-            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                setBookingMessage("Invalid date format. Please check your date inputs.");
-                return;
-            }
-
-            if (startDate >= endDate) {
-                setBookingMessage("End time must be after start time.");
-                return;
-            }
-
-            const now = new Date();
-            now.setSeconds(now.getSeconds() - 60);
-            if (startDate <= now) {
-                setBookingMessage("Start time must be in the future.");
-                return;
-            }
-
-            const threeMonthsFromNow = new Date();
-            threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-            if (startDate > threeMonthsFromNow) {
-                setBookingMessage("Bookings cannot be made more than 3 months in advance.");
-                return;
-            }
-
-        } catch (error) {
-            console.error('Date parsing error:', error);
-            setBookingMessage("Invalid date format. Please check your date inputs.");
-            return;
-        }
-
-        if (isResourceAvailable !== true) {
-            await handleAvailabilityCheck(); 
-            if (isResourceAvailable !== true) { 
-                setBookingMessage("Resource is not available for the selected time. Please adjust your times.");
-                return;
-            }
-        }
-
         const bookingData = {
             resource_id: resource.id,
-            start_time: startDate.toISOString(),
-            end_time: endDate.toISOString(),
+            start_time: actualStartTime.toISOString(),
+            end_time: actualEndTime.toISOString(),
             purpose: trimmedPurpose,
             booking_type: bookingType,
         };
@@ -333,15 +402,18 @@ export default function View() {
                 console.log('Booking successful:', successMsg);
                 setBookingMessage(successMsg);
 
+                // Clear form fields
+                setStartDate("");
+                setEndDate("");
                 setStartTime("");
                 setEndTime("");
                 setPurpose("");
                 setPriority("");
                 setBookingType("");
+                setBookingOption("single_day"); // Reset to default
                 setIsResourceAvailable(null);
 
-                // Refresh bookings after successful submission
-                getResourceBookings();
+                getResourceBookings(); // Refresh bookings after successful submission
 
             } else {
                 console.error('Booking failed with status:', res.status);
@@ -352,11 +424,9 @@ export default function View() {
                         setBookingMessage("Your session has expired. Please log in again.");
                         navigate('/login');
                         break;
-
                     case 403:
                         setBookingMessage(data.message || "You don't have permission to perform this action.");
                         break;
-
                     case 422:
                         if (data.errors) {
                             console.log('Validation errors:', data.errors);
@@ -367,7 +437,6 @@ export default function View() {
                             setBookingMessage(data.message || "Please correct the errors in your booking details.");
                         }
                         break;
-
                     case 409:
                         if (data.conflicting_bookings && data.conflicting_bookings.length > 0) {
                             const conflictDetails = data.conflicting_bookings
@@ -379,11 +448,9 @@ export default function View() {
                         }
                         setIsResourceAvailable(false);
                         break;
-
                     case 429:
                         setBookingMessage(data.message || 'Too many requests. Please try again later, or you have too many active bookings.');
                         break;
-
                     case 500:
                         let errorMsg = 'A server error occurred. Please try again later.';
                         if (data.debug_error && process.env.NODE_ENV === 'development') {
@@ -392,15 +459,14 @@ export default function View() {
                         console.error('Server error details:', data);
                         setBookingMessage(errorMsg);
                         break;
-
                     default:
                         setBookingMessage(data.message || `Request failed with status ${res.status}. Please try again.`);
                 }
             }
 
         } catch (error) {
-            console.error("🌐 Network or fetch error:", error);
-            console.error("🌐 Error details:", {
+            console.error("Network or fetch error:", error);
+            console.error("Error details:", {
                 name: error.name,
                 message: error.message,
                 stack: error.stack
@@ -499,7 +565,7 @@ export default function View() {
 
     const renderBookingList = (bookings, title, status) => {
         if (bookings.length === 0) return null;
-        
+
         return (
             <div className="booking-status-section">
                 <h4>{title} ({bookings.length})</h4>
@@ -552,9 +618,48 @@ export default function View() {
                                         <h3>Book this Resource</h3>
                                         <form onSubmit={handleSubmitBooking} className="booking-form">
                                             <div className="form-group">
+                                                <label>Select Booking Duration:</label>
+                                                <div className="radio-group">
+                                                    <label>
+                                                        <input
+                                                            type="radio"
+                                                            value="single_day"
+                                                            checked={bookingOption === "single_day"}
+                                                            onChange={() => setBookingOption("single_day")}
+                                                        />
+                                                        Single Day
+                                                    </label>
+                                                    <label>
+                                                        <input
+                                                            type="radio"
+                                                            value="multi_day"
+                                                            checked={bookingOption === "multi_day"}
+                                                            onChange={() => setBookingOption("multi_day")}
+                                                        />
+                                                        2 Days and Above
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {bookingOption === "multi_day" && (
+                                                <div className="form-group">
+                                                    <label htmlFor="startDate">Start Date:</label>
+                                                    <input
+                                                        type="date"
+                                                        id="startDate"
+                                                        value={startDate}
+                                                        onChange={(e) => setStartDate(e.target.value)}
+                                                        required
+                                                        className="form-input"
+                                                    />
+                                                    {displayError('start_date')}
+                                                </div>
+                                            )}
+
+                                            <div className="form-group">
                                                 <label htmlFor="startTime">Start Time:</label>
                                                 <input
-                                                    type="datetime-local"
+                                                    type="time"
                                                     id="startTime"
                                                     value={startTime}
                                                     onChange={(e) => setStartTime(e.target.value)}
@@ -563,10 +668,27 @@ export default function View() {
                                                 />
                                                 {displayError('start_time')}
                                             </div>
+
+                                            {bookingOption === "multi_day" && (
+                                                <div className="form-group">
+                                                    <label htmlFor="endDate">End Date:</label>
+                                                    <input
+                                                        type="date"
+                                                        id="endDate"
+                                                        value={endDate}
+                                                        onChange={(e) => setEndDate(e.target.value)}
+                                                        required
+                                                        className="form-input"
+                                                    />
+                                                    {displayError('end_date')}
+                                                </div>
+                                            )}
+
                                             <div className="form-group">
                                                 <label htmlFor="endTime">End Time:</label>
+                                                {/* For single-day, type can still be time, but for multi-day, it's combined with date */}
                                                 <input
-                                                    type="datetime-local"
+                                                    type="time"
                                                     id="endTime"
                                                     value={endTime}
                                                     onChange={(e) => setEndTime(e.target.value)}
@@ -582,7 +704,7 @@ export default function View() {
                                             {isResourceAvailable === false && (
                                                 <p style={availabilityStyle.notAvailable}>Resource is NOT available for these times. Please adjust your selection.</p>
                                             )}
-                                            {isResourceAvailable === null && startTime && endTime && (
+                                            {isResourceAvailable === null && (startTime || (bookingOption === "multi_day" && startDate)) && (endTime || (bookingOption === "multi_day" && endDate)) && (
                                                 <p style={availabilityStyle.checking}>Checking availability...</p>
                                             )}
 
@@ -653,20 +775,18 @@ export default function View() {
                 <div className="booking-status-sidebar">
                     <h3>Booking Status</h3>
                     <div className="booking-status-container">
-                            {renderBookingList(resourceBookings.pending, "Pending Bookings", "pending")}
-                            {renderBookingList(resourceBookings.approved, "Approved Bookings", "approved")}
-                            {renderBookingList(resourceBookings.in_use, "Currently In Use", "in_use")}
-                            
-                            {resourceBookings.pending.length === 0 && 
-                             resourceBookings.approved.length === 0 && 
-                             resourceBookings.in_use.length === 0 && (
+                        {renderBookingList(resourceBookings.pending, "Pending Bookings", "pending")}
+                        {renderBookingList(resourceBookings.approved, "Approved Bookings", "approved")}
+                        {renderBookingList(resourceBookings.in_use, "Currently In Use", "in_use")}
+
+                        {resourceBookings.pending.length === 0 &&
+                            resourceBookings.approved.length === 0 &&
+                            resourceBookings.in_use.length === 0 && (
                                 <p className="no-bookings">No active bookings for this resource.</p>
                             )}
                     </div>
                 </div>
             </div>
-
-            
         </>
     );
 }

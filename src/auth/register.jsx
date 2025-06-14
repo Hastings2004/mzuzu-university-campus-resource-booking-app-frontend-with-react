@@ -4,15 +4,15 @@ import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
 import '../App.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { color } from "chart.js/helpers";
+
 
 export default function Register() {
     const { setToken } = useContext(AppContext);
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        first_name: "", // State key
-        last_name: "",   // State key
+        first_name: "", 
+        last_name: "",   
         email: "",
         user_type: "",
         password: "",
@@ -59,7 +59,7 @@ export default function Register() {
     }
 
     const handleInputChange = (e) => {
-        // e.target.id will now correctly match the formData keys: 'first_name', 'last_name', etc.
+        
         setFormData({ ...formData, [e.target.id || e.target.name]: e.target.value });
         setErrors(prev => {
             const newErrors = { ...prev };
