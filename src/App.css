@@ -1578,10 +1578,10 @@ body {
 /* --- My Bookings Page Container --- */
 .my-bookings-container {
     padding-right: 0px; 
-    max-width: 1000px;
-    margin-right: 20px; 
+    max-width: 100%;
+     
     font-family: var(--poppins); 
-    margin-left: 20px; 
+    margin-left: 10px; 
 }
 
 /* Styles for the container of the admin filter buttons */
@@ -3198,7 +3198,8 @@ p[style*="color: rgb(33, 150, 243)"] {
 
 /* --- Table Specific Styles --- */
 .bookings-table-wrapper {
-    overflow-x: auto; /* Allows horizontal scrolling on small screens */
+    overflow-x: auto; 
+    margin-right: 20px;
     margin-top: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--shadow-small); /* Using a variable for shadow */
@@ -3232,31 +3233,36 @@ p[style*="color: rgb(33, 150, 243)"] {
 }
 
 .bookings-table tbody tr:hover {
-    background-color: var(--bg-dark); /* Highlight row on hover */
+    background-color: var(--bg-dark); 
     transition: background-color 0.2s ease;
 }
 
-/* Specific column widths for better layout */
-.bookings-table th:nth-child(1), .bookings-table td:nth-child(1) { width: 5%; } /* ID */
-.bookings-table th:nth-child(2), .bookings-table td:nth-child(2) { width: 15%; } /* Resource */
-.bookings-table th:nth-child(3), .bookings-table td:nth-child(3) { width: 18%; } /* Booked By */
-.bookings-table th:nth-child(4), .bookings-table td:nth-child(4) { width: 15%; } /* Start Time */
-.bookings-table th:nth-child(5), .bookings-table td:nth-child(5) { width: 15%; } /* End Time */
-.bookings-table th:nth-child(6), .bookings-table td:nth-child(6) { width: 15%; } /* Purpose */
-.bookings-table th:nth-child(7), .bookings-table td:nth-child(7) { width: 10%; } /* Status */
-.bookings-table th:nth-child(8), .bookings-table td:nth-child(8) { width: 15%; text-align: center; } /* Actions */
+.bookings-table th:nth-child(1), .bookings-table td:nth-child(1) { width: 5%; } 
+.bookings-table th:nth-child(2), .bookings-table td:nth-child(2) { width: 15%; } 
+.bookings-table th:nth-child(3), .bookings-table td:nth-child(3) { width: 18%; } 
+.bookings-table th:nth-child(4), .bookings-table td:nth-child(4) { width: 15%; } 
+.bookings-table th:nth-child(5), .bookings-table td:nth-child(5) { width: 15%; } 
+.bookings-table th:nth-child(6), .bookings-table td:nth-child(6) { width: 15%; } 
+.bookings-table th:nth-child(7), .bookings-table td:nth-child(7) { 
+    
+    width: 15%;    
+    white-space: normal;      /* Allow text to wrap normally */
+    word-wrap: break-word;    /* Break long words if they don't fit (for older browsers) */
+    overflow-wrap: break-word;
+} 
+.bookings-table th:nth-child(8), .bookings-table td:nth-child(8) { width: 15%; text-align: center; } 
 
 /* Nested small text for email */
 .bookings-table td small {
     font-size: 0.8em;
-    color: var(--text-secondary); /* Changed from --secondary-color to text-secondary */
-    display: block; /* Ensure email is on a new line */
+    color: var(--text-secondary); 
+    display: block; 
 }
 
 /* Action Buttons within Table Cells */
 .booking-actions-cell {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap if too many */
+    flex-wrap: wrap; 
     gap: 5px; /* Space between buttons */
     justify-content: center; /* Center buttons in cell */
     align-items: center;
@@ -4889,4 +4895,114 @@ body.dark .category-dropdown {
         width: 100%;
         justify-content: center; /* Center buttons when stacked */
     }
+}
+/* src/styles/Reports.css or appended to src/index.css */
+
+.report-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--bg-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+.report-container h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.date-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: var(--bg-medium);
+    border-radius: 5px;
+}
+
+.date-filters label {
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.date-filters input[type="date"] {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 1em;
+}
+
+.date-filters button {
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.date-filters button:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+}
+
+.date-filters button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.report-period-info {
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.report-table th,
+.report-table td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+    color: var(--text-primary);
+}
+
+.report-table th {
+    background-color: var(--bg-medium);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    color: var(--primary-color);
+}
+
+.report-table tbody tr:nth-child(even) {
+    background-color: var(--bg-light); /* Lighter background for even rows */
+}
+
+.report-table tbody tr:hover {
+    background-color: var(--bg-dark);
+}
+
+.high-utilization {
+    font-weight: bold;
+    color: var(--warning-color); /* Use a distinct color for high utilization */
+}
+
+.error-message {
+    color: var(--danger-color);
+    text-align: center;
+    margin-top: 20px;
 }

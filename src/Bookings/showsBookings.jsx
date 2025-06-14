@@ -118,8 +118,6 @@ export default function MyBookings() {
             const res = await fetch(`/api/bookings/${bookingId}/${newStatus}`, {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
             });
@@ -331,7 +329,7 @@ export default function MyBookings() {
                                     )}
                                     <td>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
                                     <td>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
-                                    <td>{booking.purpose}</td>
+                                    <td className="purpose">{booking.purpose}</td>
                                     {isAdmin && <td>{booking.priority || 'N/A'}</td>} {/* Only show Priority for admin */}
                                     <td>
                                         <span className={

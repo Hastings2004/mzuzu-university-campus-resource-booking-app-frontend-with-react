@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 export default function Layout() {
   const { user, token, setUser, setToken } = useContext(AppContext);
   const navigate = useNavigate();
-  const location = useLocation(); // Initialize useLocation
+  const location = useLocation(); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
@@ -198,6 +198,12 @@ export default function Layout() {
                     <span className="text">User Management</span>
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink to="/resource-report" onClick={handleNavLinkClick}>
+                    <i className="bx bx-user"></i>
+                    <span className="text">Utilisation</span>
+                  </NavLink>
+                </li>
               </>
             )}
             <li>
@@ -286,9 +292,9 @@ export default function Layout() {
                 <i className="bx bxs-bell"></i>
                 <span className="num">0</span>
               </a>
-              <a href="/profile" className="profile">
+              <NavLink to="/profile" className="profile">
                 <h1>{initials}</h1>
-              </a>
+              </NavLink>
             </div>
           </nav>
 
