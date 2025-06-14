@@ -209,7 +209,7 @@ export default function Layout() {
             <li>
               <NavLink to="/search" onClick={handleNavLinkClick}>
                 <i className="bx bx-search-alt"></i>
-                <span className="text">Resource Search</span>
+                <span className="text">Searching</span>
               </NavLink>
             </li>
             <li>
@@ -263,9 +263,7 @@ export default function Layout() {
         <section id="content">
           <nav>
             <i className="bx bx-menu" onClick={toggleSidebar}></i>
-            <a href="#" className="nav-link">
-              Categories
-            </a>
+            
             <form onSubmit={handleTopNavbarSearch}>
               <div className="form-input">
                 <input type="text" placeholder="Search..." name="search" id="search-field" required />

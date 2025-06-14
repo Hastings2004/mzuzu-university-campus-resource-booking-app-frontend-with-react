@@ -7,13 +7,14 @@ export default function CreateResource() {
     const { token, user } = useContext(AppContext);
     const navigate = useNavigate();
 
-    // State for form data, including new resource fields and an image file
     const [formData, setFormData] = useState({
         name: "",
         description: "",
         location: "",
         capacity: "",
+        category: "",
         status: "available", 
+
         image: null, 
     });
 
@@ -85,6 +86,7 @@ export default function CreateResource() {
         if (formData.image) { 
             dataToSend.append('image', formData.image);
         }
+        console.log(formData);
 
         try {
             const response = await fetch("/api/resources", { 
@@ -92,7 +94,7 @@ export default function CreateResource() {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                body: dataToSend, 
+                body: formData, 
             });
 
             const data = await response.json();
@@ -205,6 +207,25 @@ export default function CreateResource() {
                                     min="1" // Capacity should be at least 1
                                 />
                                 {errors.capacity && <p className="error-text">{errors.capacity[0]}</p>}
+                            </div>
+                            <div className="form-detail">
+                                    <label htmlFor="category">Category:</label>
+                                    <select
+                                        id="category"
+                                        name="category"
+                                        value={formData.category}
+                                        onChange={handleChange}
+                                        className={`form-input ${errors.category ? 'input-error' : ''}`}
+                                    >
+                                        <option value="">Select a category</option>
+                                        <option value="classrooms">Classrooms</option>
+                                        <option value="ict_labs">ICT Labs</option>
+                                        <option value="science_labs">Science Labs</option>
+                                        <option value="auditorium">Auditorium</option>
+                                        <option value="sports">Sports</option>
+                                        <option value="cars">Cars</option>
+                                    </select>
+                                    {errors.category && <p className="error-message">{errors.category[0]}</p>}
                             </div>
 
                             {/* Status */}

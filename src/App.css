@@ -706,6 +706,10 @@ body {
     flex-grow: 1; /* Allow the form to take up available space */
 }
 
+#content nav form {
+     margin-right: 35%;
+}
+
 #content nav form .form-input {
     display: flex;
     align-items: center;
@@ -713,6 +717,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 20px;
     overflow: hidden;
+   
 }
 
 #content nav form .form-input input {
@@ -2803,7 +2808,7 @@ p[style*="color: rgb(33, 150, 243)"] {
 
     #content nav form {
         max-width: none; /* Allow form to expand */
-        margin-right: 100px;
+        margin-right: 50px;
     }
 
     #content nav form .form-input {
@@ -2846,6 +2851,9 @@ p[style*="color: rgb(33, 150, 243)"] {
         display: none; /* Hide input field */
     }
 
+    #content nav form {
+        margin-right: auto;        
+    }
     #content nav form .form-input button {
         width: auto;
         height: auto;
@@ -4782,3 +4790,99 @@ body.dark .form-group input::placeholder {
 
 /* ... other existing styles ... */
 
+/* Add these to your existing CSS file */
+
+.category-filter-container {
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.category-filter-container label {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.category-dropdown {
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-secondary-card);
+    color: var(--text-primary);
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none; /* Remove default dropdown arrow */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+}
+
+body.dark .category-dropdown {
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23FBFBFB" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Dark mode arrow */
+}
+
+
+.category-dropdown:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 5px var(--shadow-light);
+}
+
+.category-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3); /* Assuming primary-color-rgb exists */
+}
+
+/* Optional: Styles for category buttons if you use them */
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-button {
+    padding: 10px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 25px; /* Pill shape */
+    background-color: var(--bg-grey);
+    color: var(--text-primary);
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.category-button:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--primary-color);
+}
+
+.category-button.active {
+    background-color: var(--primary-color);
+    color: var(--text-light-on-dark);
+    border-color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* Responsive adjustments for the filter */
+@media (max-width: 600px) {
+    .category-filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .category-dropdown {
+        width: 100%;
+    }
+
+    .category-buttons {
+        width: 100%;
+        justify-content: center; /* Center buttons when stacked */
+    }
+}
