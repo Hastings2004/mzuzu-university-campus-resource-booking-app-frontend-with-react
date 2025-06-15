@@ -271,17 +271,7 @@ export default function Layout() {
                             <span className="text">Bookings</span>
                         </NavLink>
                     </li>
-                    {/* Notifications */}
-                    <li>
-                        <NavLink
-                            to="/notifications"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                            // onClick={handleNavLinkClick}
-                        >
-                            <i className="bx bxs-bell"></i>
-                            <span className="text">Notification</span>
-                        </NavLink>
-                    </li>
+                    
                     {/* Settings */}
                     <li>
                         <NavLink

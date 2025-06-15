@@ -7,6 +7,8 @@ export default function View() {
     const navigate = useNavigate();
     const { user, token } = useContext(AppContext);
 
+    const title = "BOOKING CONFIRMATION";
+    
     const [resource, setResource] = useState(null);
     const [resourceBookings, setResourceBookings] = useState({
         pending: [],
@@ -109,6 +111,33 @@ export default function View() {
         }
     }
 
+    async function sendNotification(message) {
+    const notificationPayload = { // This is the actual data your backend expects
+        title: title,
+        message: message
+    };
+
+    console.log(notificationPayload);
+    const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(notificationPayload) // <--- Send the payload directly, not nested
+    });
+
+    const data = await res.json();
+
+    console.log(data);
+    if (res.ok) {
+        setBookingMessage(`Notification created and sent successfully!`);
+
+    } else {
+        console.error("Sending notification failed:", data);
+        setBookingMessage(`Failed to send notification: ${data.message || 'Unknown error'}`);
+    }
+}
     async function handleAvailabilityCheck() {
         setBookingMessage("");
         setIsResourceAvailable(null);
@@ -402,6 +431,10 @@ export default function View() {
                     successMsg += ` ${data.preempted_bookings.length} existing booking(s) were preempted by this higher priority booking.`;
                 }
 
+                let title = "Booking Confirmation";
+                let message = "You have successfully book the resource from "+bookingData.start_time +" to "+bookingData.end_time;
+
+                sendNotification(message);
                 console.log('Booking successful:', successMsg);
                 setBookingMessage(successMsg);
 
