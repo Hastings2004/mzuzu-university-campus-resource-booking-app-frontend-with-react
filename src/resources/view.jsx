@@ -574,15 +574,11 @@ export default function View() {
                 <h4>{resource.name} Has {bookings.length} Bookings</h4>
                 <div className="booking-list">
                     {bookings.map((booking, index) => (
-                        <div key={booking.id || index} className="booking-item">
-                            
-                            <div className="booking-info">
-                                
+                        <div key={booking.id || index} className="booking-item">                            
+                            <div className="booking-info">                                
                                 <p><strong>Start Time:</strong> {formatDateTime(booking.start_time)}</p>
-                                <p><strong>End time:</strong>{formatDateTime(booking.end_time)}</p>
-                                                             
-                            </div>
-                            
+                                <p><strong>End time:</strong>{formatDateTime(booking.end_time)}</p>                                                             
+                            </div>                            
                         </div>
                     ))}
                 </div>
