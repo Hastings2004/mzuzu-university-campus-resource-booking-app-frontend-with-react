@@ -575,14 +575,14 @@ export default function View() {
                 <div className="booking-list">
                     {bookings.map((booking, index) => (
                         <div key={booking.id || index} className="booking-item">
+                            
                             <div className="booking-info">
-                                <p><strong>Time:</strong> {formatDateTime(booking.start_time)} - {formatDateTime(booking.end_time)}</p>
-                                <p><strong>Purpose:</strong> {booking.purpose}</p>
-                                <p><strong>Type:</strong> {booking.booking_type}</p>                                
+                                
+                                <p><strong>Start Time:</strong> {formatDateTime(booking.start_time)}</p>
+                                <p><strong>End time:</strong>{formatDateTime(booking.end_time)}</p>
+                                                             
                             </div>
-                            <span style={statusStyles[status]} className="booking-status">
-                                {status.replace('_', ' ').toUpperCase()}
-                            </span>
+                            
                         </div>
                     ))}
                 </div>

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { AppContext } from '../context/appContext'; // Adjust path as needed
-import moment from 'moment'; // For formatting booking times
+import { AppContext } from '../context/appContext'; 
+import moment from 'moment';
 import { Link } from 'react-router-dom'; 
 
 
@@ -8,30 +8,29 @@ export default function GlobalSearch() {
     const { user, token } = useContext(AppContext);
 
     // States for search parameters
-    const [searchType, setSearchType] = useState('resources'); // Default search type
+    const [searchType, setSearchType] = useState('resources'); 
     const [keyword, setKeyword] = useState('');
-    const [resourceType, setResourceType] = useState(''); // Only for resources
-    const [startTime, setStartTime] = useState(''); // For bookings
-    const [endTime, setEndTime] = useState('');     // For bookings
-    const [userId, setUserId] = useState(''); // For admin to search bookings/users by user ID (optional)
+    const [resourceType, setResourceType] = useState('');
+    const [startTime, setStartTime] = useState(''); 
+    const [endTime, setEndTime] = useState('');     
+    const [userId, setUserId] = useState(''); 
 
     // States for results and UI
     const [searchResults, setSearchResults] = useState({ resources: [], bookings: [], users: [] });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [searchPerformed, setSearchPerformed] = useState(false); // To show "No results" only after a search
+    const [searchPerformed, setSearchPerformed] = useState(false); 
 
     const isAdmin = user && user.user_type === 'admin';
 
-    // Define resource types for the dropdown (you might fetch this from an API if dynamic)
-    const resourceTypes = [
-        'Meeting Room', 'Classrooms', 'Vehicle', 'Lab PC', 'Auditorium',
+        const resourceTypes = [
+        'Meeting Room', 'Classrooms', 'Vehicle', 'ICT LABS', 'Auditorium',
     ];
 
     // Initialize search type based on admin status
     useEffect(() => {
         if (!isAdmin && searchType === 'users') {
-            setSearchType('resources'); // Fallback if non-admin somehow lands on users search
+            setSearchType('resources'); 
         }
     }, [isAdmin, searchType]);
 
@@ -39,14 +38,13 @@ export default function GlobalSearch() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        setSearchResults({ resources: [], bookings: [], users: [] }); // Clear previous results
+        setSearchResults({ resources: [], bookings: [], users: [] }); 
         setSearchPerformed(true);
 
         const queryParams = new URLSearchParams();
-        queryParams.append('query', keyword); // The main keyword for global search
+        queryParams.append('query', keyword); 
 
-        // Additional filters based on selected searchType
-        // These are passed to the backend's global search endpoint, which should interpret them
+    
         if (searchType === 'resources' && resourceType) {
             queryParams.append('resource_type', resourceType);
         }
@@ -101,9 +99,7 @@ export default function GlobalSearch() {
         setSearchType('resources'); // Reset to default search type
     };
 
-    // Helper to format ISO date for datetime-local input (if needed)
-    // const getFormattedDateTime = (date) => { ... }; // Not used directly in JSX now, but kept for reference
-
+   
     return (
         <div className="global-search-container">
             <h2>Global Search</h2>
@@ -117,7 +113,6 @@ export default function GlobalSearch() {
                         value={searchType}
                         onChange={(e) => {
                             setSearchType(e.target.value);
-                            // Clear type-specific filters when changing search type
                             setResourceType('');
                             setStartTime('');
                             setEndTime('');
@@ -140,8 +135,8 @@ export default function GlobalSearch() {
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         placeholder={
-                            searchType === 'resources' ? "e.g., Room A, Projector 1" :
-                            searchType === 'bookings' ? "e.g., REF-001, Meeting, John" :
+                            searchType === 'resources' ? "e.g., Room A, ICT LAB 1" :
+                            searchType === 'bookings' ? "e.g., MZUNI-RBA-001, Meeting, John" :
                             searchType === 'users' ? "e.g., John Doe, john@example.com" : ""
                         }
                     />
@@ -188,7 +183,6 @@ export default function GlobalSearch() {
                     </>
                 )}
 
-                {/* User ID filter (optional, for admin only on bookings/users) */}
                 {isAdmin && (searchType === 'bookings' || searchType === 'users') && (
                     <div className="form-group">
                         <label htmlFor="userId">User ID (Admin):</label>

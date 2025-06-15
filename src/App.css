@@ -552,20 +552,19 @@ body {
     box-shadow: -2px 0 5px var(--shadow-light);
 }
 
-/* Styles for the active sidebar link */
 
-#sidebar .side-menu.top li.active {
-    color: var(--blue); /* Your accent color, e.g., blue */
-    background: var(--light-blue); /* A lighter background for the active tab */
-    position: relative; /* Needed for the ::before pseudo-element */
+#sidebar .side-menu.top li .active {
+    color: var(--blue); 
+    background: var(--primary-dark); 
+    position: relative; 
 }
 
 #sidebar .side-menu.top li.active a {
-    color: var(--blue); /* Make the text and icon color active */
+    color: var(--blue);
 }
 
 #sidebar .side-menu.top li.active a i {
-    color: var(--blue); /* Ensure the icon also gets the active color */
+    color: var(--blue); 
 }
 
 /* Active item corner styling (mimics curved corners) */
@@ -644,16 +643,16 @@ body {
 /* CONTENT AREA (Main Dashboard Content) */
 #content {
     position: relative;
-    width: calc(100% - 280px); /* Default width when sidebar is full */
-    left: 280px; /* Default offset when sidebar is full */
+    width: calc(100% - 280px); 
+    left: 280px; 
     transition: all 0.3s ease;
     min-height: 100vh;
-    flex-grow: 1; /* Allow content to grow and fill remaining space */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
 }
 
-#sidebar.hide ~ #content { /* When sidebar is collapsed to 60px */
+#sidebar.hide ~ #content { 
     width: calc(100% - 60px);
     left: 60px;
 }
@@ -667,14 +666,14 @@ body {
     padding: 0 24px;
     display: flex;
     align-items: center;
-    gap: 24px; /* Default gap between major items in the nav */
+    gap: 24px;
     font-family: var(--lato);
     position: sticky;
     top: 0;
     left: 0;
     z-index: 1000;
     box-shadow: 0 2px 5px var(--shadow-light);
-    flex-shrink: 0; /* Prevent navbar from shrinking */
+    flex-shrink: 0;
 }
 
 #content nav::before {
@@ -703,7 +702,7 @@ body {
 #content nav form {
     max-width: 400px;
     width: 100%;
-    flex-grow: 1; /* Allow the form to take up available space */
+    flex-grow: 1; 
 }
 
 #content nav form {
@@ -771,7 +770,7 @@ body {
     cursor: pointer;
     position: relative;
     transition: background 0.2s ease;
-    /* Removed margin-left: auto from here, as it's now on .left-icons */
+   
 }
 
 #content nav .switch-mode::before {
@@ -819,22 +818,21 @@ body {
 }
 
 #content nav .profile h1 {
-    /* Ensure h1 inside profile link is styled correctly */
-    font-size: 18px; /* Adjust as needed */
-    margin: 0; /* Remove default h1 margin */
-    line-height: 1; /* Helps with vertical alignment */
+    font-size: 18px; 
+    margin: 0; 
+    line-height: 1;
 }
 
 #content nav .profile {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px; /* Example fixed width */
-    height: 40px; /* Example fixed height */
-    border-radius: 50%; /* Make it circular */
-    background-color: var(--primary-color); /* Example background for the circle */
-    color: var(--text-light-on-dark); /* Text color for the H1 */
-    text-decoration: none; /* Remove underline */
+    width: 40px;
+    height: 40px; 
+    border-radius: 50%; 
+    background-color: var(--primary-color);
+    color: var(--text-light-on-dark); 
+    text-decoration: none; 
     font-weight: bold;
 }
 /* --- */
@@ -844,10 +842,10 @@ body {
     width: 100%;
     padding: 36px 24px;
     font-family: var(--poppins);
-    flex-grow: 1; /* Allow main content to take remaining space below navbar */
-    overflow-y: auto; /* Add scrollbar to main content if it overflows */
+    flex-grow: 1;
+    overflow-y: auto; 
     overflow-x: hidden;
-    max-height: calc(100vh - 60px); /* Adjust max-height to ensure it doesn't overflow viewport if content is too long */
+    max-height: calc(100vh - 60px); 
 }
 
 
@@ -875,11 +873,11 @@ body {
 }
 
 #content main .head-title .left .breadcrumb li {
-    color: var(--text-primary); /* Changed from --text-dark */
+    color: var(--text-primary); 
 }
 
 #content main .head-title .left .breadcrumb li a {
-    color: var(--text-secondary); /* Changed from --dark-grey */
+    color: var(--text-secondary); 
     pointer-events: none;
     transition: color 0.2s ease;
 }
@@ -894,7 +892,7 @@ body {
     padding: 0 20px;
     border-radius: 20px;
     background: var(--primary-color);
-    color: var(--text-light-on-dark); /* Changed from --text-light */
+    color: var(--text-light-on-dark); 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1007,7 +1005,7 @@ body {
     margin-top: 15px;
     margin-bottom: 10px;
     background-color: var(--primary-color);
-    color: var(--text-light-on-dark); /* Changed from --text-light */
+    color: var(--text-light-on-dark);
     border: none;
     cursor: pointer;
     font-size: 16px;
@@ -1576,17 +1574,11 @@ body {
     transform: translateY(-2px);
 }
 /* --- My Bookings Page Container --- */
-.my-bookings-container {
-    padding-right: 0px; 
-    max-width: 100%;
-     
-    font-family: var(--poppins); 
-    margin-left: 10px; 
-}
+
 
 /* Styles for the container of the admin filter buttons */
 .admin-status-filters {
-    display: flex; /* Arranges buttons in a row */
+    display: flex; 
     gap: 10px; /* Space between buttons */
     margin-bottom: 20px; /* Space below the buttons */
     flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
@@ -1844,7 +1836,7 @@ body {
     padding: 20px;
     max-width: 1300px;
     margin-right: 20px auto;
-    background-color: var(--bg-secondary-card);
+   
 }
 
 .resource-content {
@@ -1853,7 +1845,7 @@ body {
 }
 
 .resource-main {
-    background-color: var(--bg-secondary-card);
+   
     border-radius: 8px;
     box-shadow: 0 4px 8px var(--shadow-light);
     padding: 25px;
@@ -2081,7 +2073,7 @@ p[style*="color: rgb(33, 150, 243)"] {
 .booking-status-sidebar {
     flex: 1; 
     min-width: 280px; 
-    background-color: var(--bg-secondary-card);
+    background-color: var(--bg-light);
     border-radius: 8px;
     box-shadow: 0 4px 8px var(--shadow-light);
     padding: 20px;
@@ -2150,22 +2142,26 @@ p[style*="color: rgb(33, 150, 243)"] {
 
 /* Modified .booking-info p to resemble .booking-detail */
 .booking-info p {
-    margin-bottom: 12px; /* More space between detail lines */
-    color: var(--text-secondary); /* Using secondary text color */
+    margin-bottom: 12px; 
+    color: var(--text-secondary); 
     line-height: 1.6;
-    font-size: 1.05rem; /* Slightly larger detail text */
+    font-size: 1.05rem; 
+}
+
+.booking-info .booking-item .booking-status{
+    margin: 10px;
 }
 
 .booking-info p:last-child {
-    margin-bottom: 0; /* No margin after the last detail line */
+    margin-bottom: 0; 
 }
 
 /* Modified .booking-info p strong to resemble .booking-detail strong */
 .booking-info p strong {
-    color: var(--text-primary); /* Using primary text color */
-    min-width: 80px; /* Adjust min-width for sidebar content, can be tweaked */
+    color: var(--text-primary); 
+    min-width: 80px; 
     display: inline-block;
-    margin-right: 5px; /* Space between label and value */
+    margin-right: 5px; 
 }
 
 .booking-status {
@@ -3161,9 +3157,9 @@ p[style*="color: rgb(33, 150, 243)"] {
 
 /* General container and title (from previous iterations) */
 .my-bookings-container {
-    max-width: 80%; /* Wider for table */
-     /* Corrected margin-right: 10px auto; to center the container */
+    max-width: 1280px; 
     padding: 25px;
+    margin-right: 20px;
     background-color: var(--bg-light);
     border-radius: 10px;
     box-shadow: 0 4px 15px var(--shadow-light);
@@ -3199,19 +3195,19 @@ p[style*="color: rgb(33, 150, 243)"] {
 /* --- Table Specific Styles --- */
 .bookings-table-wrapper {
     overflow-x: auto; 
-    margin-right: 20px;
+    margin-right: 10px;
     margin-top: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 8px var(--shadow-small); /* Using a variable for shadow */
-    background-color: var(--text-light-on-dark); /* Changed from --text-light */
+    box-shadow: 0 2px 8px var(--shadow-small); 
+    background-color: var(--text-light-on-dark);
     transition: background-color 0.3s ease;
 }
 
 .bookings-table {
-    width: 90%; /* Keeping 90% as you had it, but often 100% works well for tables */
-    border-collapse: collapse; /* Removes space between borders */
-    table-layout: auto; /* Adjusts column width based on content */
-    min-width: 800px; /* Ensure table doesn't get too squished on smaller screens */
+    width: 95%; 
+    border-collapse: collapse; 
+    table-layout: auto; 
+    min-width: 800px;
 }
 
 .bookings-table th,
@@ -3219,16 +3215,16 @@ p[style*="color: rgb(33, 150, 243)"] {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
-    color: var(--text-primary); /* Changed from --text-dark */
+    color: var(--text-primary); 
     transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .bookings-table thead th {
-    background-color: var(--bg-medium); /* Header background */
+    background-color: var(--bg-medium); 
     font-weight: 700;
     text-transform: uppercase;
     font-size: 0.9em;
-    color: var(--primary-color); /* Primary color for table headers */
+    color: var(--primary-color); 
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -3246,11 +3242,16 @@ p[style*="color: rgb(33, 150, 243)"] {
 .bookings-table th:nth-child(7), .bookings-table td:nth-child(7) { 
     
     width: 15%;    
-    white-space: normal;      /* Allow text to wrap normally */
-    word-wrap: break-word;    /* Break long words if they don't fit (for older browsers) */
+    white-space: normal;      
+    word-wrap: break-word;    
     overflow-wrap: break-word;
 } 
-.bookings-table th:nth-child(8), .bookings-table td:nth-child(8) { width: 15%; text-align: center; } 
+.bookings-table th:nth-child(8), .bookings-table td:nth-child(8) { 
+    width: 15%; text-align: center; 
+     white-space: normal;      
+    word-wrap: break-word;    
+    overflow-wrap: break-word;
+} 
 
 /* Nested small text for email */
 .bookings-table td small {
@@ -3458,7 +3459,7 @@ p[style*="color: rgb(33, 150, 243)"] {
 /* Statistical.css */
 
 .statistical-dashboard {
-    max-width: 1000px;
+    max-width: 1280px;
     margin-left: 20px auto; /* Corrected margin-left: 40px auto; to center the container */
     padding: 30px;
     background-color: var(--bg-light);
@@ -4332,7 +4333,7 @@ input:checked + .slider:before {
 .notifications-container {
     padding: 20px;
     max-width: 700px;
-    margin: 40px auto;
+    margin: 10px;
     background-color: var(--bg-secondary); /* Main container background */
     border-radius: 8px;
     box-shadow: 0 4px 8px var(--shadow-medium); 
@@ -4342,7 +4343,7 @@ input:checked + .slider:before {
 
 .notifications-container h1 {
     text-align: center;
-    color: var(--text-primary);
+    color: var(--primary-color);
     margin-bottom: 30px;
     font-size: 2.5em;
     border-bottom: 2px solid var(--border-color);
@@ -4543,14 +4544,11 @@ input:checked + .slider:before {
 }
 
 
-
-
 /* --- General Styles using Variables --- */
 
 .global-search-container {
     padding: 1rem;
-    max-width: 48rem;
-    
+    max-width: 48rem;    
     background-color: var(--bg-main);
     border-radius: 0.5rem;
     box-shadow: var(--shadow-container);
@@ -4561,6 +4559,7 @@ input:checked + .slider:before {
     font-weight: 600;
     margin-bottom: 1.5rem;
     color: var(--text-primary);
+    display: flex;
 }
 
 .search-form {
@@ -4893,14 +4892,14 @@ body.dark .category-dropdown {
 
     .category-buttons {
         width: 100%;
-        justify-content: center; /* Center buttons when stacked */
+        justify-content: center; 
     }
 }
-/* src/styles/Reports.css or appended to src/index.css */
+/* styles  for Reports*/
 
 .report-container {
-    max-width: 1000px;
-    margin: 20px auto;
+    max-width: 1270px;
+    margin-left: 20px auto;
     padding: 20px;
     background-color: var(--bg-light);
     border-radius: 8px;
