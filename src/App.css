@@ -4003,116 +4003,13 @@ body.dark .error-message {
     .users-table td:nth-child(5) { order: 5; width: 100%; }
 }
 
-/* Settings.css */
-
-.settings-container {
-    padding: 20px;
-    max-width: 700px;
-   
-    background-color: var(--bg-secondary); /* Main container background */
-    border-radius: 8px;
-    box-shadow: 0 4px 8px var(--shadow-medium); /* Using variable for shadow */
-    font-family: var(--font-primary); 
-    color: var(--text-primary);
-}
-
-.settings-container h1 {
-    text-align: center;
-    color: var(--text-primary);
-    margin-bottom: 30px;
-    font-size: 2.5em;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 15px;
-}
-
-.settings-group {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.settings-group:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.settings-group h2 {
-    font-size: 1.8em;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px dotted var(--border-color);
-}
-
-.setting-item:last-child {
-    border-bottom: none;
-}
-
-.setting-item label {
-    font-size: 1.1em;
-    color: var(--text-primary);
-    flex-grow: 1;
-}
-
-.setting-item input[type="checkbox"],
-.setting-item select {
-    margin-left: 20px;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: var(--bg-input);
-    color: var(--text-primary);
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.setting-item input[type="checkbox"]:focus,
-.setting-item select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px var(--primary-shadow-focus);
-    outline: none;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .settings-container {
-        margin: 20px;
-        padding: 15px;
-    }
-    .settings-container h1 {
-        font-size: 2em;
-    }
-    .settings-group h2 {
-        font-size: 1.5em;
-    }
-    .setting-item {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .setting-item label {
-        margin-bottom: 5px;
-    }
-    .setting-item input[type="checkbox"],
-    .setting-item select {
-        width: 100%;
-        margin-left: 0;
-        margin-top: 10px;
-    }
-}
 
 /* Settings.css */
 
 .settings-container {
     padding: 20px;
     max-width: 700px;
-    margin: 40px auto;
+    margin-left: 20px auto;
     background-color: var(--bg-secondary); 
     border-radius: 8px;
     box-shadow: 0 4px 8px var(--shadow-medium); 
