@@ -13,49 +13,47 @@ export default function CreateResource() {
         location: "",
         capacity: "",
         category: "",
-        status: "available", 
-
-        image: null, 
+        status: "available",
+        image: null,
     });
 
     const [errors, setErrors] = useState({});
-    
     const [message, setMessage] = useState('');
-
     const imageInputRef = useRef(null);
 
     // Effect to check if the user is an admin on component mount
     useEffect(() => {
-        
         if (!user || user.user_type !== 'admin') {
             //alert("Unauthorized access. Only administrators can create resources.");
-            navigate('/'); 
+            navigate('/');
         }
-    }, [user, navigate]); 
+    }, [user, navigate]);
 
     // Handle changes for text/select inputs
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        setErrors(prevErrors => ({ ...prevErrors, [name]: undefined })); 
-        setMessage(''); 
+        setErrors(prevErrors => ({ ...prevErrors, [name]: undefined }));
+        setMessage('');
     };
 
     // Handle file input changes
     const handleImageChange = (e) => {
-        const file = e.target.files[0]; 
+        const file = e.target.files[0];
         setFormData({ ...formData, image: file });
-        setErrors(prevErrors => ({ ...prevErrors, image: undefined })); 
-        setMessage(''); 
+        setErrors(prevErrors => ({ ...prevErrors, image: undefined }));
+        setMessage('');
     };
 
     // Handle form submission
     async function handleCreate(e) {
         e.preventDefault();
-        setErrors({}); 
-        setMessage(''); 
+        setErrors({});
+        setMessage('');
 
         // Client-side validation (optional, but good for immediate feedback)
+        // This client-side validation is basic. Your backend validation (StoreResourceRequest)
+        // will be the definitive source of truth and more robust.
         if (!formData.name.trim()) {
             setErrors({ name: ['Resource name is required.'] });
             return;
@@ -72,66 +70,99 @@ export default function CreateResource() {
             setErrors({ capacity: ['Capacity must be a positive number.'] });
             return;
         }
+        if (!formData.category) {
+            setErrors({ category: ['Category is required.'] });
+            return;
+        }
         if (!formData.status) {
             setErrors({ status: ['Status is required.'] });
             return;
         }
-        
+
         const dataToSend = new FormData();
+
+        // **ADD THIS LINE FOR CSRF TOKEN**
+        // Assumes your Blade file (e.g., app.blade.php) has:
+        // <meta name="csrf-token" content="{{ csrf_token() }}">
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')
+            ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            : null;
+
+        if (csrfToken) {
+            dataToSend.append('_token', csrfToken);
+        } else {
+            console.error("CSRF token not found. Form submission may fail.");
+            setMessage("Security error: CSRF token missing. Please refresh the page.");
+            return; // Prevent submission without token
+        }
+
         dataToSend.append('name', formData.name);
         dataToSend.append('description', formData.description);
         dataToSend.append('location', formData.location);
         dataToSend.append('capacity', formData.capacity);
+        dataToSend.append('category', formData.category);
         dataToSend.append('status', formData.status);
-        if (formData.image) { 
+
+        if (formData.image) {
             dataToSend.append('image', formData.image);
         }
-        console.log(formData);
+
+        // Log the FormData contents for debugging
+        console.log("FormData contents being sent:");
+        for (let pair of dataToSend.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
 
         try {
-            const response = await fetch("/api/resources", { 
-                method: "POST", 
+            const response = await fetch("/api/resources", {
+                method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
+                    // REMOVE THE 'Content-Type': 'application/json' HEADER!
+                    // The browser will automatically set 'multipart/form-data'
                 },
-                body: formData, 
+                body: dataToSend, // **CORRECTION: Send dataToSend, not formData**
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 setMessage(data.message || "Resource created successfully!");
-                
+                // Optionally clear the form after success
                 setFormData({
                     name: "",
                     description: "",
                     location: "",
                     capacity: "",
+                    category: "",
                     status: "available",
                     image: null,
                 });
-                
                 if (imageInputRef.current) {
-                    imageInputRef.current.value = "";
+                    imageInputRef.current.value = ""; // Clear file input
                 }
-                navigate("/"); 
+                setErrors({});
+                // Navigate after a short delay to allow message to be seen
+                setTimeout(() => navigate("/"), 2000);
             } else {
                 if (response.status === 422 && data.errors) {
-                    setErrors(data.errors); 
+                    setErrors(data.errors);
                     setMessage(data.message || "Please correct the form errors.");
                 } else {
                     setMessage(data.message || "Failed to create resource. Please try again.");
                 }
-                console.error("API Error:", data);
+                console.error("API Error (backend response data):", data); // Log the full error from backend
             }
         } catch (error) {
             setMessage("An unexpected error occurred. Please check your network and try again.");
-            console.error("Network Error:", error);
+            console.error("Network Error (during fetch):", error);
         }
     }
 
+    // This check should be placed after the imports and before the return statement
+    // so that the component doesn't render if unauthorized.
     if (!user || user.user_type !== 'admin') {
-        return null; 
+        return null;
     }
 
     return (
@@ -209,23 +240,23 @@ export default function CreateResource() {
                                 {errors.capacity && <p className="error-text">{errors.capacity[0]}</p>}
                             </div>
                             <div className="form-detail">
-                                    <label htmlFor="category">Category:</label>
-                                    <select
-                                        id="category"
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className={`form-input ${errors.category ? 'input-error' : ''}`}
-                                    >
-                                        <option value="">Select a category</option>
-                                        <option value="classrooms">Classrooms</option>
-                                        <option value="ict_labs">ICT Labs</option>
-                                        <option value="science_labs">Science Labs</option>
-                                        <option value="auditorium">Auditorium</option>
-                                        <option value="sports">Sports</option>
-                                        <option value="cars">Cars</option>
-                                    </select>
-                                    {errors.category && <p className="error-message">{errors.category[0]}</p>}
+                                <label htmlFor="category">Category:</label>
+                                <select
+                                    id="category"
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                    className={`form-input ${errors.category ? 'input-error' : ''}`}
+                                >
+                                    <option value="">Select a category</option>
+                                    <option value="classrooms">Classrooms</option>
+                                    <option value="ict_labs">ICT Labs</option>
+                                    <option value="science_labs">Science Labs</option>
+                                    <option value="auditorium">Auditorium</option>
+                                    <option value="sports">Sports</option>
+                                    <option value="cars">Cars</option>
+                                </select>
+                                {errors.category && <p className="error-message">{errors.category[0]}</p>}
                             </div>
 
                             {/* Status */}

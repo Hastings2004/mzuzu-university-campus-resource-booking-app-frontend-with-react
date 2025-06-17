@@ -5123,13 +5123,13 @@ body.dark .category-dropdown {
     background-color: var(--bg-grey);
     padding: 2rem;
     border-radius: 8px;
-    margin-left: 20px auto; /* Changed margin-right to auto and added margin-left: auto to center it */
+    margin-left: 20px auto; 
     max-width: 1280px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-    width: 95%; /* Added to make it responsive on larger screens too, allowing some margin */
-    box-sizing: border-box; /* Include padding/border in total width */
+    width: 95%; 
+    box-sizing: border-box; 
 }
 
 .issue-management-dashboard h2 {
@@ -5146,7 +5146,7 @@ body.dark .category-dropdown {
     display: flex;
     align-items: center;
     gap: 15px;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: wrap; 
 }
 
 .issue-management-dashboard .filters label {
