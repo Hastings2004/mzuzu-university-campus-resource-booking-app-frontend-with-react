@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"; // Import useLocation
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
 
@@ -12,8 +12,10 @@ export default function Layout() {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode === 'true' ? true : false;
   });
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const [initials, setInitials] = useState('');
+  
   useEffect(() => { 
     if (user) {
       initialsUserData().then(setInitials);
@@ -23,7 +25,6 @@ export default function Layout() {
   async function initialsUserData() {
     const firstLetter = user?.first_name?.charAt(0).toUpperCase() || '';
     const lastLetter = user?.last_name?.charAt(0).toUpperCase() || '';
-
     return `${firstLetter}${lastLetter}`;
   }
 
@@ -73,6 +74,24 @@ export default function Layout() {
     setIsDarkMode(prevMode => !prevMode);
   };
 
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(prev => !prev);
+  };
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isProfileDropdownOpen && !event.target.closest('.profile-dropdown-container')) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileDropdownOpen]);
+
   const [isSmallDevice, setIsSmallDevice] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -105,6 +124,7 @@ export default function Layout() {
   const handleNavLinkClick = () => {
     if (isSmallDevice) {
       setIsSidebarOpen(false);
+      setIsProfileDropdownOpen(false);
     }
   };
 
@@ -117,7 +137,6 @@ export default function Layout() {
   const getBreadcrumbTitle = () => {
     const path = location.pathname;
 
-    // 1. Handle exact paths first
     switch (path) {
       case '/': return 'Home';
       case '/statistical': return 'Statistical Dashboard';
@@ -128,9 +147,12 @@ export default function Layout() {
       case '/booking': return 'Bookings'; 
       case '/notifications': return 'Notifications';
       case '/settings': return 'Settings';
+      case '/resource-report': return 'Resource Utilization Report';
+      case '/timetable': return 'Time Table';
+      case '/reportIssueForm': return 'Report Issue';
+      case '/issue-management': return 'Issue Management';
     }
 
-    // Check for /resources/{id}
     if (path.startsWith('/resources/')) {
         const resourceId = path.substring('/resources/'.length);
         if (!isNaN(resourceId) && resourceId !== '') {
@@ -138,7 +160,6 @@ export default function Layout() {
         }
     }
 
-    // Check for /bookings/{id} (if you have a single booking detail page)
     if (path.startsWith('/booking/')) {
         const bookingId = path.substring('/booking/'.length);
         if (!isNaN(bookingId) && bookingId !== '') {
@@ -146,23 +167,20 @@ export default function Layout() {
         }
     }
 
-    // Check for /users/{id} (if you have a single user detail page)
     if (path.startsWith('/users/')) { 
         const userId = path.substring('/users/'.length);
         if (!isNaN(userId) && userId !== '') {
             return `User Details / ${userId}`;
         }
     }
-
     
-    const segments = path.split('/').filter(Boolean); // Remove empty strings
+    const segments = path.split('/').filter(Boolean);
     if (segments.length > 0) {
       const lastSegment = segments[segments.length - 1];
-      
       return lastSegment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
 
-    return 'Dashboard'; // Default fallback if nothing matches
+    return 'Dashboard';
   };
 
   return (
@@ -177,165 +195,134 @@ export default function Layout() {
             </center>
           </div>
 
-           <ul className="side-menu top">
-                    {/* Home Link */}
-                    <li> 
-                        <NavLink
-                            to="/"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                           
-                        >
-                            <i className="bx bxs-dashboard"></i>
-                            <span className="text">Home</span>
-                        </NavLink>
-                    </li>
-                    {user && user.user_type != 'admin' && (
-                    <li> 
-                        <NavLink
-                            to="/reportIssueForm"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                        >
-                            <i className="bx bx-folder-open"></i>
-                            <span className="text">Report issue</span>
-                        </NavLink>
-                    </li>
-                    )}
-                    {user && user.user_type === 'admin' && (
-                        <>
-                           
-                            <li>
-                                <NavLink
-                                    to="/statistical"
-                                    className={({ isActive }) => (isActive ? "active" : "")}
-                                    // onClick={handleNavLinkClick}
-                                >
-                                    <i className="bx bx-chart"></i>
-                                    <span className="text">Statistical Dashboard</span>
-                                </NavLink>
-                            </li>
-                            {/* User Management */}
-                            <li>
-                                <NavLink
-                                    to="/timetable"
-                                    className={({ isActive }) => (isActive ? "active" : "")}
-                                   
-                                >
-                                    <i className="bx bx-timer"></i>
-                                    <span className="text">Time table</span>
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/users"
-                                    className={({ isActive }) => (isActive ? "active" : "")}
-                                    // onClick={handleNavLinkClick}
-                                >                   
-                                    <i className='bx bx-group'></i> 
-                                    <span className="text">User Management</span>
-                                </NavLink>
-                            </li>
-                          
-                            <li>
-                                <NavLink
-                                    to="/resource-report"
-                                    className={({ isActive }) => (isActive ? "active" : "")}
-                                   
-                                >
-                                    <i className="bx bx-folder-open"></i>
-                                    <span className="text">Reports</span>
-                                </NavLink>
-                            </li>
-                             <li>
-                                <NavLink
-                                    to="/issue-management"
-                                    className={({ isActive }) => (isActive ? "active" : "")}
-                                   
-                                >
-                                    <i className="bx bx-pulse"></i>
-                                    <span className="text">Issue management</span>
-                                </NavLink>
-                            </li>
-                        </>
-                    )}
-                    {/* Profile */}
-                    <li>
-                        <NavLink
-                            to="/profile"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                            // onClick={handleNavLinkClick}
-                        >
-                            <i className="bx bx-user"></i>
-                            <span className="text">Profile</span>
-                        </NavLink>
-                    </li>
-                    {/* Searching */}
-                    <li>
-                        <NavLink
-                            to="/search"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                            // onClick={handleNavLinkClick}
-                        >
-                            <i className="bx bx-search-alt"></i>
-                            <span className="text">Searching</span>
-                        </NavLink>
-                    </li>
-                    {/* Resources */}
-                    <li>
-                        <NavLink
-                            to="/createResource"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                            // onClick={handleNavLinkClick}
-                        >
-                            <i className="bx bxs-component"></i>
-                            <span className="text">Resources</span>
-                        </NavLink>
-                    </li>
-                    {/* Bookings */}
-                    <li>
-                        <NavLink
-                            to="/booking"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                            // onClick={handleNavLinkClick}
-                        >
-                            <i className="bx bxs-calendar-check"></i>
-                            <span className="text">Bookings</span>
-                        </NavLink>
-                    </li>
-                    
-                    {/* Settings */}
-                    <li>
-                        <NavLink
-                            to="/settings"
-                            className={({ isActive }) => (isActive ? "active" : "")}
-                            // onClick={handleNavLinkClick}
-                        >
-                            <i className="bx bxs-cog"></i>
-                            <span className="text">Settings</span>
-                        </NavLink>
-                    </li>
-                    {/* Logout Button */}
-                    <li>
-                        <button
-                            onClick={handleLogout}
-                            className="logout-btn"
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '12px 16px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                color: 'inherit',
-                                fontSize: 'inherit'
-                            }}
-                        >
-                            <i className="bx bxs-log-out-circle"></i>
-                            <span className="text">Logout</span>
-                        </button>
-                    </li>
-                </ul>
+          <ul className="side-menu top">
+            <li> 
+              <NavLink
+                to="/"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bxs-dashboard"></i>
+                <span className="text">Home</span>
+              </NavLink>
+            </li>
+            
+            {user && user.user_type !== 'admin' && (
+              <li> 
+                <NavLink
+                  to="/reportIssueForm"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                  onClick={handleNavLinkClick}
+                >
+                  <i className="bx bx-folder-open"></i>
+                  <span className="text">Report issue</span>
+                </NavLink>
+              </li>
+            )}
+            
+            {user && user.user_type === 'admin' && (
+              <>
+                <li>
+                  <NavLink
+                    to="/statistical"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >
+                    <i className="bx bx-chart"></i>
+                    <span className="text">Statistical Dashboard</span>
+                  </NavLink>
+                </li>
+                
+                <li>
+                  <NavLink
+                    to="/timetable"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >
+                    <i className="bx bx-timer"></i>
+                    <span className="text">Time table</span>
+                  </NavLink>
+                </li>
+                
+                <li>
+                  <NavLink
+                    to="/users"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >                   
+                    <i className='bx bx-group'></i> 
+                    <span className="text">User Management</span>
+                  </NavLink>
+                </li>
+              
+                <li>
+                  <NavLink
+                    to="/resource-report"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >
+                    <i className="bx bx-folder-open"></i>
+                    <span className="text">Reports</span>
+                  </NavLink>
+                </li>
+                
+                <li>
+                  <NavLink
+                    to="/issue-management"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >
+                    <i className="bx bx-pulse"></i>
+                    <span className="text">Issue management</span>
+                  </NavLink>
+                </li>
+              </>
+            )}
+            
+            <li>
+              <NavLink
+                to="/search"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bx-search-alt"></i>
+                <span className="text">Searching</span>
+              </NavLink>
+            </li>
+            
+            <li>
+              <NavLink
+                to="/createResource"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bxs-component"></i>
+                <span className="text">Resources</span>
+              </NavLink>
+            </li>
+            
+            <li>
+              <NavLink
+                to="/booking"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bxs-calendar-check"></i>
+                <span className="text">Bookings</span>
+              </NavLink>
+            </li>
+            
+            <li>
+              <NavLink
+                to="/settings"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bxs-cog"></i>
+                <span className="text">Settings</span>
+              </NavLink>
+            </li>
+          </ul>
         </section>
 
         <section id="content">
@@ -350,6 +337,7 @@ export default function Layout() {
                 </button>
               </div>
             </form>
+            
             <div className="left-icons">
               <input
                 type="checkbox"
@@ -360,13 +348,74 @@ export default function Layout() {
               />
               <label htmlFor="switch-mode" className="switch-mode"></label>
 
-              <a href="/notifications" className="notification">
+              <a href="/notifications" className="notification" onClick={handleNavLinkClick}>
                 <i className="bx bxs-bell"></i>
                 <span className="num">0</span>
               </a>
-              <NavLink to="/profile" className="profile">
-                <h1>{initials}</h1>
-              </NavLink>
+
+              {/* Enhanced Profile Dropdown */}
+              <div className="profile-dropdown-container">
+                <div className="profile" onClick={toggleProfileDropdown}>
+                  <h1>{initials}</h1>
+                </div>
+                
+                {isProfileDropdownOpen && (
+                  <div className="profile-dropdown">
+                    {/* User Info Header */}
+                    <div className="profile-dropdown-header">
+                      <h4>{user?.first_name} {user?.last_name}</h4>
+                      <p>{user?.user_type || 'User'}</p>
+                    </div>
+                    
+                    {/* Profile Link */}
+                    <NavLink 
+                      to="/profile" 
+                      onClick={() => { 
+                        handleNavLinkClick(); 
+                        setIsProfileDropdownOpen(false); 
+                      }}
+                    >
+                      <i className="bx bx-user"></i>
+                      View Profile
+                    </NavLink>
+                    
+                    {/* Account Settings */}
+                    <NavLink 
+                      to="/settings" 
+                      onClick={() => { 
+                        handleNavLinkClick(); 
+                        setIsProfileDropdownOpen(false); 
+                      }}
+                    >
+                      <i className="bx bx-cog"></i>
+                      Account Settings
+                    </NavLink>
+                    
+                    {/* Notifications */}
+                    <NavLink 
+                      to="/notifications" 
+                      onClick={() => { 
+                        handleNavLinkClick(); 
+                        setIsProfileDropdownOpen(false); 
+                      }}
+                    >
+                      <i className="bx bx-bell"></i>
+                      Notifications
+                    </NavLink>
+                    
+                    {/* Logout Button */}
+                    <button 
+                      onClick={(e) => { 
+                        handleLogout(e); 
+                        setIsProfileDropdownOpen(false); 
+                      }}
+                    >
+                      <i className="bx bxs-log-out-circle"></i>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </nav>
 
@@ -383,7 +432,6 @@ export default function Layout() {
                     <i className="bx bx-chevron-right"></i>
                   </li>
                   <li>
-                    
                     <a className="active" href="#">
                       {getBreadcrumbTitle()}
                     </a>

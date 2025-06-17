@@ -5387,3 +5387,139 @@ body.dark .issue-management-dashboard .status-wont-fix {
         font-size: 0.9rem;
     }
 }
+
+.profile-dropdown-container {
+          position: relative;
+        }
+
+        .profile {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: var(--blue);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.3s ease;
+          border: 2px solid transparent;
+        }
+
+        .profile:hover {
+          background: var(--dark-blue);
+          border-color: var(--light);
+          transform: scale(1.05);
+        }
+
+        .profile-dropdown {
+          position: absolute;
+          top: 45px;
+          right: 0;
+          background: var(--light);
+          border: 1px solid var(--grey);
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          min-width: 180px;
+          z-index: 1000;
+          overflow: hidden;
+          animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .profile-dropdown a,
+        .profile-dropdown button {
+          display: flex;
+          align-items: center;
+          padding: 12px 16px;
+          text-decoration: none;
+          color: var(--dark);
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+          border: none;
+          background: none;
+          width: 100%;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .profile-dropdown a:hover,
+        .profile-dropdown button:hover {
+          background: var(--blue);
+          color: white;
+        }
+
+        .profile-dropdown a i,
+        .profile-dropdown button i {
+          margin-right: 10px;
+          font-size: 16px;
+          width: 20px;
+        }
+
+        .profile-dropdown a:not(:last-child),
+        .profile-dropdown button:not(:last-child) {
+          border-bottom: 1px solid var(--grey);
+        }
+
+        /* User info section at top of dropdown */
+        .profile-dropdown-header {
+          padding: 16px;
+          border-bottom: 1px solid var(--grey);
+          background: var(--light-blue);
+        }
+
+        .profile-dropdown-header h4 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--dark);
+        }
+
+        .profile-dropdown-header p {
+          margin: 4px 0 0 0;
+          font-size: 12px;
+          color: var(--dark-grey);
+          text-transform: capitalize;
+        }
+
+        /* Dark mode styles */
+        .dark .profile-dropdown {
+          background: var(--dark-grey);
+          border-color: var(--grey);
+        }
+
+        .dark .profile-dropdown a,
+        .dark .profile-dropdown button {
+          color: var(--light);
+        }
+
+        .dark .profile-dropdown a:hover,
+        .dark .profile-dropdown button:hover {
+          background: var(--blue);
+          color: white;
+        }
+
+        .dark .profile-dropdown-header {
+          background: var(--grey);
+        }
+
+        .dark .profile-dropdown-header h4 {
+          color: var(--light);
+        }
+
+        .dark .profile-dropdown-header p {
+          color: var(--dark-grey);
+        }

@@ -86,10 +86,10 @@ export default function Statistical() {
     };
 
     const resourcesAvailabilityChartData = {
-        labels: dashboardData?.resource_availability?.map(r => r.name) || [], // Added optional chaining
+        labels: dashboardData?.resource_availability?.map(r => r.name) || [], 
         datasets: [{
             label: 'Availability Status',
-            data: dashboardData?.resource_availability?.map(r => r.count) || [], // Added optional chaining
+            data: dashboardData?.resource_availability?.map(r => r.count) || [], 
             backgroundColor: [
                 'rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(201, 203, 207, 0.6)', 'rgba(54, 162, 235, 0.6)',
             ],
@@ -150,24 +150,24 @@ export default function Statistical() {
     // Helper function to capture and add chart to PDF
     const addChartToPdf = async (doc, chartRef, title, yOffset) => {
         if (chartRef.current) {
-            // Get the immediate parent of the chart canvas, which is the div you want to capture
+           
             const chartContainer = chartRef.current.closest('.chart-container');
             if (chartContainer) {
                 const canvas = await html2canvas(chartContainer, {
-                    scale: 2, // Increase scale for better quality
-                    useCORS: true, // Important if your charts use external images/fonts
-                    logging: false, // Disable logging for cleaner console
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false, 
                 });
                 const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 180; // Standard A4 width (210mm) - margin
+                const imgWidth = 180; 
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
                 doc.text(title, 14, yOffset);
                 doc.addImage(imgData, 'PNG', 14, yOffset + 5, imgWidth, imgHeight);
-                return yOffset + imgHeight + 20; // Return new Y offset for the next element
+                return yOffset + imgHeight + 20; 
             }
         }
-        return yOffset; // Return original Y offset if chart not found/captured
+        return yOffset; 
     };
 
     const handleGeneratePdf = async () => {
