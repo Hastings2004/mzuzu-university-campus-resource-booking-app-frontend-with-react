@@ -232,7 +232,7 @@ export default function Layout() {
                                     // onClick={handleNavLinkClick}
                                 >
                                     <i className="bx bx-pulse"></i>
-                                    <span className="text">Utilisation</span>
+                                    <span className="text">Reports</span>
                                 </NavLink>
                             </li>
                         </>

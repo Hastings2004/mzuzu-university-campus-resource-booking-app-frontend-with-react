@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { AppContext } from '../context/appContext'; // Assuming AppContext provides token and user
-import { useNavigate } from 'react-router-dom'; // For redirection
+import { AppContext } from '../context/appContext';
+import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf'; 
+import 'jspdf-autotable';
 
 export default function ResourceUtilizationReport() {
     const { token, user } = useContext(AppContext);
@@ -12,6 +14,7 @@ export default function ResourceUtilizationReport() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [reportPeriod, setReportPeriod] = useState({ start_date: '', end_date: '' });
+    const [generatingPdf, setGeneratingPdf] = useState(false); // New state for PDF generation loading
 
     // Authorization check: Only admins can access this page
     useEffect(() => {
@@ -21,7 +24,7 @@ export default function ResourceUtilizationReport() {
         }
         if (user.user_type !== 'admin') {
             alert("Unauthorized access. Only administrators can view reports.");
-            navigate('/'); // Logged in but not admin, redirect to home
+            navigate('/'); 
         }
         // Initialize dates to current month if not already set
         const today = new Date();
@@ -33,11 +36,10 @@ export default function ResourceUtilizationReport() {
         }
     }, [user, navigate, startDate, endDate]);
 
-
     const fetchReport = useCallback(async () => {
         setLoading(true);
         setError(null);
-        setReportData([]);
+        setReportData([]); // <-- IMPORTANT: Ensure reportData is an empty array before fetch
 
         if (!token) {
             setError("Authentication token missing. Please log in.");
@@ -72,19 +74,70 @@ export default function ResourceUtilizationReport() {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                setReportData(data.report);
-                setReportPeriod(data.period); // Store the actual period used by backend
+                // Ensure data.data is an array, default to empty array if not
+                setReportData(Array.isArray(data.data) ? data.data : []);
+                setReportPeriod({ start_date: data.start_date, end_date: data.end_date });
             } else {
                 setError(data.message || "Failed to fetch report data.");
+                setReportData([]); // Crucial: Reset to empty array on error as well
                 console.error("API Error fetching report:", data);
             }
         } catch (err) {
             setError("An error occurred while fetching the report. Please check your network connection.");
+            setReportData([]); // Crucial: Reset to empty array on fetch error
             console.error("Fetch error:", err);
         } finally {
             setLoading(false);
         }
     }, [token, startDate, endDate]);
+
+    // Function to generate PDF
+    const generatePdfReport = useCallback(() => {
+        if (reportData.length === 0) {
+            alert("No data to generate PDF. Please generate the report first.");
+            return;
+        }
+
+        setGeneratingPdf(true);
+        try {
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text('Resource Utilization Report', 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Period: ${reportPeriod.start_date} to ${reportPeriod.end_date}`, 14, 28);
+
+            const tableColumn = ["Resource Name", "Total Booked Hours", "Total Available Hours", "Utilization Percentage (%)"];
+            const tableRows = [];
+
+            reportData.forEach(item => {
+                const rowData = [
+                    item.resource_name,
+                    item.total_booked_hours,
+                    item.total_available_hours_in_period,
+                    `${item.utilization_percentage}%`
+                ];
+                tableRows.push(rowData);
+            });
+
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 40,
+                theme: 'striped',
+                headStyles: { fillColor: [20, 20, 100] },
+                margin: { top: 30 }
+            });
+
+            doc.save(`Resource_Utilization_Report_${reportPeriod.start_date}_to_${reportPeriod.end_date}.pdf`);
+        } catch (pdfError) {
+            console.error("Error generating PDF:", pdfError);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            setGeneratingPdf(false);
+        }
+    }, [reportData, reportPeriod]);
+
 
     // Fetch report initially and when dates change (or on mount if user is admin)
     useEffect(() => {
@@ -125,6 +178,12 @@ export default function ResourceUtilizationReport() {
                 <button onClick={handleGenerateReport} disabled={loading}>
                     {loading ? 'Generating...' : 'Generate Report'}
                 </button>
+
+                {reportData.length > 0 && (
+                    <button onClick={generatePdfReport} disabled={generatingPdf}>
+                        {generatingPdf ? 'Downloading PDF...' : 'Download PDF'}
+                    </button>
+                )}
             </div>
 
             {error && <p className="error-message">{error}</p>}

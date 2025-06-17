@@ -4902,3 +4902,31 @@ body.dark .category-dropdown {
     text-align: center;
     margin-top: 20px;
 }
+
+/* Statistical.css or App.css */
+
+.generate-pdf-button-container {
+    text-align: center; /* Centers the button horizontally */
+    margin: 20px 0; /* Adds some vertical space above and below */
+}
+
+.generate-pdf-button-container button {
+    padding: 10px 20px; /* Adds padding inside the button */
+    font-size: 16px; /* Sets font size */
+    color: #fff; /* White text color */
+    background-color: #007bff; /* A standard blue background */
+    border: none; /* Removes default border */
+    border-radius: 5px; /* Slightly rounded corners */
+    cursor: pointer; /* Changes cursor to pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.generate-pdf-button-container button:hover:not(:disabled) {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.generate-pdf-button-container button:disabled {
+    background-color: #cccccc; /* Grey background when disabled */
+    cursor: not-allowed; /* Shows a 'not-allowed' cursor */
+    opacity: 0.7; /* Slightly dim the button */
+}
