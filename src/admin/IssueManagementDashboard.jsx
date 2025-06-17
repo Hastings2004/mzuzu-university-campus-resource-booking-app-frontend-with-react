@@ -95,10 +95,19 @@ export default function IssueManagementDashboard() {
                         {filteredIssues.map(issue => (
                             <tr key={issue.id}>
                                 <td data-label="ID">{issue.id}</td>
-                                <td data-label="Resource">{issue.resource.name}</td>
+                                <td data-label="Resource">{issue.resource?.name || 'N/A'}</td>
                                 <td data-label="Subject">{issue.subject}</td>
                                 <td data-label="Description">{issue.description || 'N/A'}</td>
-                                <td data-label="Reported By">{issue.reporter.name}</td>
+                                <td data-label="Reported By">
+                                    <div>
+                                        <strong>{issue.reporter?.name || 'Unknown User'}</strong>
+                                        {issue.reporter?.email && (
+                                            <div style={{fontSize: '0.9em', color: '#666'}}>
+                                                {issue.reporter.email}
+                                            </div>
+                                        )}
+                                    </div>
+                                </td>
                                 <td data-label="Photo">
                                     {issue.photo_path ? (
                                         <a href={`/storage/${issue.photo_path}`} target="_blank" rel="noopener noreferrer" className="view-photo-link">View Photo</a>
@@ -127,7 +136,6 @@ export default function IssueManagementDashboard() {
                                     ) : (
                                         <span className="no-action-text">No action needed</span>
                                     )}
-                                    {/* Optionally add a delete button */}
                                 </td>
                             </tr>
                         ))}
