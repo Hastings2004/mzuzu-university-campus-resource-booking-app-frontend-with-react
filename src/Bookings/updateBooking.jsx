@@ -100,7 +100,7 @@ export default function UpdateBooking() {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    // Send formatted dates back to the backend
+                    resource_id: formData.resource_id,
                     start_time: moment(formData.start_time).toISOString(),
                     end_time: moment(formData.end_time).toISOString(),
                     purpose: formData.purpose,
@@ -111,7 +111,7 @@ export default function UpdateBooking() {
 
             if (response.ok) {
                 alert(data.message || "Booking updated successfully!");
-                navigate("/bookings"); // Or wherever you list user's bookings
+                navigate("/booking"); // Or wherever you list user's bookings
             } else {
                 if (response.status === 422 && data.errors) {
                     setErrors(data.errors);

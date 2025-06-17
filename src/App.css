@@ -1558,16 +1558,21 @@ body {
     white-space: nowrap;
 }
 .update-button {
-    background-color: var(--success-button-bg); /* Using new variables for consistency */
-    color: var(--text-light-on-dark);
+    background-color: var(--primary-color); /* Using new variables for consistency */
+    color: var(--bg-tertiary-row);
+    border-radius: 10px;
+    padding: 10px;
 }
 .update-button:hover {
     background-color: var(--success-button-hover); /* Using new variables for consistency */
     transform: translateY(-2px);
+    
 }
 .delete-button {
     background-color: var(--error-button-bg); /* Using new variables for consistency */
     color: var(--text-light-on-dark);
+    border-radius: 10px;
+    padding: 10px;
 }
 .delete-button:hover {
     background-color: var(--error-button-hover); /* Using new variables for consistency */
@@ -4007,8 +4012,9 @@ body.dark .error-message {
 /* Settings.css */
 
 .settings-container {
+   
     padding: 20px;
-    max-width: 700px;
+    max-width: 1200px;
     margin-left: 20px auto;
     background-color: var(--bg-secondary); 
     border-radius: 8px;
@@ -4026,11 +4032,18 @@ body.dark .error-message {
     padding-bottom: 15px;
 }
 
+.settings-items{
+     display: flex;
+    flex-wrap: nowrap;
+}
+
 /* Styles for individual settings cards */
 .settings-section {
     background-color: var(--bg-primary); 
     padding: 25px; 
     margin-bottom: 20px; 
+    margin-left: 20px;
+    max-width: 600px;
     border-radius: 8px;
     box-shadow: 0 2px 5px var(--shadow-small); 
     border: 1px solid var(--border-color); 

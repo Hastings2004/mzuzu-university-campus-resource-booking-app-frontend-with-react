@@ -148,7 +148,8 @@ export default function Settings() {
     return (
         <div className="settings-container">
             <h1>Settings</h1>
-
+            <div className='settings-items'>
+                
             {/* Profile Settings */}
             <section className="settings-section">
                 <h2>Profile Information</h2>
@@ -236,17 +237,7 @@ export default function Settings() {
                 </form>
             </section>
 
-            {/* Theme Settings */}
-            <section className="settings-section">
-                <h2>Theme</h2>
-                <div className="theme-toggle">
-                    <span>Dark Mode:</span>
-                    <label className="switch">
-                        <input type="checkbox" checked={isDarkMode} onChange={toggleTheme} />
-                        <span className="slider round"></span>
-                    </label>
-                </div>
-            </section>
+            
 
             {/* Logout Section */}
             <section className="settings-section">
@@ -255,6 +246,7 @@ export default function Settings() {
                     Logout
                 </button>
             </section>
+            </div>
         </div>
     );
 }
