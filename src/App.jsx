@@ -21,6 +21,7 @@ import GlobalSearch from './components/search';
 import ResourceUtilizationReport from './admin/ResourceUtilizationReport';
 import TimetableImport from './components/TimetableImport';
 import IssueManagementDashboard from './admin/IssueManagementDashboard';
+import ReportIssueForm from './components/ReportIssueForm';
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -47,7 +48,7 @@ export default function App() {
           <Route path='resource-report' element={<ResourceUtilizationReport />} />
           <Route path='timetable' element={<TimetableImport />} />
           <Route path='issue-management' element={<IssueManagementDashboard />} />
-          
+          <Route path='reportIssueForm' element={< ReportIssueForm />} />
         </Route>
 
         

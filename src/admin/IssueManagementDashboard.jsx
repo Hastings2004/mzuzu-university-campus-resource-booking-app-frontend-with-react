@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../context/appContext';
-//import axios from 'axios';
+import axios from 'axios'; 
 
 export default function IssueManagementDashboard() {
     const { token, user } = useContext(AppContext);
     const [issues, setIssues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filterStatus, setFilterStatus] = useState('all'); // 'reported', 'in_progress', 'resolved', 'wont_fix'
+    const [filterStatus, setFilterStatus] = useState('all');
 
     const fetchIssues = async () => {
         setLoading(true);
@@ -26,9 +26,9 @@ export default function IssueManagementDashboard() {
     };
 
     useEffect(() => {
-        if (token && user?.user_type === 'admin' || user?.user_type === 'facility_manager') {
+        if (token && (user?.user_type === 'admin' )) {
             fetchIssues();
-        } else if (!user || (user?.user_type !== 'admin' && user?.user_type !== 'facility_manager')) {
+        } else if (!user || (user?.user_type !== 'admin')) {
             setError("Unauthorized access. Only admins or facility managers can view this page.");
             setLoading(false);
         }
@@ -73,7 +73,7 @@ export default function IssueManagementDashboard() {
             </div>
 
             {filteredIssues.length === 0 ? (
-                <p>No issues found matching the criteria.</p>
+                <p className="no-issues-message">No issues found matching the criteria.</p>
             ) : (
                 <table className="issues-table">
                     <thead>
@@ -94,31 +94,38 @@ export default function IssueManagementDashboard() {
                     <tbody>
                         {filteredIssues.map(issue => (
                             <tr key={issue.id}>
-                                <td>{issue.id}</td>
-                                <td>{issue.resource.name}</td>
-                                <td>{issue.subject}</td>
-                                <td>{issue.description || 'N/A'}</td>
-                                <td>{issue.reporter.name}</td>
-                                <td>
+                                <td data-label="ID">{issue.id}</td>
+                                <td data-label="Resource">{issue.resource.name}</td>
+                                <td data-label="Subject">{issue.subject}</td>
+                                <td data-label="Description">{issue.description || 'N/A'}</td>
+                                <td data-label="Reported By">{issue.reporter.name}</td>
+                                <td data-label="Photo">
                                     {issue.photo_path ? (
-                                        <a href={`/storage/${issue.photo_path}`} target="_blank" rel="noopener noreferrer">View Photo</a>
+                                        <a href={`/storage/${issue.photo_path}`} target="_blank" rel="noopener noreferrer" className="view-photo-link">View Photo</a>
                                     ) : 'N/A'}
                                 </td>
-                                <td>{issue.status}</td>
-                                <td>{new Date(issue.created_at).toLocaleDateString()}</td>
-                                <td>{issue.resolved_at ? new Date(issue.resolved_at).toLocaleDateString() : 'N/A'}</td>
-                                <td>{issue.resolver?.name || 'N/A'}</td>
-                                <td>
-                                    {issue.status !== 'resolved' && issue.status !== 'wont_fix' && (
+                                <td data-label="Status">
+                                    <span className={`status-badge status-${issue.status.replace(/ /g, '-')}`}>
+                                        {issue.status}
+                                    </span>
+                                </td>
+                                <td data-label="Reported At">{new Date(issue.created_at).toLocaleDateString()}</td>
+                                <td data-label="Resolved At">{issue.resolved_at ? new Date(issue.resolved_at).toLocaleDateString() : 'N/A'}</td>
+                                <td data-label="Resolved By">{issue.resolver?.name || 'N/A'}</td>
+                                <td data-label="Actions">
+                                    {issue.status !== 'resolved' && issue.status !== 'wont_fix' ? (
                                         <select
                                             value={issue.status}
                                             onChange={(e) => handleStatusChange(issue.id, e.target.value)}
+                                            className="status-selector"
                                         >
                                             <option value="reported">Reported</option>
                                             <option value="in_progress">In Progress</option>
                                             <option value="resolved">Mark Resolved</option>
                                             <option value="wont_fix">Won't Fix</option>
                                         </select>
+                                    ) : (
+                                        <span className="no-action-text">No action needed</span>
                                     )}
                                     {/* Optionally add a delete button */}
                                 </td>

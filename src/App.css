@@ -4944,3 +4944,378 @@ body.dark .category-dropdown {
     opacity: 0.7; /* Slightly dim the button */
 }
 
+/* src/components/ReportIssueForm.css */
+
+.report-issue-form-container {
+    background-color: var(--bg-light); /* Inherits from global variables */
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px var(--shadow-medium); /* Inherits from global variables */
+    max-width: 500px;
+    margin: 20px auto; /* Centering for standalone use */
+    color: var(--text-primary); /* Inherits text color */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
+
+.report-issue-form-container h3 {
+    font-family: var(--poppins);
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Reusing existing form-group styles (if defined globally) */
+/* If form-group is not defined globally, uncomment and adapt these: */
+
+.report-issue-form-container .form-group {
+    margin-bottom: 1rem;
+}
+
+.report-issue-form-container .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+*/
+
+.report-issue-form-container input[type="text"],
+.report-issue-form-container input[type="file"],
+.report-issue-form-container textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color); /* Inherits from global variables */
+    border-radius: 5px;
+    background-color: var(--bg-light); /* Inherits from global variables */
+    color: var(--text-primary); /* Inherits from global variables */
+    font-family: var(--lato);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.report-issue-form-container input[type="text"]:focus,
+.report-issue-form-container textarea:focus,
+.report-issue-form-container input[type="file"]:focus {
+    outline: none;
+    border-color: var(--primary-color); /* Inherits from global variables */
+    box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.2);
+}
+
+.report-issue-form-container textarea {
+    resize: vertical;
+}
+
+/* Error and Success Messages */
+.report-issue-form-container .error-message {
+    color: var(--accent-red); /* Inherits from global variables */
+    background-color: var(--message-bg-error); /* Inherits from global variables */
+    border: 1px solid var(--message-border-error); /* Inherits from global variables */
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.report-issue-form-container .success-message {
+    color: var(--primary-dark); /* Using a darker primary for success text */
+    background-color: var(--primary-light); /* Using a lighter primary for success background */
+    border: 1px solid var(--primary-color); /* Using primary for success border */
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Form Actions (buttons) */
+.report-issue-form-container .form-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 1rem; /* Space between buttons */
+    margin-top: 1.5rem;
+}
+
+/* Reusing existing button styles via classes like btn-primary, btn-secondary */
+/* If these are not defined globally or you need specific overrides: */
+/*
+.report-issue-form-container button[type="submit"] {
+    background-color: var(--primary-color);
+    color: var(--text-light-on-dark);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.report-issue-form-container button[type="submit"]:hover {
+    background-color: var(--primary-dark);
+}
+
+.report-issue-form-container button[type="button"] {
+    background-color: var(--bg-grey);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.report-issue-form-container button[type="button"]:hover {
+    background-color: var(--bg-hover);
+}
+
+.report-issue-form-container button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+*/
+
+/* src/admin/IssueManagementDashboard.css */
+
+.issue-management-dashboard {
+    background-color: var(--bg-grey); /* Use a slightly different background for the main dashboard area */
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 1200px;
+    box-shadow: 0 4px 15px var(--shadow-medium);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.issue-management-dashboard h2 {
+    font-family: var(--poppins);
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Filters Section */
+.issue-management-dashboard .filters {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.issue-management-dashboard .filters label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.issue-management-dashboard .filters select {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    font-family: var(--lato);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+    min-width: 150px; /* Give some minimum width */
+}
+
+.issue-management-dashboard .filters select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.2);
+}
+
+/* Table Specific Styles for Issue Management */
+.issue-management-dashboard .issues-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: var(--bg-light); /* Table background */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.issue-management-dashboard .issues-table th,
+.issue-management-dashboard .issues-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.issue-management-dashboard .issues-table th {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    font-family: var(--poppins);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.issue-management-dashboard .issues-table tr:last-child td {
+    border-bottom: none;
+}
+
+.issue-management-dashboard .issues-table tbody tr:hover {
+    background-color: var(--bg-hover);
+}
+
+.issue-management-dashboard .issues-table tbody tr:nth-child(even) {
+    background-color: var(--bg-tertiary-row);
+}
+
+body.dark .issue-management-dashboard .issues-table tbody tr:nth-child(even) {
+    background-color: var(--bg-secondary-card); /* Adjust for dark mode */
+}
+
+/* Status Badges */
+.issue-management-dashboard .status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.issue-management-dashboard .status-reported {
+    background-color: var(--accent-red);
+    color: var(--text-light-on-dark);
+}
+
+.issue-management-dashboard .status-in-progress {
+    background-color: var(--accent-orange);
+    color: var(--text-light-on-dark);
+}
+
+.issue-management-dashboard .status-resolved {
+    background-color: var(--accent-green);
+    color: var(--text-light-on-dark);
+}
+
+.issue-management-dashboard .status-wont-fix {
+    background-color: var(--bg-grey); /* Lighter grey for wont_fix */
+    color: var(--text-secondary);
+}
+
+body.dark .issue-management-dashboard .status-wont-fix {
+    background-color: var(--border-color); /* Darker grey for wont_fix in dark mode */
+    color: var(--text-secondary);
+}
+
+/* Status Selector (dropdown) */
+.issue-management-dashboard .status-selector {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.issue-management-dashboard .status-selector:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.2);
+}
+
+/* No issues message */
+.issue-management-dashboard .no-issues-message {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* View Photo Link */
+.issue-management-dashboard .view-photo-link {
+    color: var(--accent-blue);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.issue-management-dashboard .view-photo-link:hover {
+    color: var(--primary-dark); /* Slightly darker blue on hover */
+}
+
+/* No action text */
+.issue-management-dashboard .no-action-text {
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+
+/* --- Responsive Design for Table (Copied from previous global table styles, scoped) --- */
+@media (max-width: 768px) {
+    .issue-management-dashboard {
+        padding: 1rem;
+        margin: 10px auto;
+    }
+
+    .issue-management-dashboard .filters {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .issue-management-dashboard .filters select {
+        width: 100%; /* Make select full width */
+    }
+
+    .issue-management-dashboard .issues-table {
+        overflow-x: auto; /* Allow horizontal scrolling */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .issue-management-dashboard .issues-table thead {
+        display: none; /* Hide table headers on small screens */
+    }
+
+    .issue-management-dashboard .issues-table,
+    .issue-management-dashboard .issues-table tbody,
+    .issue-management-dashboard .issues-table tr,
+    .issue-management-dashboard .issues-table td {
+        display: block; /* Make table rows/cells behave like blocks */
+        width: 100%;
+    }
+
+    .issue-management-dashboard .issues-table tr {
+        margin-bottom: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px;
+        background-color: var(--bg-secondary-card); /* Card-like appearance */
+    }
+
+    .issue-management-dashboard .issues-table td {
+        text-align: right;
+        padding-left: 50%; /* Space for pseudo-element labels */
+        position: relative;
+        border-bottom: 1px dashed var(--border-color); /* Lighter border for separation */
+    }
+
+    .issue-management-dashboard .issues-table td::before {
+        content: attr(data-label); /* Use data-label attribute for content */
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-align: left;
+    }
+
+    .issue-management-dashboard .issues-table tr:last-child td {
+        border-bottom: none;
+    }
+}

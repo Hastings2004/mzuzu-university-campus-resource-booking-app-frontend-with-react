@@ -179,7 +179,7 @@ export default function Layout() {
 
            <ul className="side-menu top">
                     {/* Home Link */}
-                    <li> {/* Removed hardcoded active class */}
+                    <li> 
                         <NavLink
                             to="/"
                             className={({ isActive }) => (isActive ? "active" : "")}
@@ -188,6 +188,17 @@ export default function Layout() {
                         >
                             <i className="bx bxs-dashboard"></i>
                             <span className="text">Home</span>
+                        </NavLink>
+                    </li>
+                    <li> 
+                        <NavLink
+                            to="/reportIssueForm"
+                            className={({ isActive }) => (isActive ? "active" : "")}
+                            // If handleNavLinkClick closes sidebar, add it here or in a parent wrapper
+                            // onClick={handleNavLinkClick} // Only if it does more than just styling
+                        >
+                            <i className="bx bxs-dashboard"></i>
+                            <span className="text">Report issue</span>
                         </NavLink>
                     </li>
                     {user && user.user_type === 'admin' && (
