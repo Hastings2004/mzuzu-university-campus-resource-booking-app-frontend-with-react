@@ -195,7 +195,7 @@ export default function Layout() {
                             to="/reportIssueForm"
                             className={({ isActive }) => (isActive ? "active" : "")}
                         >
-                            <i className="bx bxs-dashboard"></i>
+                            <i className="bx bx-folder-open"></i>
                             <span className="text">Report issue</span>
                         </NavLink>
                     </li>
@@ -218,9 +218,9 @@ export default function Layout() {
                                 <NavLink
                                     to="/timetable"
                                     className={({ isActive }) => (isActive ? "active" : "")}
-                                    // onClick={handleNavLinkClick}
+                                   
                                 >
-                                    <i className="bx bx-chart"></i>
+                                    <i className="bx bx-timer"></i>
                                     <span className="text">Time table</span>
                                 </NavLink>
                             </li>
@@ -230,7 +230,7 @@ export default function Layout() {
                                     className={({ isActive }) => (isActive ? "active" : "")}
                                     // onClick={handleNavLinkClick}
                                 >                   
-                                    <i className='bx bx-user-plus'></i> 
+                                    <i className='bx bx-group'></i> 
                                     <span className="text">User Management</span>
                                 </NavLink>
                             </li>
@@ -241,7 +241,7 @@ export default function Layout() {
                                     className={({ isActive }) => (isActive ? "active" : "")}
                                    
                                 >
-                                    <i className="bx bx-pulse"></i>
+                                    <i className="bx bx-folder-open"></i>
                                     <span className="text">Reports</span>
                                 </NavLink>
                             </li>

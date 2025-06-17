@@ -423,6 +423,8 @@ export default function View() {
             }
 
             console.log('Response data:', data);
+            alert("booking successfully");
+            navigate('/booking');
 
             if (res.ok) {
                 let successMsg = data.message || "Booking request submitted successfully!";

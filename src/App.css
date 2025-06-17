@@ -4707,16 +4707,12 @@ body.dark .form-group input::placeholder {
     transform: scale(1.2); /* Make radio buttons a bit larger */
 }
 
-/* ... other existing styles ... */
-
-/* Add these to your existing CSS file */
-
 .category-filter-container {
     margin-bottom: 25px;
     display: flex;
     align-items: center;
     gap: 15px;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap; 
 }
 
 .category-filter-container label {
@@ -4734,7 +4730,7 @@ body.dark .form-group input::placeholder {
     font-size: 1em;
     cursor: pointer;
     transition: all 0.3s ease;
-    appearance: none; /* Remove default dropdown arrow */
+    appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom arrow */
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -4754,10 +4750,10 @@ body.dark .category-dropdown {
 .category-dropdown:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3); /* Assuming primary-color-rgb exists */
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3); 
 }
 
-/* Optional: Styles for category buttons if you use them */
+
 .category-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -4773,7 +4769,7 @@ body.dark .category-dropdown {
     font-size: 0.95em;
     cursor: pointer;
     transition: all 0.3s ease;
-    white-space: nowrap; /* Prevent text wrapping */
+    white-space: nowrap; 
 }
 
 .category-button:hover {
@@ -4898,7 +4894,7 @@ body.dark .category-dropdown {
 }
 
 .report-table tbody tr:nth-child(even) {
-    background-color: var(--bg-light); /* Lighter background for even rows */
+    background-color: var(--bg-light);
 }
 
 .report-table tbody tr:hover {
@@ -4907,7 +4903,7 @@ body.dark .category-dropdown {
 
 .high-utilization {
     font-weight: bold;
-    color: var(--warning-color); /* Use a distinct color for high utilization */
+    color: var(--warning-color);
 }
 
 .error-message {
@@ -4919,29 +4915,29 @@ body.dark .category-dropdown {
 /* Statistical.css or App.css */
 
 .generate-pdf-button-container {
-    text-align: center; /* Centers the button horizontally */
-    margin: 20px 0; /* Adds some vertical space above and below */
+    text-align: center;
+    margin: 20px 0; 
 }
 
 .generate-pdf-button-container button {
-    padding: 10px 20px; /* Adds padding inside the button */
-    font-size: 16px; /* Sets font size */
-    color: #fff; /* White text color */
-    background-color: #007bff; /* A standard blue background */
-    border: none; /* Removes default border */
-    border-radius: 5px; /* Slightly rounded corners */
-    cursor: pointer; /* Changes cursor to pointer on hover */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+    padding: 10px 20px;
+    font-size: 16px; 
+    color: #fff; 
+    background-color: #007bff; 
+    border: none; 
+    border-radius: 5px;
+    cursor: pointer; 
+    transition: background-color 0.3s ease; 
 }
 
 .generate-pdf-button-container button:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
 }
 
 .generate-pdf-button-container button:disabled {
-    background-color: #cccccc; /* Grey background when disabled */
-    cursor: not-allowed; /* Shows a 'not-allowed' cursor */
-    opacity: 0.7; /* Slightly dim the button */
+    background-color: #cccccc; 
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 /* src/components/ReportIssueForm.css */
 
@@ -4950,12 +4946,12 @@ body.dark .category-dropdown {
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 15px var(--shadow-medium);
-    max-width: 700px; /* Limits the max width on larger screens */
-    margin-left: 20px auto; /* Centers the form horizontally and adds vertical margin */
+    max-width: 700px; 
+    margin-left: 20px auto; 
     color: var(--text-primary);
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    width: 90%; /* Allows it to shrink on smaller screens */
-    box-sizing: border-box; /* Ensures padding and border are included in the width */
+    width: 90%; 
+    box-sizing: border-box; 
 }
 
 .report-issue-form-container h3 {
@@ -5127,7 +5123,7 @@ body.dark .category-dropdown {
     background-color: var(--bg-grey);
     padding: 2rem;
     border-radius: 8px;
-    margin: 20px auto; /* Changed margin-right to auto and added margin-left: auto to center it */
+    margin-left: 20px auto; /* Changed margin-right to auto and added margin-left: auto to center it */
     max-width: 1200px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     color: var(--text-primary);
