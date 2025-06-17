@@ -206,6 +206,16 @@ export default function Layout() {
                             {/* User Management */}
                             <li>
                                 <NavLink
+                                    to="/timetable"
+                                    className={({ isActive }) => (isActive ? "active" : "")}
+                                    // onClick={handleNavLinkClick}
+                                >
+                                    <i className="bx bx-chart"></i>
+                                    <span className="text">Time table</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
                                     to="/users"
                                     className={({ isActive }) => (isActive ? "active" : "")}
                                     // onClick={handleNavLinkClick}
