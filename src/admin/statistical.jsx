@@ -5,7 +5,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, T
 import 'chart.js/auto';
 import jsPDF from 'jspdf'; 
 import html2canvas from 'html2canvas'; 
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, PointElement, LineElement);
 
@@ -67,12 +67,11 @@ export default function Statistical() {
     }, [user, token]);
 
     // --- Chart Data Preparation (Common & Admin Specific) ---
-    // (Your existing chart data preparations go here, unchanged)
     const bookingsByStatusChartData = {
-        labels: Object.keys(dashboardData?.bookings_by_status || {}), // Added optional chaining
+        labels: Object.keys(dashboardData?.bookings_by_status || {}), 
         datasets: [{
             label: 'Number of Bookings',
-            data: Object.values(dashboardData?.bookings_by_status || {}), // Added optional chaining
+            data: Object.values(dashboardData?.bookings_by_status || {}), 
             backgroundColor: [
                 'rgba(75, 192, 192, 0.6)', // Approved
                 'rgba(255, 206, 86, 0.6)', // Pending
@@ -183,75 +182,83 @@ export default function Statistical() {
         doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, yOffset);
         yOffset += 20; // Space after title
 
-        // Add KPIs as a simple table or text
+        // Add KPIs as simple text instead of table
         doc.setFontSize(12);
         doc.text('Key Performance Indicators:', 14, yOffset);
-        yOffset += 7;
+        yOffset += 10;
 
         if (user?.user_type === 'admin') {
-            const kpiData = [
-                ['Total Resources', dashboardData.total_resources],
-                ['Total Bookings', dashboardData.total_bookings],
-                ['Total Users', dashboardData.total_users],
-                ['Available Resources', dashboardData.available_resources],
-            ];
-            doc.autoTable({
-                startY: yOffset,
-                head: [['Metric', 'Value']],
-                body: kpiData,
-                theme: 'grid',
-                styles: { fontSize: 10, cellPadding: 2 },
-                headStyles: { fillColor: [50, 50, 150] }
-            });
-            yOffset = doc.autoTable.previous.finalY + 15;
+            doc.setFontSize(10);
+            doc.text(`Total Resources: ${dashboardData?.kpis?.total_resources || 'N/A'}`, 14, yOffset);
+            yOffset += 7;
+            doc.text(`Total Bookings: ${dashboardData?.kpis?.total_bookings || 'N/A'}`, 14, yOffset);
+            yOffset += 7;
+            doc.text(`Total Users: ${dashboardData?.kpis?.total_users || 'N/A'}`, 14, yOffset);
+            yOffset += 7;
+            doc.text(`Available Resources: ${dashboardData?.kpis?.available_resources || 'N/A'}`, 14, yOffset);
+            yOffset += 15;
         } else {
-            const myKpiData = [
-                ['My Total Bookings', dashboardData.my_total_bookings || 'N/A'],
-                ['My Upcoming Bookings', dashboardData.my_upcoming_bookings_count || 'N/A'],
-            ];
-            doc.autoTable({
-                startY: yOffset,
-                head: [['Metric', 'Value']],
-                body: myKpiData,
-                theme: 'grid',
-                styles: { fontSize: 10, cellPadding: 2 },
-                headStyles: { fillColor: [50, 50, 150] }
-            });
-            yOffset = doc.autoTable.previous.finalY + 15;
+            doc.setFontSize(10);
+            doc.text(`My Total Bookings: ${dashboardData?.my_total_bookings || 'N/A'}`, 14, yOffset);
+            yOffset += 7;
+            doc.text(`My Upcoming Bookings: ${dashboardData?.my_upcoming_bookings_count || 'N/A'}`, 14, yOffset);
+            yOffset += 15;
         }
-
 
         // Add charts based on user type
         if (user?.user_type === 'admin') {
-           yOffset = await addChartToPdf(doc, bookingsByStatusChartRef, 'Bookings by Status', yOffset);
-            doc.addPage();
-            yOffset = 20;
+            yOffset = await addChartToPdf(doc, bookingsByStatusChartRef, 'Bookings by Status', yOffset);
+            
+            // Check if we need a new page
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+            
             yOffset = await addChartToPdf(doc, topBookedResourcesChartRef, 'Top 5 Most Booked Resources', yOffset);
-            doc.addPage();
-            yOffset = 20;
+            
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+            
             yOffset = await addChartToPdf(doc, resourcesAvailabilityChartRef, 'Resource Availability Overview', yOffset);
-            doc.addPage();
-            yOffset = 20;
+            
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
 
-            yOffset = await addChartToPdf(doc, monthlyBookingsChartRef, 'Monthly Overall Booking Trends', yOffset); // <--- CHANGE monthlyBookingsChartData TO monthlyBookingsChartRef
-            doc.addPage();
-            yOffset = 20;
+            yOffset = await addChartToPdf(doc, monthlyBookingsChartRef, 'Monthly Overall Booking Trends', yOffset);
+            
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+            
             yOffset = await addChartToPdf(doc, resourceUtilizationChartRef, 'Resource Utilization (Booked Hours) Over Time', yOffset);
             
         } else {
             yOffset = await addChartToPdf(doc, myBookingsChartRef, 'My Personal Booking Trends', yOffset);
-            doc.addPage();
-            yOffset = 20;
+            
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+            
             yOffset = await addChartToPdf(doc, topBookedResourcesChartRef, 'Overall Popular Resources', yOffset);
-            doc.addPage();
-            yOffset = 20;
+            
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+            
             yOffset = await addChartToPdf(doc, currentResourceAvailabilityChartRef, 'Current Resource Availability', yOffset);
         }
 
         doc.save('Statistical_Dashboard_Report.pdf');
         setGeneratingPdf(false);
     };
-
 
     if (loading) {
         return <div className="dashboard-loading">Loading dashboard data...</div>;
@@ -272,30 +279,44 @@ export default function Statistical() {
             <hr />
 
             <div className="generate-pdf-button-container">
-                <button onClick={handleGeneratePdf} disabled={generatingPdf || !dashboardData}>
+                <button 
+                    onClick={handleGeneratePdf} 
+                    disabled={generatingPdf || !dashboardData}
+                    style={{
+                        backgroundColor: generatingPdf ? '#ccc' : '#007bff',
+                        color: 'white',
+                        padding: '10px 20px',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: generatingPdf ? 'not-allowed' : 'pointer',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        margin: '10px 0'
+                    }}
+                >
                     {generatingPdf ? 'Generating PDF...' : 'Download Statistical Report PDF'}
                 </button>
             </div>
 
-                       
             <div className="kpi-cards">
                 <div className="kpi-card">
                     <h3>Total Resources</h3>
-                    <p>{dashboardData.kpis.total_resources}</p>
+                    <p>{dashboardData?.kpis?.total_resources || 'N/A'}</p>
                 </div>
                 <div className="kpi-card">
                     <h3>Total Bookings</h3>
-                    <p>{dashboardData.kpis.total_bookings}</p>
+                    <p>{dashboardData?.kpis?.total_bookings || 'N/A'}</p>
                 </div>
                 <div className="kpi-card">
                     <h3>Total Users</h3>
-                    <p>{dashboardData.kpis.total_users}</p>
+                    <p>{dashboardData?.kpis?.total_users || 'N/A'}</p>
                 </div>
                 <div className="kpi-card">
                     <h3>Available Resources</h3>
-                    <p>{dashboardData.kpis.available_resources}</p>
+                    <p>{dashboardData?.kpis?.available_resources || 'N/A'}</p>
                 </div>
             </div>
+            
             <div className="chart-grid">
                 {user?.user_type === 'admin' && (
                     <>
@@ -358,10 +379,10 @@ export default function Statistical() {
                         <div className="chart-container" ref={currentResourceAvailabilityChartRef}>
                             <h3>Current Resource Availability</h3>
                             <Bar data={{
-                                labels: dashboardData.resource_availability?.filter(r => r.name === 'Available').map(r => r.name) || [],
+                                labels: dashboardData?.resource_availability?.filter(r => r.name === 'Available').map(r => r.name) || [],
                                 datasets: [{
                                     label: 'Available Count',
-                                    data: dashboardData.resource_availability?.filter(r => r.name === 'Available').map(r => r.count) || [],
+                                    data: dashboardData?.resource_availability?.filter(r => r.name === 'Available').map(r => r.count) || [],
                                     backgroundColor: 'rgba(75, 192, 192, 0.6)',
                                     borderColor: 'rgba(75, 192, 192, 1)',
                                     borderWidth: 1,

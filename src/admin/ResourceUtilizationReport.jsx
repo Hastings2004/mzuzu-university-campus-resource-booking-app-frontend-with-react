@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AppContext } from '../context/appContext';
 import { useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf'; 
-import 'jspdf-autotable';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function ResourceUtilizationReport() {
     const { token, user } = useContext(AppContext);
@@ -11,35 +11,41 @@ export default function ResourceUtilizationReport() {
     const [reportData, setReportData] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Changed from true to false
     const [error, setError] = useState(null);
     const [reportPeriod, setReportPeriod] = useState({ start_date: '', end_date: '' });
-    const [generatingPdf, setGeneratingPdf] = useState(false); // New state for PDF generation loading
+    const [generatingPdf, setGeneratingPdf] = useState(false);
 
     // Authorization check: Only admins can access this page
     useEffect(() => {
         if (!user) {
-            navigate('/login'); // Not logged in, redirect
+            navigate('/login');
             return;
         }
         if (user.user_type !== 'admin') {
             alert("Unauthorized access. Only administrators can view reports.");
             navigate('/'); 
+            return;
         }
+        
         // Initialize dates to current month if not already set
         const today = new Date();
         if (!startDate) {
-            setStartDate(new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]);
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            setStartDate(firstDay.toISOString().split('T')[0]);
         }
         if (!endDate) {
-            setEndDate(new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0]);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            setEndDate(lastDay.toISOString().split('T')[0]);
         }
-    }, [user, navigate, startDate, endDate]);
+    }, [user, navigate]); // Removed startDate, endDate from dependencies
 
     const fetchReport = useCallback(async () => {
+        console.log('fetchReport called with:', { startDate, endDate, token: !!token });
+        
         setLoading(true);
         setError(null);
-        setReportData([]); // <-- IMPORTANT: Ensure reportData is an empty array before fetch
+        setReportData([]);
 
         if (!token) {
             setError("Authentication token missing. Please log in.");
@@ -63,6 +69,8 @@ export default function ResourceUtilizationReport() {
                 end_date: endDate,
             }).toString();
 
+            console.log('Making API request to:', `/api/reports/resource-utilization?${queryParams}`);
+
             const response = await fetch(`/api/reports/resource-utilization?${queryParams}`, {
                 method: 'GET',
                 headers: {
@@ -71,20 +79,38 @@ export default function ResourceUtilizationReport() {
                 },
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (response.ok && data.success) {
-                // Ensure data.data is an array, default to empty array if not
-                setReportData(Array.isArray(data.data) ? data.data : []);
-                setReportPeriod({ start_date: data.start_date, end_date: data.end_date });
+                // Fixed: Backend returns data in 'report' field, not 'data'
+                const reportArray = Array.isArray(data.report) ? data.report : [];
+                setReportData(reportArray);
+                
+                // Fixed: Backend returns period data differently
+                if (data.period) {
+                    setReportPeriod({ 
+                        start_date: data.period.start_date, 
+                        end_date: data.period.end_date 
+                    });
+                } else {
+                    setReportPeriod({ start_date: startDate, end_date: endDate });
+                }
+                
+                console.log('Report data set:', reportArray);
             } else {
-                setError(data.message || "Failed to fetch report data.");
-                setReportData([]); // Crucial: Reset to empty array on error as well
+                const errorMessage = data.message || "Failed to fetch report data.";
+                setError(errorMessage);
+                setReportData([]);
                 console.error("API Error fetching report:", data);
             }
         } catch (err) {
-            setError("An error occurred while fetching the report. Please check your network connection.");
-            setReportData([]); // Crucial: Reset to empty array on fetch error
+            const errorMessage = "An error occurred while fetching the report. Please check your network connection.";
+            setError(errorMessage);
+            setReportData([]);
             console.error("Fetch error:", err);
         } finally {
             setLoading(false);
@@ -93,7 +119,9 @@ export default function ResourceUtilizationReport() {
 
     // Function to generate PDF
     const generatePdfReport = useCallback(() => {
-        if (reportData.length === 0) {
+        console.log('generatePdfReport called, reportData length:', reportData.length);
+        
+        if (!reportData || reportData.length === 0) {
             alert("No data to generate PDF. Please generate the report first.");
             return;
         }
@@ -102,25 +130,30 @@ export default function ResourceUtilizationReport() {
         try {
             const doc = new jsPDF();
 
+            // Add title
             doc.setFontSize(16);
             doc.text('Resource Utilization Report', 14, 20);
             doc.setFontSize(10);
             doc.text(`Period: ${reportPeriod.start_date} to ${reportPeriod.end_date}`, 14, 28);
 
+            // Prepare table data
             const tableColumn = ["Resource Name", "Total Booked Hours", "Total Available Hours", "Utilization Percentage (%)"];
             const tableRows = [];
 
             reportData.forEach(item => {
                 const rowData = [
-                    item.resource_name,
-                    item.total_booked_hours,
-                    item.total_available_hours_in_period,
-                    `${item.utilization_percentage}%`
+                    item.resource_name || 'N/A',
+                    item.total_booked_hours || '0',
+                    item.total_available_hours_in_period || '0',
+                    `${item.utilization_percentage || '0'}%`
                 ];
                 tableRows.push(rowData);
             });
 
-            doc.autoTable({
+            console.log('PDF table data:', { tableColumn, tableRows });
+
+            // Generate table using autoTable
+            autoTable(doc, {
                 head: [tableColumn],
                 body: tableRows,
                 startY: 40,
@@ -129,7 +162,11 @@ export default function ResourceUtilizationReport() {
                 margin: { top: 30 }
             });
 
-            doc.save(`Resource_Utilization_Report_${reportPeriod.start_date}_to_${reportPeriod.end_date}.pdf`);
+            // Save PDF
+            const filename = `Resource_Utilization_Report_${reportPeriod.start_date}_to_${reportPeriod.end_date}.pdf`;
+            doc.save(filename);
+            console.log('PDF saved as:', filename);
+            
         } catch (pdfError) {
             console.error("Error generating PDF:", pdfError);
             alert("Failed to generate PDF. Please try again.");
@@ -138,20 +175,14 @@ export default function ResourceUtilizationReport() {
         }
     }, [reportData, reportPeriod]);
 
-
-    // Fetch report initially and when dates change (or on mount if user is admin)
-    useEffect(() => {
-        if (user && user.user_type === 'admin' && startDate && endDate) {
-            fetchReport();
-        }
-    }, [fetchReport, user, startDate, endDate]); // Depend on startDate/endDate to refetch on change
-
+    // Remove automatic fetch on mount - only fetch when user clicks generate
     const handleGenerateReport = () => {
-        fetchReport(); // Manually trigger fetch when button is clicked
+        console.log('Generate Report button clicked');
+        fetchReport();
     };
 
     if (!user || user.user_type !== 'admin') {
-        return null; // Or a Forbidden message component
+        return null;
     }
 
     return (
@@ -186,7 +217,7 @@ export default function ResourceUtilizationReport() {
                 )}
             </div>
 
-            {error && <p className="error-message">{error}</p>}
+            {error && <p className="error-message" style={{color: 'red'}}>{error}</p>}
 
             {loading ? (
                 <p>Loading report data...</p>
@@ -207,8 +238,8 @@ export default function ResourceUtilizationReport() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {reportData.map((item) => (
-                                        <tr key={item.resource_id}>
+                                    {reportData.map((item, index) => (
+                                        <tr key={item.resource_id || index}>
                                             <td>{item.resource_name}</td>
                                             <td>{item.total_booked_hours}</td>
                                             <td>{item.total_available_hours_in_period}</td>
@@ -221,7 +252,7 @@ export default function ResourceUtilizationReport() {
                             </table>
                         </>
                     ) : (
-                        <p>No utilization data found for the selected period.</p>
+                        !loading && <p>No utilization data found for the selected period. Click "Generate Report" to fetch data.</p>
                     )}
                 </>
             )}
