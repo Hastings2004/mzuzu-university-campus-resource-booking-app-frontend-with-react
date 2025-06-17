@@ -224,15 +224,25 @@ export default function Layout() {
                                     <span className="text">User Management</span>
                                 </NavLink>
                             </li>
-                            {/* Utilisation Report */}
+                          
                             <li>
                                 <NavLink
                                     to="/resource-report"
                                     className={({ isActive }) => (isActive ? "active" : "")}
-                                    // onClick={handleNavLinkClick}
+                                   
                                 >
                                     <i className="bx bx-pulse"></i>
                                     <span className="text">Reports</span>
+                                </NavLink>
+                            </li>
+                             <li>
+                                <NavLink
+                                    to="/issue-management"
+                                    className={({ isActive }) => (isActive ? "active" : "")}
+                                   
+                                >
+                                    <i className="bx bx-pulse"></i>
+                                    <span className="text">Issue management</span>
                                 </NavLink>
                             </li>
                         </>

@@ -20,6 +20,7 @@ import Notifications from './components/notifications';
 import GlobalSearch from './components/search';
 import ResourceUtilizationReport from './admin/ResourceUtilizationReport';
 import TimetableImport from './components/TimetableImport';
+import IssueManagementDashboard from './admin/IssueManagementDashboard';
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -45,6 +46,8 @@ export default function App() {
           <Route path="notifications" element={<Notifications />} />
           <Route path='resource-report' element={<ResourceUtilizationReport />} />
           <Route path='timetable' element={<TimetableImport />} />
+          <Route path='issue-management' element={<IssueManagementDashboard />} />
+          
         </Route>
 
         
