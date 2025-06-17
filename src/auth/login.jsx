@@ -2,7 +2,6 @@ import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
-
 import * as fa from 'react-icons/fa'; 
 
 export default function Login(){

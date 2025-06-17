@@ -4943,18 +4943,19 @@ body.dark .category-dropdown {
     cursor: not-allowed; /* Shows a 'not-allowed' cursor */
     opacity: 0.7; /* Slightly dim the button */
 }
-
 /* src/components/ReportIssueForm.css */
 
 .report-issue-form-container {
-    background-color: var(--bg-light); /* Inherits from global variables */
+    background-color: var(--bg-light);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 15px var(--shadow-medium); /* Inherits from global variables */
-    max-width: 500px;
-    margin: 20px auto; /* Centering for standalone use */
-    color: var(--text-primary); /* Inherits text color */
+    box-shadow: 0 4px 15px var(--shadow-medium);
+    max-width: 700px; /* Limits the max width on larger screens */
+    margin-left: 20px auto; /* Centers the form horizontally and adds vertical margin */
+    color: var(--text-primary);
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    width: 90%; /* Allows it to shrink on smaller screens */
+    box-sizing: border-box; /* Ensures padding and border are included in the width */
 }
 
 .report-issue-form-container h3 {
@@ -4964,9 +4965,6 @@ body.dark .category-dropdown {
     margin-bottom: 1.5rem;
     text-align: center;
 }
-
-/* Reusing existing form-group styles (if defined globally) */
-/* If form-group is not defined globally, uncomment and adapt these: */
 
 .report-issue-form-container .form-group {
     margin-bottom: 1rem;
@@ -4978,39 +4976,42 @@ body.dark .category-dropdown {
     font-weight: 500;
     color: var(--text-secondary);
 }
-*/
 
 .report-issue-form-container input[type="text"],
 .report-issue-form-container input[type="file"],
 .report-issue-form-container textarea {
-    width: 100%;
+    width: 100%; /* Ensures they take full width */
     padding: 0.8rem 1rem;
-    border: 1px solid var(--border-color); /* Inherits from global variables */
+    border: 1px solid var(--border-color);
     border-radius: 5px;
-    background-color: var(--bg-light); /* Inherits from global variables */
-    color: var(--text-primary); /* Inherits from global variables */
+    background-color: var(--bg-light);
+    color: var(--text-primary);
     font-family: var(--lato);
     font-size: 1rem;
     transition: border-color 0.2s ease, background-color 0.2s ease;
+    box-sizing: border-box; /* Critical for padding not to break width: 100% */
 }
 
 .report-issue-form-container input[type="text"]:focus,
 .report-issue-form-container textarea:focus,
 .report-issue-form-container input[type="file"]:focus {
     outline: none;
-    border-color: var(--primary-color); /* Inherits from global variables */
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.2);
 }
 
 .report-issue-form-container textarea {
     resize: vertical;
+    /* width: 100%; - already set above, keeping here for clarity if desired */
+    border-radius: 10px;
+    padding: 10px;
 }
 
 /* Error and Success Messages */
 .report-issue-form-container .error-message {
-    color: var(--accent-red); /* Inherits from global variables */
-    background-color: var(--message-bg-error); /* Inherits from global variables */
-    border: 1px solid var(--message-border-error); /* Inherits from global variables */
+    color: var(--accent-red);
+    background-color: var(--message-bg-error);
+    border: 1px solid var(--message-border-error);
     padding: 0.75rem 1rem;
     border-radius: 5px;
     margin-top: 1rem;
@@ -5018,9 +5019,9 @@ body.dark .category-dropdown {
 }
 
 .report-issue-form-container .success-message {
-    color: var(--primary-dark); /* Using a darker primary for success text */
-    background-color: var(--primary-light); /* Using a lighter primary for success background */
-    border: 1px solid var(--primary-color); /* Using primary for success border */
+    color: var(--primary-dark);
+    background-color: var(--primary-light);
+    border: 1px solid var(--primary-color);
     padding: 0.75rem 1rem;
     border-radius: 5px;
     margin-top: 1rem;
@@ -5030,24 +5031,30 @@ body.dark .category-dropdown {
 /* Form Actions (buttons) */
 .report-issue-form-container .form-actions {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: 1rem; /* Space between buttons */
+    justify-content: flex-end;
+    gap: 1rem;
     margin-top: 1.5rem;
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on small screens */
 }
 
-/* Reusing existing button styles via classes like btn-primary, btn-secondary */
-/* If these are not defined globally or you need specific overrides: */
-/*
-.report-issue-form-container button[type="submit"] {
-    background-color: var(--primary-color);
-    color: var(--text-light-on-dark);
+.report-issue-form-container button[type="submit"],
+.report-issue-form-container button[type="button"] {
+    /* Combine common button styles to avoid repetition */
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    flex-grow: 1; /* Allow buttons to grow and take available space */
+    max-width: 180px; /* Limit their max width on larger screens */
+}
+
+.report-issue-form-container button[type="submit"] {
+    background-color: var(--primary-color);
+    color: var(--text-light-on-dark);
+    border: none; /* Ensure no border if default */
 }
 
 .report-issue-form-container button[type="submit"]:hover {
@@ -5058,12 +5065,6 @@ body.dark .category-dropdown {
     background-color: var(--bg-grey);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    padding: 0.75rem 1.5rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .report-issue-form-container button[type="button"]:hover {
@@ -5074,19 +5075,65 @@ body.dark .category-dropdown {
     opacity: 0.7;
     cursor: not-allowed;
 }
-*/
+
+/* --- Media Queries for smaller screens --- */
+@media (max-width: 768px) {
+    .report-issue-form-container {
+        padding: 1.5rem; /* Slightly less padding on smaller screens */
+        margin: 10px auto; /* Reduce vertical margin */
+        width: 95%; /* Take up more width on small screens */
+    }
+
+    .report-issue-form-container h3 {
+        font-size: 1.3rem; /* Smaller heading */
+        margin-bottom: 1rem;
+    }
+
+    .report-issue-form-container input[type="text"],
+    .report-issue-form-container input[type="file"],
+    .report-issue-form-container textarea {
+        padding: 0.7rem 0.9rem; /* Slightly less padding for inputs */
+        font-size: 0.95rem; /* Slightly smaller font size */
+    }
+
+    .report-issue-form-container .form-actions {
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 0.75rem; /* Space between stacked buttons */
+        margin-top: 1rem;
+    }
+
+    .report-issue-form-container button[type="submit"],
+    .report-issue-form-container button[type="button"] {
+        width: 100%; /* Make buttons full width when stacked */
+        max-width: none; /* Override max-width when stacked */
+    }
+}
+
+@media (max-width: 480px) {
+    .report-issue-form-container {
+        padding: 1rem; /* Even less padding on very small screens */
+        margin: 5px auto; /* Even less margin */
+        width: 98%; /* Almost full width */
+    }
+
+    .report-issue-form-container h3 {
+        font-size: 1.2rem;
+    }
+}
 
 /* src/admin/IssueManagementDashboard.css */
 
 .issue-management-dashboard {
-    background-color: var(--bg-grey); /* Use a slightly different background for the main dashboard area */
+    background-color: var(--bg-grey);
     padding: 2rem;
     border-radius: 8px;
-    margin: 20px auto;
+    margin: 20px auto; /* Changed margin-right to auto and added margin-left: auto to center it */
     max-width: 1200px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+    width: 95%; /* Added to make it responsive on larger screens too, allowing some margin */
+    box-sizing: border-box; /* Include padding/border in total width */
 }
 
 .issue-management-dashboard h2 {
@@ -5122,6 +5169,7 @@ body.dark .category-dropdown {
     transition: border-color 0.2s ease, background-color 0.2s ease;
     cursor: pointer;
     min-width: 150px; /* Give some minimum width */
+    box-sizing: border-box; /* Ensure padding is included */
 }
 
 .issue-management-dashboard .filters select:focus {
@@ -5132,10 +5180,10 @@ body.dark .category-dropdown {
 
 /* Table Specific Styles for Issue Management */
 .issue-management-dashboard .issues-table {
-    width: 100%;
+    width: 100%; /* Changed from 80% to 100% for better responsiveness */
     border-collapse: collapse;
     margin-top: 20px;
-    background-color: var(--bg-light); /* Table background */
+    background-color: var(--bg-light);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px var(--shadow-light);
@@ -5200,12 +5248,12 @@ body.dark .issue-management-dashboard .issues-table tbody tr:nth-child(even) {
 }
 
 .issue-management-dashboard .status-wont-fix {
-    background-color: var(--bg-grey); /* Lighter grey for wont_fix */
+    background-color: var(--bg-grey);
     color: var(--text-secondary);
 }
 
 body.dark .issue-management-dashboard .status-wont-fix {
-    background-color: var(--border-color); /* Darker grey for wont_fix in dark mode */
+    background-color: var(--border-color);
     color: var(--text-secondary);
 }
 
@@ -5243,7 +5291,7 @@ body.dark .issue-management-dashboard .status-wont-fix {
 }
 
 .issue-management-dashboard .view-photo-link:hover {
-    color: var(--primary-dark); /* Slightly darker blue on hover */
+    color: var(--primary-dark);
 }
 
 /* No action text */
@@ -5258,7 +5306,11 @@ body.dark .issue-management-dashboard .status-wont-fix {
 @media (max-width: 768px) {
     .issue-management-dashboard {
         padding: 1rem;
-        margin: 10px auto;
+        margin: 10px auto; /* Ensure it stays centered and has some margin */
+    }
+
+    .issue-management-dashboard h2 {
+        font-size: 1.7rem; /* Adjust heading size for smaller screens */
     }
 
     .issue-management-dashboard .filters {
@@ -5269,10 +5321,11 @@ body.dark .issue-management-dashboard .status-wont-fix {
 
     .issue-management-dashboard .filters select {
         width: 100%; /* Make select full width */
+        min-width: unset; /* Remove min-width when full width */
     }
 
     .issue-management-dashboard .issues-table {
-        overflow-x: auto; /* Allow horizontal scrolling */
+        overflow-x: auto; /* Allow horizontal scrolling if table content is too wide */
         -webkit-overflow-scrolling: touch;
     }
 
@@ -5300,11 +5353,11 @@ body.dark .issue-management-dashboard .status-wont-fix {
         text-align: right;
         padding-left: 50%; /* Space for pseudo-element labels */
         position: relative;
-        border-bottom: 1px dashed var(--border-color); /* Lighter border for separation */
+        border-bottom: 1px dashed var(--border-color);
     }
 
     .issue-management-dashboard .issues-table td::before {
-        content: attr(data-label); /* Use data-label attribute for content */
+        content: attr(data-label);
         position: absolute;
         left: 10px;
         width: 45%;
@@ -5317,5 +5370,24 @@ body.dark .issue-management-dashboard .status-wont-fix {
 
     .issue-management-dashboard .issues-table tr:last-child td {
         border-bottom: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .issue-management-dashboard {
+        padding: 0.75rem;
+        margin: 5px auto;
+    }
+
+    .issue-management-dashboard h2 {
+        font-size: 1.5rem;
+    }
+
+    .issue-management-dashboard .filters {
+        gap: 8px;
+    }
+
+    .issue-management-dashboard .filters select {
+        font-size: 0.9rem;
     }
 }
