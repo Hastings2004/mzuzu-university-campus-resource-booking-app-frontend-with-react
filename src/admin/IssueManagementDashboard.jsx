@@ -82,8 +82,7 @@ export default function IssueManagementDashboard() {
                             <th>Resource</th>
                             <th>Subject</th>
                             <th>Description</th>
-                            <th>Reported By</th>
-                            <th>Photo</th>
+                            <th>Reported By</th>                          
                             <th>Status</th>
                             <th>Reported At</th>
                             <th>Resolved At</th>
@@ -100,7 +99,7 @@ export default function IssueManagementDashboard() {
                                 <td data-label="Description">{issue.description || 'N/A'}</td>
                                 <td data-label="Reported By">
                                     <div>
-                                        <strong>{issue.reporter?.name || 'Unknown User'}</strong>
+                                        <strong>{issue.reporter?.first_name+" "+ issue.reporter?.last_name || 'Unknown User'}</strong>
                                         {issue.reporter?.email && (
                                             <div style={{fontSize: '0.9em', color: '#666'}}>
                                                 {issue.reporter.email}
@@ -108,11 +107,7 @@ export default function IssueManagementDashboard() {
                                         )}
                                     </div>
                                 </td>
-                                <td data-label="Photo">
-                                    {issue.photo_path ? (
-                                        <a href={`/storage/${issue.photo_path}`} target="_blank" rel="noopener noreferrer" className="view-photo-link">View Photo</a>
-                                    ) : 'N/A'}
-                                </td>
+                               
                                 <td data-label="Status">
                                     <span className={`status-badge status-${issue.status.replace(/ /g, '-')}`}>
                                         {issue.status}

@@ -5124,7 +5124,7 @@ body.dark .category-dropdown {
     padding: 2rem;
     border-radius: 8px;
     margin-left: 20px auto; /* Changed margin-right to auto and added margin-left: auto to center it */
-    max-width: 1200px;
+    max-width: 1280px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
