@@ -99,9 +99,12 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                 response = await axios.post('/api/resource-issues', apiFormData, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        // Let axios set Content-Type for FormData
+                       
                     },
                 });
+
+                 alert("Report sent successfully ");
+            navigator('/');
             } else {
                 // If no photo, send as JSON
                 console.log('📝 Sending without photo using JSON');
@@ -122,11 +125,14 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                         'Content-Type': 'application/json',
                     },
                 });
+                 alert("Report sent successfully ");
+                navigator('/');
             }
             
             console.log('✅ Success response:', response.data);
             setSuccess(true);
             onIssueReported(response.data.issue); 
+           
             
             // Clear the form fields after successful submission
             setFormInputData({
@@ -159,9 +165,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                 setError(errorMessage.trim());
             } else if (err.response && err.response.data && err.response.data.message) {
                 setError(err.response.data.message);
-            } else {
-                setError('Failed to report issue. Please check your connection and try again.');
-            }
+            } 
         } finally {
             setLoading(false);
         }
@@ -183,9 +187,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                         placeholder="e.g., Projector not working, Room is dirty"
                         disabled={loading}
                     />
-                    <small style={{color: '#666', fontSize: '0.8em'}}>
-                        Current value: "{formInputData.subject}" (length: {formInputData.subject?.length || 0})
-                    </small>
+                   
                 </div>
                 
                 <div className="form-group">
@@ -199,9 +201,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                         placeholder="Enter the exact resource name from database"
                         disabled={loading}
                     />
-                    <small style={{color: '#666', fontSize: '0.8em'}}>
-                        Current value: "{formInputData.name}" (length: {formInputData.name?.length || 0})
-                    </small>
+                   
                 </div>
                 
                 <div className="form-group">
