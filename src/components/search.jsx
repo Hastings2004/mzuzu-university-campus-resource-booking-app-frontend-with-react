@@ -1,50 +1,57 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { AppContext } from '../context/appContext'; 
+import { AppContext } from '../context/appContext';
 import moment from 'moment';
-import { Link } from 'react-router-dom'; 
-
+import { Link } from 'react-router-dom';
 
 export default function GlobalSearch() {
     const { user, token } = useContext(AppContext);
 
     // States for search parameters
-    const [searchType, setSearchType] = useState('resources'); 
+    const [searchType, setSearchType] = useState('resources');
     const [keyword, setKeyword] = useState('');
     const [resourceType, setResourceType] = useState('');
-    const [startTime, setStartTime] = useState(''); 
-    const [endTime, setEndTime] = useState('');     
-    const [userId, setUserId] = useState(''); 
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const [userId, setUserId] = useState('');
 
     // States for results and UI
     const [searchResults, setSearchResults] = useState({ resources: [], bookings: [], users: [] });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [searchPerformed, setSearchPerformed] = useState(false); 
+    const [searchPerformed, setSearchPerformed] = useState(false); // Still useful for initial empty state vs "no results"
 
     const isAdmin = user && user.user_type === 'admin';
 
-        const resourceTypes = [
+    const resourceTypes = [
         'Meeting Room', 'Classrooms', 'Vehicle', 'ICT LABS', 'Auditorium',
     ];
 
     // Initialize search type based on admin status
     useEffect(() => {
         if (!isAdmin && searchType === 'users') {
-            setSearchType('resources'); 
+            setSearchType('resources');
         }
     }, [isAdmin, searchType]);
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
+    // Function to perform the search (now standalone, not an event handler)
+    const performSearch = async () => {
+        if (!token) { // Ensure token is available before searching
+            setError("Authentication token missing.");
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
-        setSearchResults({ resources: [], bookings: [], users: [] }); 
-        setSearchPerformed(true);
+        setSearchResults({ resources: [], bookings: [], users: [] });
+        setSearchPerformed(true); // Indicate that a search has been attempted
 
         const queryParams = new URLSearchParams();
-        queryParams.append('query', keyword); 
+        // Only append keyword if it's not empty, to avoid sending "?query="
+        if (keyword.trim()) {
+            queryParams.append('query', keyword.trim());
+        }
 
-    
         if (searchType === 'resources' && resourceType) {
             queryParams.append('resource_type', resourceType);
         }
@@ -54,9 +61,20 @@ export default function GlobalSearch() {
         if (searchType === 'bookings' && endTime) {
             queryParams.append('end_time', endTime);
         }
-        if (isAdmin && userId) { 
+        if (isAdmin && userId) {
             queryParams.append('user_id', userId);
         }
+
+        // Only make API call if there's at least one search parameter
+        // This prevents immediate empty searches on component mount, unless desired.
+        const hasSearchParams = keyword.trim() || resourceType || startTime || endTime || userId;
+
+        if (!hasSearchParams && searchType !== 'resources') { // Allow initial search for all resources if no params
+            setLoading(false);
+            setSearchResults({ resources: [], bookings: [], users: [] });
+            return;
+        }
+
 
         try {
             const response = await fetch(`/api/search/global?${queryParams.toString()}`, {
@@ -87,6 +105,35 @@ export default function GlobalSearch() {
         }
     };
 
+    // New useEffect for automatic search on parameter change
+    useEffect(() => {
+        // Debounce mechanism
+        const handler = setTimeout(() => {
+            // Only trigger search if at least one parameter has a value,
+            // or if the search type changes (to get initial data for that type)
+            const hasCriteria = keyword.trim() || resourceType || startTime || endTime || userId;
+            if (hasCriteria || searchPerformed) { // Also search if `searchPerformed` is true (e.g., after reset)
+                performSearch();
+            }
+        }, 500); // 500ms debounce time
+
+        // Cleanup function to clear the timeout if the component unmounts
+        // or if the dependencies change before the timeout fires
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [
+        keyword,
+        searchType,
+        resourceType,
+        startTime,
+        endTime,
+        userId,
+        token, // Add token as a dependency to re-run if it changes (e.g., after login)
+        isAdmin, // Add isAdmin as a dependency
+    ]);
+
+
     const handleReset = () => {
         setKeyword('');
         setResourceType('');
@@ -95,16 +142,17 @@ export default function GlobalSearch() {
         setUserId('');
         setSearchResults({ resources: [], bookings: [], users: [] });
         setError(null);
-        setSearchPerformed(false);
+        setSearchPerformed(false); // Reset searchPerformed on full reset
         setSearchType('resources'); // Reset to default search type
     };
 
-   
+
     return (
         <div className="global-search-container">
             <h2>Global Search</h2>
 
-            <form onSubmit={handleSearch} className="search-form">
+            {/* Remove onSubmit from form as we're using useEffect for auto-search */}
+            <div className="search-form">
                 {/* Search Type Selector */}
                 <div className="form-group">
                     <label htmlFor="searchType">Search For:</label>
@@ -113,11 +161,13 @@ export default function GlobalSearch() {
                         value={searchType}
                         onChange={(e) => {
                             setSearchType(e.target.value);
+                            // Clear related filters when search type changes
                             setResourceType('');
                             setStartTime('');
                             setEndTime('');
                             setUserId('');
-                            setSearchResults({ resources: [], bookings: [], users: [] }); // Clear results on type change
+                            setKeyword(''); // Also clear keyword for a fresh start with new search type
+                            // No need to clear searchResults here, useEffect will handle re-search
                         }}
                     >
                         <option value="resources">Resources</option>
@@ -196,16 +246,13 @@ export default function GlobalSearch() {
                     </div>
                 )}
 
-
                 <div className="form-actions">
-                    <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? 'Searching...' : 'Search'}
-                    </button>
+                    {/* The search button is removed because the search is automatic */}
                     <button type="button" className="btn btn-secondary" onClick={handleReset} disabled={loading}>
                         Reset
                     </button>
                 </div>
-            </form>
+            </div> {/* End of search-form div */}
 
             {error && <p className="error-message">{error}</p>}
 
