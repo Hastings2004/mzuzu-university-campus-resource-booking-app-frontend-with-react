@@ -26,6 +26,7 @@ export default function View() {
     const [bookingMessage, setBookingMessage] = useState("");
     const [validationErrors, setValidationErrors] = useState({});
     const [isResourceAvailable, setIsResourceAvailable] = useState(null);
+    const [supportingDocument, setSupportingDocument] = useState(null); // NEW STATE FOR DOCUMENT
 
     const availabilityStyle = {
         checking: { color: 'blue', fontWeight: 'bold', backgroundColor: '#e9ecef', padding: '10px', borderRadius: '5px' },
