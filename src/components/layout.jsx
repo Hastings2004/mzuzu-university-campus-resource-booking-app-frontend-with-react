@@ -15,12 +15,41 @@ export default function Layout() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const [initials, setInitials] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   
   useEffect(() => { 
     if (user) {
       initialsUserData().then(setInitials);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !token) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch('/api/notifications/unread', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await res.json();
+        if (res.ok && typeof data.notifications === 'number') {
+          setUnreadCount(data.notifications);
+          console.log(data.notifications);
+        } else {
+          setUnreadCount(0);
+        }
+      } catch (err) {
+        setUnreadCount(0);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 60000); // Optional: refresh every 60s
+    return () => clearInterval(interval);
+  }, [user, token]);
 
   async function initialsUserData() {
     const firstLetter = user?.first_name?.charAt(0).toUpperCase() || '';
@@ -350,7 +379,7 @@ export default function Layout() {
 
               <a href="/notifications" className="notification" onClick={handleNavLinkClick}>
                 <i className="bx bxs-bell"></i>
-                <span className="num">0</span>
+                {unreadCount > 0 && <span className="num">{unreadCount}</span>}
               </a>
 
               {/* Enhanced Profile Dropdown */}

@@ -27,7 +27,7 @@ export default function View() {
     const [validationErrors, setValidationErrors] = useState({});
     const [isResourceAvailable, setIsResourceAvailable] = useState(null);
     const [supportingDocument, setSupportingDocument] = useState(null); // NEW STATE FOR DOCUMENT
-
+    
     const availabilityStyle = {
         checking: { color: 'blue', fontWeight: 'bold', backgroundColor: '#e9ecef', padding: '10px', borderRadius: '5px' },
         available: { color: 'green', fontWeight: 'bold', backgroundColor: '#d4edda', padding: '10px', borderRadius: '5px' },
@@ -113,32 +113,30 @@ export default function View() {
     }
 
     async function sendNotification(message) {
-    const notificationPayload = { // This is the actual data your backend expects
-        title: title,
-        message: message
-    };
+        const notificationPayload = {
+            title: title,
+            message: message,
+            recipient_id: user.id
+        };
 
-    console.log(notificationPayload);
-    const res = await fetch('/api/notifications', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(notificationPayload) // <--- Send the payload directly, not nested
-    });
+        const res = await fetch('/api/notifications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(notificationPayload)
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    console.log(data);
-    if (res.ok) {
-        setBookingMessage(`Notification created and sent successfully!`);
-
-    } else {
-        console.error("Sending notification failed:", data);
-        setBookingMessage(`Failed to send notification: ${data.message || 'Unknown error'}`);
+        if (res.ok) {
+            console.log(`Notification created and sent successfully!`);
+        } else {
+            setBookingMessage(`Failed to send notification: ${data.message || 'Unknown error'}`);
+        }
     }
-}
+
     async function handleAvailabilityCheck() {
         setBookingMessage("");
         setIsResourceAvailable(null);
@@ -171,7 +169,7 @@ export default function View() {
                 return;
             }
             fullStartTime = new Date(`${startDate}T${startTime}`);
-            fullEndTime = new Date(`${endDate}T${endTime}`);
+            fullEndTime = new Date(`${startDate}T${endTime}`);
         }
 
         if (isNaN(fullStartTime.getTime()) || isNaN(fullEndTime.getTime())) {
@@ -249,280 +247,653 @@ export default function View() {
             setBookingMessage("");
         }
     }, [startTime, endTime, startDate, endDate, bookingOption]);
-
     async function handleSubmitBooking(e) {
-        e.preventDefault();
-        setBookingMessage("");
-        setValidationErrors({});
+    e.preventDefault();
+    setBookingMessage("");
+    setValidationErrors({});
 
-        console.log('🔍 Booking submission started');
+    console.log('🔍 Booking submission started');
 
-        if (!user) {
-            setBookingMessage("You must be logged in to book a resource.");
+    // Basic validation
+    if (!user) {
+        setBookingMessage("You must be logged in to book a resource.");
+        return;
+    }
+
+    if (!token) {
+        setBookingMessage("Authentication required. Please log in again.");
+        return;
+    }
+
+    if (!resource) {
+        setBookingMessage("Resource data not loaded yet. Please refresh and try again.");
+        return;
+    }
+
+    if (!purpose || !bookingType) {
+        setBookingMessage("Please fill in all booking details (Purpose, Booking Type).");
+        return;
+    }
+
+    // Document requirement check
+    const requiresDocument = user?.user_type === 'student' &&
+                             (bookingType === 'student_meeting' || bookingType === 'church_meeting');
+
+    if (requiresDocument && !supportingDocument) {
+        setBookingMessage("For 'Student Meeting' or 'Church Meeting' booking types, students must upload a supporting document.");
+        return;
+    }
+
+    let actualStartTime, actualEndTime;
+
+    // Single day booking logic
+    if (bookingOption === "single_day") {
+        if (!startTime || !endTime) {
+            setBookingMessage("Please enter start and end times for single-day booking.");
             return;
         }
 
-        if (!token) {
-            setBookingMessage("Authentication required. Please log in again.");
-            return;
-        }
-
-        if (!resource) {
-            setBookingMessage("Resource data not loaded yet. Please refresh and try again.");
-            return;
-        }
-
-        if (!purpose || !bookingType) {
-            setBookingMessage("Please fill in all booking details (Purpose, Booking Type).");
-            return;
-        }
-
-        let actualStartTime, actualEndTime;
-
-        if (bookingOption === "single_day") {
-            if (!startTime || !endTime) {
-                setBookingMessage("Please enter start and end times for single-day booking.");
-                return;
-            }
+        // --- MODIFIED LOGIC HERE ---
+        let dateToUse;
+        if (startDate) {
+            dateToUse = startDate; // Use the selected date from the state
+            console.log("Using selected startDate for single_day:", dateToUse);
+        } else {
+            // Fallback if startDate state is not set (e.g., initial load or not picked yet)
             const today = new Date();
             const year = today.getFullYear();
             const month = (today.getMonth() + 1).toString().padStart(2, '0');
             const day = today.getDate().toString().padStart(2, '0');
-            const dateString = `${year}-${month}-${day}`;
-
-            actualStartTime = new Date(`${startDate}T${startTime}`);
-            actualEndTime = new Date(`${dateString}T${endTime}`);
-
-            if (actualStartTime.toDateString() !== actualEndTime.toDateString()) {
-                setBookingMessage("For 'Single Day' booking, start and end times must be on the same day.");
-                return;
-            }
-
-        } else { // multi_day
-            if (!startDate || !startTime || !endDate || !endTime) {
-                setBookingMessage("Please enter start date, start time, end date, and end time for multi-day booking.");
-                return;
-            }
-            actualStartTime = new Date(`${startDate}T${startTime}`);
-            actualEndTime = new Date(`${endDate}T${endTime}`);
-
-            const diffTime = Math.abs(actualEndTime.getTime() - actualStartTime.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (diffDays < 2) {
-                setBookingMessage("For '2 Days and Above' booking, the duration must be at least 2 full days.");
-                return;
-            }
+            dateToUse = `${year}-${month}-${day}`;
+            console.warn("startDate was empty for single_day, defaulting to current date:", dateToUse);
         }
 
-        if (isNaN(actualStartTime.getTime()) || isNaN(actualEndTime.getTime())) {
-            setBookingMessage("Invalid date or time format. Please check your inputs.");
+        actualStartTime = new Date(`${dateToUse}T${startTime}`);
+        actualEndTime = new Date(`${dateToUse}T${endTime}`); // **CRITICAL: Use dateToUse here too!**
+
+        // Added more specific logging for debugging date parsing
+        console.log(`Debug single_day construction: dateToUse=${dateToUse}, startTime=${startTime}, endTime=${endTime}`);
+        console.log(`Debug single_day parsed: actualStartTime=${actualStartTime.toISOString()}, actualEndTime=${actualEndTime.toISOString()}`);
+
+        // Validate same day
+        if (actualStartTime.toDateString() !== actualEndTime.toDateString()) {
+            setBookingMessage("For 'Single Day' booking, start and end times must be on the same day.");
             return;
         }
 
-        if (actualStartTime >= actualEndTime) {
-            setBookingMessage("End time must be after start time.");
+    } else { // multi_day
+        if (!startDate || !startTime || !endDate || !endTime) {
+            setBookingMessage("Please enter start date, start time, end date, and end time for multi-day booking.");
             return;
         }
+        actualStartTime = new Date(`${startDate}T${startTime}`);
+        actualEndTime = new Date(`${endDate}T${endTime}`);
 
-        const now = new Date();
-        now.setSeconds(now.getSeconds() - 60); // Allow for slight delay
-        if (actualStartTime <= now) {
-            setBookingMessage("Start time must be in the future.");
+        const diffTime = Math.abs(actualEndTime.getTime() - actualStartTime.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays < 2) {
+            setBookingMessage("For '2 Days and Above' booking, the duration must be at least 2 full days.");
             return;
-        }
-
-        const threeMonthsFromNow = new Date();
-        threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-        if (actualStartTime > threeMonthsFromNow) {
-            setBookingMessage("Bookings cannot be made more than 3 months in advance.");
-            return;
-        }
-
-        // Re-check availability before final submission if it hasn't been checked or is marked unavailable
-        if (isResourceAvailable !== true) {
-            await handleAvailabilityCheck();
-            if (isResourceAvailable !== true) {
-                setBookingMessage("Resource is not available for the selected time. Please adjust your times.");
-                return;
-            }
-        }
-
-        const trimmedPurpose = purpose.trim();
-        if (trimmedPurpose.length < 10) {
-            setBookingMessage("Purpose must be at least 10 characters long.");
-            return;
-        }
-
-        if (trimmedPurpose.length > 500) {
-            setBookingMessage("Purpose cannot exceed 500 characters.");
-            return;
-        }
-
-        const bookingData = {
-            resource_id: resource.id,
-            start_time: actualStartTime.toISOString(),
-            end_time: actualEndTime.toISOString(),
-            purpose: trimmedPurpose,
-            booking_type: bookingType,
-        };
-
-        if (user?.user_type === 'admin' && priority && priority.trim() !== '') {
-            const priorityNum = parseInt(priority, 10);
-            if (!isNaN(priorityNum) && priorityNum >= 1 && priorityNum <= 4) {
-                bookingData.priority = priorityNum;
-            } else {
-                setBookingMessage("Priority must be a number between 1 and 4.");
-                return;
-            }
-        }
-
-        console.log('Sending booking data:', bookingData);
-        console.log('Exact JSON being sent:', JSON.stringify(bookingData, null, 2));
-
-        setBookingMessage("Submitting booking request...");
-
-        try {
-            const requestOptions = {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(bookingData)
-            };
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-            const res = await fetch("/api/bookings", {
-                ...requestOptions,
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            console.log('Response status:', res.status);
-            console.log('Response headers:', Object.fromEntries(res.headers.entries()));
-
-            let data;
-            const contentType = res.headers.get('content-type');
-
-            if (contentType && contentType.includes('application/json')) {
-                data = await res.json();
-            } else {
-                const textResponse = await res.text();
-                console.error('Non-JSON response received:', textResponse);
-
-                if (res.status === 302 || textResponse.includes('login') || textResponse.includes('redirect')) {
-                    setBookingMessage("Your session has expired or you need to log in. Redirecting to login...");
-                    navigate('/login');
-                    return;
-                }
-
-                setBookingMessage("Server returned an unexpected response format. Please try again.");
-                return;
-            }
-
-            console.log('Response data:', data);
-            alert("booking successfully");
-            navigate('/booking');
-
-            if (res.ok) {
-                let successMsg = data.message || "Booking request submitted successfully!";
-
-                if (data.preempted_bookings && data.preempted_bookings.length > 0) {
-                    successMsg += ` ${data.preempted_bookings.length} existing booking(s) were preempted by this higher priority booking.`;
-                }
-
-                let title = "Booking Confirmation";
-                let message = "You have successfully book the resource from "+bookingData.start_time +" to "+bookingData.end_time;
-
-                sendNotification(message);
-                console.log('Booking successful:', successMsg);
-                setBookingMessage(successMsg);
-
-                // Clear form fields
-                setStartDate("");
-                setEndDate("");
-                setStartTime("");
-                setEndTime("");
-                setPurpose("");
-                setPriority("");
-                setBookingType("");
-                setBookingOption("single_day"); // Reset to default
-                setIsResourceAvailable(null);
-
-                getResourceBookings(); // Refresh bookings after successful submission
-
-            } else {
-                console.error('Booking failed with status:', res.status);
-                console.error('Error data:', data);
-
-                switch (res.status) {
-                    case 401:
-                        setBookingMessage("Your session has expired. Please log in again.");
-                        navigate('/login');
-                        break;
-                    case 403:
-                        setBookingMessage(data.message || "You don't have permission to perform this action.");
-                        break;
-                    case 422:
-                        if (data.errors) {
-                            console.log('Validation errors:', data.errors);
-                            setValidationErrors(data.errors);
-                            const errorMessages = Object.values(data.errors).flat();
-                            setBookingMessage(`Please correct the following errors: ${errorMessages.join(', ')}`);
-                        } else {
-                            setBookingMessage(data.message || "Please correct the errors in your booking details.");
-                        }
-                        break;
-                    case 409:
-                        if (data.conflicting_bookings && data.conflicting_bookings.length > 0) {
-                            const conflictDetails = data.conflicting_bookings
-                                .map(conflict => `${conflict.user_name || 'Unknown User'} (${new Date(conflict.start_time).toLocaleString()} - ${new Date(conflict.end_time).toLocaleString()})`)
-                                .join(', ');
-                            setBookingMessage(`${data.message || 'Resource conflict detected.'} Conflicting bookings: ${conflictDetails}.`);
-                        } else {
-                            setBookingMessage(data.message || 'Resource conflict detected (another booking exists in this slot).');
-                        }
-                        setIsResourceAvailable(false);
-                        break;
-                    case 429:
-                        setBookingMessage(data.message || 'Too many requests. Please try again later, or you have too many active bookings.');
-                        break;
-                    case 500:
-                        let errorMsg = 'A server error occurred. Please try again later.';
-                        if (data.debug_error && process.env.NODE_ENV === 'development') {
-                            errorMsg += ` Debug: ${data.debug_error}`;
-                        }
-                        console.error('Server error details:', data);
-                        setBookingMessage(errorMsg);
-                        break;
-                    default:
-                        setBookingMessage(data.message || `Request failed with status ${res.status}. Please try again.`);
-                }
-            }
-
-        } catch (error) {
-            console.error("Network or fetch error:", error);
-            console.error("Error details:", {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            });
-
-            if (error.name === 'AbortError') {
-                setBookingMessage("Request timed out. Please check your internet connection and try again.");
-            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                setBookingMessage("Network error. Please check your internet connection and try again.");
-            } else if (error.name === 'SyntaxError') {
-                setBookingMessage("Server returned invalid data. Please try again.");
-            } else {
-                setBookingMessage(`An unexpected error occurred: ${error.message}. Please try again.`);
-            }
         }
     }
 
+    // ENHANCED DEBUGGING: Detailed logging before submission
+    console.log('=== DEBUGGING DATA BEFORE SUBMISSION ===');
+    console.log('Resource object:', resource);
+    console.log('Resource ID:', resource?.id, 'Type:', typeof resource?.id);
+    console.log('Start time raw:', actualStartTime);
+    console.log('End time raw:', actualEndTime);
+    console.log('Start time ISO:', actualStartTime.toISOString());
+    console.log('End time ISO:', actualEndTime.toISOString());
+    console.log('Purpose:', purpose, 'Length:', purpose.length);
+    console.log('Booking type:', bookingType);
+    console.log('User:', user);
+    console.log('=== END DEBUG INFO ===');
+
+    // ENHANCED VALIDATION: Check resource_id
+    if (!resource || !resource.id) {
+        setBookingMessage("Resource ID is missing. Please refresh the page and try again.");
+        return;
+    }
+
+    // Ensure resource.id is a number if backend expects it
+    const resourceId = parseInt(resource.id, 10);
+    if (isNaN(resourceId)) {
+        setBookingMessage("Invalid resource ID format.");
+        return;
+    }
+
+    // Enhanced date validation
+    if (isNaN(actualStartTime.getTime()) || isNaN(actualEndTime.getTime())) {
+        setBookingMessage("Invalid date or time format. Please check your inputs.");
+        console.error('Invalid dates:', {
+            startTime: actualStartTime,
+            endTime: actualEndTime,
+            startTimeValid: !isNaN(actualStartTime.getTime()),
+            endTimeValid: !isNaN(actualEndTime.getTime())
+        });
+        return;
+    }
+
+    // Time validation
+    if (actualStartTime >= actualEndTime) {
+        setBookingMessage("End time must be after start time.");
+        return;
+    }
+
+    // Future time validation
+    const now = new Date();
+    now.setSeconds(now.getSeconds() - 60); // Give a 60-second buffer
+    if (actualStartTime <= now) {
+        setBookingMessage("Start time must be in the future.");
+        return;
+    }
+
+    // 3 months limit
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+    if (actualStartTime > threeMonthsFromNow) {
+        setBookingMessage("Bookings cannot be made more than 3 months in advance.");
+        return;
+    }
+
+    // Re-check availability
+    // It's crucial that `handleAvailabilityCheck` has updated `isResourceAvailable`
+    // before this point, possibly in a `useEffect`. If not, this `await` is key.
+    if (isResourceAvailable !== true) {
+        await handleAvailabilityCheck(); // Ensure this is awaited if it's an async operation
+        if (isResourceAvailable !== true) {
+            setBookingMessage("Resource is not available for the selected time. Please adjust your times.");
+            return;
+        }
+    }
+
+    // Enhanced purpose validation
+    if (!purpose || typeof purpose !== 'string') {
+        setBookingMessage("Purpose is required and must be text.");
+        return;
+    }
+
+    const trimmedPurpose = purpose.trim();
+    if (trimmedPurpose.length < 10) {
+        setBookingMessage(`Purpose must be at least 10 characters long. Current length: ${trimmedPurpose.length}`);
+        return;
+    }
+
+    if (trimmedPurpose.length > 500) {
+        setBookingMessage(`Purpose cannot exceed 500 characters. Current length: ${trimmedPurpose.length}`);
+        return;
+    }
+
+    // CREATE FORMDATA WITH EXPLICIT TYPE CONVERSION
+    const formData = new FormData();
+
+    // Ensure resource_id is sent as string (most backends expect string in FormData)
+    formData.append('resource_id', resourceId.toString());
+
+    // Ensure dates are properly formatted
+    const startTimeISO = actualStartTime.toISOString();
+    const endTimeISO = actualEndTime.toISOString();
+
+    formData.append('start_time', startTimeISO);
+    formData.append('end_time', endTimeISO);
+    formData.append('purpose', trimmedPurpose);
+    formData.append('booking_type', bookingType);
+
+    // Priority handling for admin
+    if (user?.user_type === 'admin' && priority && priority.trim() !== '') {
+        const priorityNum = parseInt(priority, 10);
+        if (!isNaN(priorityNum) && priorityNum >= 1 && priorityNum <= 4) {
+            formData.append('priority', priorityNum.toString());
+        } else {
+            setBookingMessage("Priority must be a number between 1 and 4.");
+            return;
+        }
+    }
+
+    // Supporting document
+    if (supportingDocument) {
+        console.log('Adding supporting document:', supportingDocument.name, supportingDocument.type, supportingDocument.size);
+        formData.append('supporting_document', supportingDocument);
+    }
+
+    // ENHANCED LOGGING OF FORMDATA
+    console.log('=== FORMDATA CONTENTS ===');
+    for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+            console.log(pair[0] + ': [FILE]', pair[1].name, pair[1].type, pair[1].size + ' bytes');
+        } else {
+            console.log(pair[0] + ': ' + pair[1] + ' (type: ' + typeof pair[1] + ')');
+        }
+    }
+    console.log('=== END FORMDATA ===');
+
+    setBookingMessage("Submitting booking request...");
+
+    try {
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                // DO NOT set Content-Type for FormData; browser sets it automatically
+            },
+            body: formData
+        };
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+        const res = await fetch("/api/bookings", {
+            ...requestOptions,
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId); // Clear timeout if fetch completes in time
+
+        console.log('Response status:', res.status);
+        console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+
+        let data;
+        const contentType = res.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            const textResponse = await res.text();
+            console.error('Non-JSON response received:', textResponse);
+
+            if (res.status === 302 || textResponse.includes('login') || textResponse.includes('redirect')) {
+                setBookingMessage("Your session has expired or you need to log in. Redirecting to login...");
+                navigate('/login'); // Assuming `Maps` is available from react-router-dom
+                return;
+            }
+
+            setBookingMessage("Server returned an unexpected response format. Please try again.");
+            return;
+        }
+
+        console.log('Response data:', data);
+
+        if (res.ok) {
+            setBookingMessage("Booking request submitted successfully!");
+
+            if (data.preempted_bookings && data.preempted_bookings.length > 0) {
+                successMsg += ` ${data.preempted_bookings.length} existing booking(s) were preempted by this higher priority booking.`;
+            }
+
+            let title = "Booking Confirmation"; // This variable isn't used after declaration
+            let message = `You have successfully booked the ${resource.name} from ${actualStartTime.toLocaleString()} to ${actualEndTime.toLocaleString()}`;
+
+            // Assuming `sendNotification` is a function you have for displaying user notifications
+            sendNotification(message);
+            window.screen("successfully booking");
+            console.log('Booking successful:', successMsg);
+            setBookingMessage(successMsg);
+
+            // Clear form fields
+            setStartDate("");
+            setEndDate("");
+            setStartTime("");
+            setEndTime("");
+            setPurpose("");
+            setPriority("");
+            setBookingType("");
+            setSupportingDocument(null);
+            setBookingOption("single_day");
+            setIsResourceAvailable(null);
+
+            // Assuming `getResourceBookings` is a function to refresh the list of bookings
+            getResourceBookings();
+
+        } else {
+            console.error('Booking failed with status:', res.status);
+            console.error('Error data:', data);
+
+            // ENHANCED ERROR HANDLING FOR VALIDATION ERRORS
+            switch (res.status) {
+                case 401:
+                    setBookingMessage("Your session has expired. Please log in again.");
+                    navigate('/login');
+                    break;
+                case 403:
+                    setBookingMessage(data.message || "You don't have permission to perform this action.");
+                    break;
+                case 422:
+                    if (data.errors) {
+                        console.log('=== VALIDATION ERRORS DETAIL ===');
+                        Object.entries(data.errors).forEach(([field, errors]) => {
+                            console.log(`Field "${field}":`, errors);
+                        });
+                        console.log('=== END VALIDATION ERRORS ===');
+
+                        setValidationErrors(data.errors);
+
+                        // Create detailed error message from backend validation
+                        const errorMessages = [];
+                        Object.entries(data.errors).forEach(([field, errors]) => {
+                            errorMessages.push(`${field}: ${errors.join(', ')}`);
+                        });
+
+                        setBookingMessage(`Validation failed:\n${errorMessages.join('\n')}`);
+                    } else {
+                        setBookingMessage(data.message || "Please correct the errors in your booking details.");
+                    }
+                    break;
+                case 409:
+                    if (data.conflicting_bookings && data.conflicting_bookings.length > 0) {
+                        const conflictDetails = data.conflicting_bookings
+                            .map(conflict => `${conflict.user_name || 'Unknown User'} (${new Date(conflict.start_time).toLocaleString()} - ${new Date(conflict.end_time).toLocaleString()})`)
+                            .join(', ');
+                        setBookingMessage(`${data.message || 'Resource conflict detected.'} Conflicting bookings: ${conflictDetails}.`);
+                    } else {
+                        setBookingMessage(data.message || 'Resource conflict detected (another booking exists in this slot).');
+                    }
+                    setIsResourceAvailable(false);
+                    break;
+                case 429:
+                    setBookingMessage(data.message || 'Too many requests. Please try again later, or you have too many active bookings.');
+                    break;
+                case 500:
+                    let errorMsg = 'A server error occurred. Please try again later.';
+                    if (data.debug_error && process.env.NODE_ENV === 'development') { // Display debug info only in development
+                        errorMsg += ` Debug: ${data.debug_error}`;
+                    }
+                    console.error('Server error details:', data);
+                    setBookingMessage(errorMsg);
+                    break;
+                default:
+                    setBookingMessage(data.message || `Request failed with status ${res.status}. Please try again.`);
+            }
+        }
+
+    } catch (error) {
+        console.error("Network or fetch error:", error);
+        console.error("Error details:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+
+        if (error.name === 'AbortError') {
+            setBookingMessage("Request timed out. Please check your internet connection and try again.");
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            setBookingMessage("Network error. Please check your internet connection and try again.");
+        } else if (error.name === 'SyntaxError') {
+            setBookingMessage("Server returned invalid data. Please try again.");
+        } else {
+            setBookingMessage(`An unexpected error occurred: ${error.message}. Please try again.`);
+        }
+    }
+}
+
+// ALTERNATIVE: JSON-ONLY VERSION (if no file uploads needed)
+// This function is provided as an alternative if you don't need file uploads
+// and your backend prefers JSON. It's not part of the primary fix for the
+// 422 error you're experiencing with FormData.
+async function handleSubmitBookingAsJSON(e) {
+    e.preventDefault();
+    setBookingMessage("");
+    setValidationErrors({});
+
+    if (!user || !token || !resource || !purpose || !bookingType) {
+        setBookingMessage("Please ensure all required fields are filled and you are logged in, and resource data is loaded.");
+        return;
+    }
+
+    const requiresDocument = user?.user_type === 'student' &&
+                             (bookingType === 'student_meeting' || bookingType === 'church_meeting');
+
+    if (requiresDocument && !supportingDocument) {
+        setBookingMessage("For 'Student Meeting' or 'Church Meeting' booking types, students must upload a supporting document.");
+        return;
+    }
+
+    let actualStartTime, actualEndTime;
+
+    if (bookingOption === "single_day") {
+        if (!startTime || !endTime) {
+            setBookingMessage("Please enter start and end times for single-day booking.");
+            return;
+        }
+        let dateToUse;
+        if (startDate) {
+            dateToUse = startDate;
+        } else {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            dateToUse = `${year}-${month}-${day}`;
+        }
+        actualStartTime = new Date(`${dateToUse}T${startTime}`);
+        actualEndTime = new Date(`${dateToUse}T${endTime}`); // **CRITICAL: Use dateToUse here too!**
+
+        if (actualStartTime.toDateString() !== actualEndTime.toDateString()) {
+            setBookingMessage("For 'Single Day' booking, start and end times must be on the same day.");
+            return;
+        }
+
+    } else { // multi_day
+        if (!startDate || !startTime || !endDate || !endTime) {
+            setBookingMessage("Please enter start date, start time, end date, and end time for multi-day booking.");
+            return;
+        }
+        actualStartTime = new Date(`${startDate}T${startTime}`);
+        actualEndTime = new Date(`${endDate}T${endTime}`);
+
+        const diffTime = Math.abs(actualEndTime.getTime() - actualStartTime.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays < 2) {
+            setBookingMessage("For '2 Days and Above' booking, the duration must be at least 2 full days.");
+            return;
+        }
+    }
+
+    if (isNaN(actualStartTime.getTime()) || isNaN(actualEndTime.getTime()) || actualStartTime >= actualEndTime) {
+        setBookingMessage("Invalid date/time or end time is not after start time.");
+        return;
+    }
+
+    const now = new Date();
+    now.setSeconds(now.getSeconds() - 60); // 60-second buffer
+    if (actualStartTime <= now) {
+        setBookingMessage("Start time must be in the future.");
+        return;
+    }
+
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+    if (actualStartTime > threeMonthsFromNow) {
+        setBookingMessage("Bookings cannot be made more than 3 months in advance.");
+        return;
+    }
+
+    if (isResourceAvailable !== true) {
+        await handleAvailabilityCheck();
+        if (isResourceAvailable !== true) {
+             setBookingMessage("Resource is not available for the selected time. Please adjust your times.");
+             return;
+        }
+    }
+
+    if (!purpose || typeof purpose !== 'string') {
+        setBookingMessage("Purpose is required and must be text.");
+        return;
+    }
+    const trimmedPurpose = purpose.trim();
+    if (trimmedPurpose.length < 10 || trimmedPurpose.length > 500) {
+        setBookingMessage("Purpose must be between 10 and 500 characters long.");
+        return;
+    }
+
+    // Instead of FormData, use JSON
+    const bookingData = {
+        resource_id: parseInt(resource.id, 10), // or keep as string if backend expects string
+        start_time: actualStartTime.toISOString(),
+        end_time: actualEndTime.toISOString(),
+        purpose: trimmedPurpose,
+        booking_type: bookingType
+    };
+
+    if (user?.user_type === 'admin' && priority && priority.trim() !== '') {
+        const priorityNum = parseInt(priority, 10);
+        if (!isNaN(priorityNum) && priorityNum >= 1 && priorityNum <= 4) {
+            bookingData.priority = priorityNum;
+        }
+    }
+
+    // No file uploads possible with JSON directly, so `supportingDocument` is not appended here.
+    // If files are needed, you must use FormData.
+
+    console.log('Sending JSON data:', bookingData);
+
+    setBookingMessage("Submitting booking request...");
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+        const res = await fetch("/api/bookings", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(bookingData),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        console.log('Response status:', res.status);
+        console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+
+        let data;
+        const contentType = res.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            const textResponse = await res.text();
+            console.error('Non-JSON response received:', textResponse);
+
+            if (res.status === 302 || textResponse.includes('login') || textResponse.includes('redirect')) {
+                setBookingMessage("Your session has expired or you need to log in. Redirecting to login...");
+                navigate('/login');
+                return;
+            }
+
+            setBookingMessage("Server returned an unexpected response format. Please try again.");
+            return;
+        }
+
+        console.log('Response data:', data);
+
+        if (res.ok) {
+            let successMsg = data.message || "Booking request submitted successfully!";
+
+            if (data.preempted_bookings && data.preempted_bookings.length > 0) {
+                successMsg += ` ${data.preempted_bookings.length} existing booking(s) were preempted by this higher priority booking.`;
+            }
+
+            let title = "Booking Confirmation";
+            let message = `You have successfully booked the resource from ${actualStartTime.toLocaleString()} to ${actualEndTime.toLocaleString()}`;
+
+            sendNotification(message);
+            console.log('Booking successful:', successMsg);
+            setBookingMessage(successMsg);
+
+            setStartDate("");
+            setEndDate("");
+            setStartTime("");
+            setEndTime("");
+            setPurpose("");
+            setPriority("");
+            setBookingType("");
+            setSupportingDocument(null);
+            setBookingOption("single_day");
+            setIsResourceAvailable(null);
+
+            getResourceBookings();
+
+        } else {
+            console.error('Booking failed with status:', res.status);
+            console.error('Error data:', data);
+
+            switch (res.status) {
+                case 401:
+                    setBookingMessage("Your session has expired. Please log in again.");
+                    navigate('/login');
+                    break;
+                case 403:
+                    setBookingMessage(data.message || "You don't have permission to perform this action.");
+                    break;
+                case 422:
+                    if (data.errors) {
+                        console.log('=== VALIDATION ERRORS DETAIL ===');
+                        Object.entries(data.errors).forEach(([field, errors]) => {
+                            console.log(`Field "${field}":`, errors);
+                        });
+                        console.log('=== END VALIDATION ERRORS ===');
+
+                        setValidationErrors(data.errors);
+
+                        const errorMessages = [];
+                        Object.entries(data.errors).forEach(([field, errors]) => {
+                            errorMessages.push(`${field}: ${errors.join(', ')}`);
+                        });
+
+                        setBookingMessage(`Validation failed:\n${errorMessages.join('\n')}`);
+                    } else {
+                        setBookingMessage(data.message || "Please correct the errors in your booking details.");
+                    }
+                    break;
+                case 409:
+                    if (data.conflicting_bookings && data.conflicting_bookings.length > 0) {
+                        const conflictDetails = data.conflicting_bookings
+                            .map(conflict => `${conflict.user_name || 'Unknown User'} (${new Date(conflict.start_time).toLocaleString()} - ${new Date(conflict.end_time).toLocaleString()})`)
+                            .join(', ');
+                        setBookingMessage(`${data.message || 'Resource conflict detected.'} Conflicting bookings: ${conflictDetails}.`);
+                    } else {
+                        setBookingMessage(data.message || 'Resource conflict detected (another booking exists in this slot).');
+                    }
+                    setIsResourceAvailable(false);
+                    break;
+                case 429:
+                    setBookingMessage(data.message || 'Too many requests. Please try again later, or you have too many active bookings.');
+                    break;
+                case 500:
+                    let errorMsg = 'A server error occurred. Please try again later.';
+                    if (data.debug_error && process.env.NODE_ENV === 'development') {
+                        errorMsg += ` Debug: ${data.debug_error}`;
+                    }
+                    console.error('Server error details:', data);
+                    setBookingMessage(errorMsg);
+                    break;
+                default:
+                    setBookingMessage(data.message || `Request failed with status ${res.status}. Please try again.`);
+            }
+        }
+
+    } catch (error) {
+        console.error("Network or fetch error:", error);
+        console.error("Error details:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+
+        if (error.name === 'AbortError') {
+            setBookingMessage("Request timed out. Please check your internet connection and try again.");
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            setBookingMessage("Network error. Please check your internet connection and try again.");
+        } else if (error.name === 'SyntaxError') {
+            setBookingMessage("Server returned invalid data. Please try again.");
+        } else {
+            setBookingMessage(`An unexpected error occurred: ${error.message}. Please try again.`);
+        }
+    }
+}
     async function handleDelete(e) {
         e.preventDefault();
 
@@ -637,7 +1008,7 @@ export default function View() {
                                 {user ? (
                                     <div className="booking-form-section">
                                         <h3>Book this Resource</h3>
-                                        <form onSubmit={handleSubmitBooking} className="booking-form">
+                                        <form onSubmit={handleSubmitBookingAsJSON} className="booking-form">
                                             <div className="form-group">
                                                 <label>Select Booking Duration:</label>
                                                 <div className="radio-group">
@@ -748,6 +1119,22 @@ export default function View() {
                                                 </select>
                                                 {displayError('booking_type')}
                                             </div>
+                                             {user?.user_type === 'student' &&
+                                             (bookingType === 'student_meeting' || bookingType === 'church_meeting') && (
+                                                <div className="form-group">
+                                                    <label htmlFor="supportingDocument">Supporting Document (PDF, Image):</label>
+                                                    <input
+                                                        type="file"
+                                                        id="supportingDocument"
+                                                        onChange={(e) => setSupportingDocument(e.target.files[0])}
+                                                        accept=".pdf,.jpg,.jpeg,.png" // Limit accepted file types
+                                                        required // Make it required when conditions met
+                                                        className="form-input"
+                                                    />
+                                                    <small className="form-text-muted">Required for Student Meeting</small>
+                                                    {displayError('supporting_document')}
+                                                </div>
+                                            )}
                                             <div className="form-group">
                                                 <label htmlFor="purpose">Purpose of Booking:</label>
                                                 <textarea
@@ -778,7 +1165,10 @@ export default function View() {
                                                 </div>
                                             )}
 
-                                            <button type="submit" className="action-button book-button" disabled={isResourceAvailable === false}>
+                                            <button 
+                                                type="submit" 
+                                                className="action-button book-button" 
+                                                disabled={isResourceAvailable === false}>
                                                 Submit Booking
                                             </button>
                                         </form>
@@ -787,6 +1177,15 @@ export default function View() {
                                 ) : (
                                     <p className="login-prompt-message">Please <Link to="/login">log in</Link> to book this resource.</p>
                                 )}
+                                {(user?.user_type === 'admin' || (user && resource.user_id === user.id)) && (
+                                    <div className="resource-actions">
+                                        {user?.user_type === 'admin' && (
+                                            <Link to={`/resources/edit/${resource.id}`} className="btn btn-secondary">Edit Resource</Link>
+                                        )}
+                                        <button onClick={handleDelete} className="btn btn-danger">Delete Resource</button>
+                                    </div>
+                                )}
+                                
                             </div>
                         ) : (
                             <p className="resource-not-found-message">Loading resource or resource not found!</p>
@@ -794,17 +1193,16 @@ export default function View() {
                     </div>
                 </div>
                 <div className="booking-status-sidebar">     
-                    <h1>CURRENT BOOKING</h1>               
-                    <div className="booking-status-container">
-                        {renderBookingList(resourceBookings.pending, "Pending Bookings", "pending")}
-                        {renderBookingList(resourceBookings.approved, "Approved Bookings", "approved")}
-                        {renderBookingList(resourceBookings.in_use, "Currently In Use", "in_use")}
+                    <div className="resource-sidebar">
+                        <h3>Bookings for {resource?.name || 'this Resource'}</h3>
+                        {resourceBookings.in_use.length > 0 && renderBookingList(resourceBookings.in_use, 'Currently In Use', 'in_use')}
+                        {resourceBookings.approved.length > 0 && renderBookingList(resourceBookings.approved, 'Approved Bookings', 'approved')}
+                        {resourceBookings.pending.length > 0 && renderBookingList(resourceBookings.pending, 'Pending Bookings', 'pending')}
 
                         {resourceBookings.pending.length === 0 &&
                             resourceBookings.approved.length === 0 &&
-                            resourceBookings.in_use.length === 0 && (
-                                <p className="no-bookings">No active bookings for this resource.</p>
-                            )}
+                            resourceBookings.in_use.length === 0 &&
+                            <p>No bookings found for this resource.</p>}
                     </div>
                 </div>
             </div>
