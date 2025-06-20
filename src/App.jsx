@@ -10,6 +10,7 @@ import View from './resources/view';
 import MyBookings from './Bookings/showsBookings';
 import ViewBooking from './Bookings/viewBooking';
 import UpdateBooking from './Bookings/updateBooking';
+import UpdateResource from './resources/update';
 import ShowProfile from './profile/showProfile';
 import CreateResource from './resources/create';
 import Statistical from './admin/statistical';
@@ -36,6 +37,7 @@ export default function App() {
           <Route index element={user ? <Home /> : <Login />} /> 
           <Route path="createResource" element={<CreateResource />} />
           <Route path="resources/:id" element={<View />} />
+          <Route path="resources/edit/:id" element={<UpdateResource />} />
           <Route path="bookings/:id/edit" element={<UpdateBooking />} /> 
           <Route path='profile' element={<ShowProfile />} />
           <Route path='statistical' element={<Statistical />}/>

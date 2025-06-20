@@ -247,6 +247,10 @@ export default function View() {
             setBookingMessage("");
         }
     }, [startTime, endTime, startDate, endDate, bookingOption]);
+
+    const requiresDocument = user?.user_type === 'student' &&
+        (bookingType === 'student_meeting' || bookingType === 'church_meeting');
+
     async function handleSubmitBooking(e) {
     e.preventDefault();
     setBookingMessage("");
@@ -276,9 +280,6 @@ export default function View() {
     }
 
     // Document requirement check
-    const requiresDocument = user?.user_type === 'student' &&
-                             (bookingType === 'student_meeting' || bookingType === 'church_meeting');
-
     if (requiresDocument && !supportingDocument) {
         setBookingMessage("For 'Student Meeting' or 'Church Meeting' booking types, students must upload a supporting document.");
         return;
@@ -515,18 +516,17 @@ export default function View() {
         console.log('Response data:', data);
 
         if (res.ok) {
-            setBookingMessage("Booking request submitted successfully!");
+            let successMsg = data.message || "Booking request submitted successfully!";
 
             if (data.preempted_bookings && data.preempted_bookings.length > 0) {
                 successMsg += ` ${data.preempted_bookings.length} existing booking(s) were preempted by this higher priority booking.`;
             }
 
-            let title = "Booking Confirmation"; // This variable isn't used after declaration
             let message = `You have successfully booked the ${resource.name} from ${actualStartTime.toLocaleString()} to ${actualEndTime.toLocaleString()}`;
 
             // Assuming `sendNotification` is a function you have for displaying user notifications
             sendNotification(message);
-            window.screen("successfully booking");
+            window.alert("Successfully booking");
             console.log('Booking successful:', successMsg);
             setBookingMessage(successMsg);
 
@@ -796,7 +796,6 @@ async function handleSubmitBookingAsJSON(e) {
                 successMsg += ` ${data.preempted_bookings.length} existing booking(s) were preempted by this higher priority booking.`;
             }
 
-            let title = "Booking Confirmation";
             let message = `You have successfully booked the resource from ${actualStartTime.toLocaleString()} to ${actualEndTime.toLocaleString()}`;
 
             sendNotification(message);
@@ -1008,7 +1007,7 @@ async function handleSubmitBookingAsJSON(e) {
                                 {user ? (
                                     <div className="booking-form-section">
                                         <h3>Book this Resource</h3>
-                                        <form onSubmit={handleSubmitBookingAsJSON} className="booking-form">
+                                        <form onSubmit={requiresDocument ? handleSubmitBooking : handleSubmitBookingAsJSON} className="booking-form">
                                             <div className="form-group">
                                                 <label>Select Booking Duration:</label>
                                                 <div className="radio-group">

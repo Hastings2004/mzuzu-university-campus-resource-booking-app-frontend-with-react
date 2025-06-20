@@ -8,7 +8,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
     // State for text inputs (subject, description, name)
     const [formInputData, setFormInputData] = useState({
         subject: '',
-        name: name || '', // Initialize with the passed name prop
+        name: name || '', 
         description: ''
     });
     // State for the file input (photo)
@@ -18,7 +18,6 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-    // Debug: Log props when component mounts
     useEffect(() => {
         console.log('ReportIssueForm props:', {
             resourceId,
