@@ -8,7 +8,6 @@ import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, AlignmentType, HeadingLevel } from 'docx';
-import { saveAs } from 'file-saver';
 import logoImage from '../assets/logo.png';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, PointElement, LineElement);
@@ -385,48 +384,43 @@ export default function Statistical() {
         setGeneratingWord(true);
         
         try {
-            const doc = new Document({
-                sections: [{
-                    properties: {},
+            const children = [
+                new Paragraph({
                     children: [
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "Statistical Dashboard Report",
-                                    bold: true,
-                                    size: 32,
-                                }),
-                            ],
-                            heading: HeadingLevel.TITLE,
-                            alignment: AlignmentType.CENTER,
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: `Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
-                                    italics: true,
-                                }),
-                            ],
-                            alignment: AlignmentType.CENTER,
-                        }),
-                        new Paragraph({
-                            text: "",
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "Key Performance Indicators",
-                                    bold: true,
-                                    size: 24,
-                                }),
-                            ],
-                            heading: HeadingLevel.HEADING_1,
+                        new TextRun({
+                            text: "Statistical Dashboard Report",
+                            bold: true,
+                            size: 32,
                         }),
                     ],
-                }],
-            });
+                    heading: HeadingLevel.TITLE,
+                    alignment: AlignmentType.CENTER,
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: `Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+                            italics: true,
+                        }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                }),
+                new Paragraph({
+                    text: "",
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: "Key Performance Indicators",
+                            bold: true,
+                            size: 24,
+                        }),
+                    ],
+                    heading: HeadingLevel.HEADING_1,
+                }),
+            ];
 
-            // Add KPI data
+            // Add KPI table
             if (user?.user_type === 'admin') {
                 const kpiTable = new Table({
                     width: {
@@ -486,9 +480,7 @@ export default function Statistical() {
                         }),
                     ],
                 });
-                doc.addSection({
-                    children: [kpiTable],
-                });
+                children.push(kpiTable);
             } else {
                 const userKpiTable = new Table({
                     width: {
@@ -528,27 +520,26 @@ export default function Statistical() {
                         }),
                     ],
                 });
-                doc.addSection({
-                    children: [userKpiTable],
-                });
+                children.push(userKpiTable);
             }
 
-            // Add data tables
+            // Add spacing
+            children.push(new Paragraph({ text: "" }));
+
+            // Add bookings by status table
             if (dashboardData?.bookings_by_status) {
-                doc.addSection({
-                    children: [
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "Bookings by Status",
-                                    bold: true,
-                                    size: 20,
-                                }),
-                            ],
-                            heading: HeadingLevel.HEADING_2,
-                        }),
-                    ],
-                });
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: "Bookings by Status",
+                                bold: true,
+                                size: 20,
+                            }),
+                        ],
+                        heading: HeadingLevel.HEADING_2,
+                    })
+                );
 
                 const statusRows = [
                     new TableRow({
@@ -575,15 +566,205 @@ export default function Statistical() {
                     rows: statusRows,
                 });
 
-                doc.addSection({
-                    children: [statusTable],
-                });
+                children.push(statusTable);
+                children.push(new Paragraph({ text: "" }));
             }
+
+            // Add top booked resources table
+            if (dashboardData?.top_booked_resources) {
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: "Top Booked Resources",
+                                bold: true,
+                                size: 20,
+                            }),
+                        ],
+                        heading: HeadingLevel.HEADING_2,
+                    })
+                );
+
+                const resourceRows = [
+                    new TableRow({
+                        children: [
+                            new TableCell({ children: [new Paragraph("Resource Name")] }),
+                            new TableCell({ children: [new Paragraph("Total Bookings")] }),
+                        ],
+                    }),
+                ];
+
+                dashboardData.top_booked_resources.forEach(resource => {
+                    resourceRows.push(
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph(resource.resource_name)] }),
+                                new TableCell({ children: [new Paragraph(String(resource.total_bookings))] }),
+                            ],
+                        })
+                    );
+                });
+
+                const resourceTable = new Table({
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    rows: resourceRows,
+                });
+
+                children.push(resourceTable);
+                children.push(new Paragraph({ text: "" }));
+            }
+
+            // Add monthly bookings table
+            if (dashboardData?.monthly_bookings) {
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: "Monthly Bookings",
+                                bold: true,
+                                size: 20,
+                            }),
+                        ],
+                        heading: HeadingLevel.HEADING_2,
+                    })
+                );
+
+                const monthlyRows = [
+                    new TableRow({
+                        children: [
+                            new TableCell({ children: [new Paragraph("Month")] }),
+                            new TableCell({ children: [new Paragraph("Total Bookings")] }),
+                        ],
+                    }),
+                ];
+
+                dashboardData.monthly_bookings.forEach(item => {
+                    monthlyRows.push(
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph(item.month)] }),
+                                new TableCell({ children: [new Paragraph(String(item.total_bookings))] }),
+                            ],
+                        })
+                    );
+                });
+
+                const monthlyTable = new Table({
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    rows: monthlyRows,
+                });
+
+                children.push(monthlyTable);
+                children.push(new Paragraph({ text: "" }));
+            }
+
+            // Add resource utilization table
+            if (dashboardData?.resource_utilization_monthly) {
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: "Resource Utilization",
+                                bold: true,
+                                size: 20,
+                            }),
+                        ],
+                        heading: HeadingLevel.HEADING_2,
+                    })
+                );
+
+                const utilizationRows = [
+                    new TableRow({
+                        children: [
+                            new TableCell({ children: [new Paragraph("Month")] }),
+                            new TableCell({ children: [new Paragraph("Total Booked Hours")] }),
+                        ],
+                    }),
+                ];
+
+                dashboardData.resource_utilization_monthly.forEach(item => {
+                    utilizationRows.push(
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph(item.month)] }),
+                                new TableCell({ children: [new Paragraph(String(item.total_booked_hours))] }),
+                            ],
+                        })
+                    );
+                });
+
+                const utilizationTable = new Table({
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    rows: utilizationRows,
+                });
+
+                children.push(utilizationTable);
+                children.push(new Paragraph({ text: "" }));
+            }
+
+            // Add my monthly bookings table for non-admin users
+            if (dashboardData?.my_monthly_bookings && user?.user_type !== 'admin') {
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: "My Monthly Bookings",
+                                bold: true,
+                                size: 20,
+                            }),
+                        ],
+                        heading: HeadingLevel.HEADING_2,
+                    })
+                );
+
+                const myMonthlyRows = [
+                    new TableRow({
+                        children: [
+                            new TableCell({ children: [new Paragraph("Month")] }),
+                            new TableCell({ children: [new Paragraph("My Total Bookings")] }),
+                        ],
+                    }),
+                ];
+
+                dashboardData.my_monthly_bookings.forEach(item => {
+                    myMonthlyRows.push(
+                        new TableRow({
+                            children: [
+                                new TableCell({ children: [new Paragraph(item.month)] }),
+                                new TableCell({ children: [new Paragraph(String(item.total_bookings))] }),
+                            ],
+                        })
+                    );
+                });
+
+                const myMonthlyTable = new Table({
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    rows: myMonthlyRows,
+                });
+
+                children.push(myMonthlyTable);
+            }
+
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children: children,
+                }],
+            });
 
             // Generate and save the document
             const buffer = await Packer.toBuffer(doc);
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-            saveAs(blob, 'Statistical_Dashboard_Report.docx');
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Statistical_Dashboard_Report.docx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error generating Word document:', error);
             alert('Error generating Word document. Please try again.');

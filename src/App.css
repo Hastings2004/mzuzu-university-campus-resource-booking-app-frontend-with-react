@@ -4014,7 +4014,7 @@ body.dark .error-message {
 .settings-container {
     padding: 30px;
     max-width: 1200px;
-    margin: 0 auto;
+    margin-left: 0 auto;
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     border-radius: 16px;
     box-shadow: 0 8px 32px var(--shadow-medium);
@@ -5325,7 +5325,7 @@ body.dark .category-dropdown {
     background-color: var(--bg-grey);
     padding: 2rem;
     border-radius: 8px;
-    margin-left: 20px auto; 
+    margin-right: 30px auto; 
     max-width: 1280px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     color: var(--text-primary);
@@ -5378,7 +5378,7 @@ body.dark .category-dropdown {
 
 /* Table Specific Styles for Issue Management */
 .issue-management-dashboard .issues-table {
-    width: 100%; /* Changed from 80% to 100% for better responsiveness */
+    width: 90%; /* Changed from 80% to 100% for better responsiveness */
     border-collapse: collapse;
     margin-top: 20px;
     background-color: var(--bg-light);
@@ -6499,4 +6499,167 @@ body.dark .report-issue-form-container .no-issues-message {
         padding: 12px 16px;
         font-size: 14px;
     }
+}
+
+/* No action text */
+.issue-management-dashboard .no-action-text {
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+/* Photo Section Styles */
+.issue-management-dashboard .issue-photo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+}
+
+.issue-management-dashboard .issue-photo-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.issue-management-dashboard .issue-photo-thumbnail:hover {
+    transform: scale(1.05);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.issue-management-dashboard .no-photo {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.85em;
+}
+
+/* Photo Modal Styles */
+.photo-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.photo-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    background-color: var(--bg-light);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px var(--shadow-heavy);
+    overflow: hidden;
+}
+
+.photo-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 1001;
+}
+
+.photo-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.photo-modal-image {
+    width: 100%;
+    height: auto;
+    max-height: 90vh;
+    object-fit: contain;
+    display: block;
+}
+
+/* Dark mode overrides for photo modal */
+body.dark .photo-modal-content {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+}
+
+body.dark .photo-modal-close {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark .photo-modal-close:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive design for photo section */
+@media (max-width: 768px) {
+    .issue-management-dashboard .issue-photo-thumbnail {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .photo-modal-overlay {
+        padding: 10px;
+    }
+    
+    .photo-modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+    
+    .photo-modal-close {
+        top: 10px;
+        right: 10px;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .issue-management-dashboard .issue-photo-thumbnail {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .photo-modal-close {
+        top: 8px;
+        right: 8px;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+}
+
+.issue-management-dashboard .no-photo {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.85em;
+}
+
+.issue-management-dashboard .photo-error {
+    color: var(--accent-red);
+    font-size: 0.8em;
+    font-style: italic;
+    text-align: center;
+    padding: 5px;
 }

@@ -20,7 +20,7 @@ export default function ResourceDetailPage({ resource }) {
                 <Modal onClose={() => setShowReportModal(false)}>
                     <ReportIssueForm
                         resourceId={resource.id}
-                        resourceName={resource.name}
+                        name={resource.name}
                         onClose={() => setShowReportModal(false)}
                         onIssueReported={handleIssueReported}
                     />

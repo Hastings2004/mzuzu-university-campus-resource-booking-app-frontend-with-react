@@ -1,33 +1,40 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../context/appContext'; 
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function ReportIssueForm({ resourceId, name, onClose, onIssueReported }) {
     const { token, user } = useContext(AppContext);
+    const navigate = useNavigate();
 
-    // State for text inputs (subject, description, name)
-    const [formInputData, setFormInputData] = useState({
+    // Form state
+    const [formData, setFormData] = useState({
         subject: '',
-        name: name || '', 
+        name: name || '',
         description: ''
     });
-    // State for the file input (photo)
+    
+    // Form validation errors
+    const [errors, setErrors] = useState({});
+    
+    // File state
     const [photo, setPhoto] = useState(null);
     
-    // State for resources dropdown
-    const [resources, setResources] = useState([]);
-    const [loadingResources, setLoadingResources] = useState(false);
-
-    // State for toggle between report form and issues list
-    const [showIssues, setShowIssues] = useState(false);
-    const [userIssues, setUserIssues] = useState([]);
-    const [loadingIssues, setLoadingIssues] = useState(false);
-
+    // UI state
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-    // Fetch resources from database
+    // Resources dropdown state
+    const [resources, setResources] = useState([]);
+    const [loadingResources, setLoadingResources] = useState(false);
+
+    // Issues list state
+    const [showIssues, setShowIssues] = useState(false);
+    const [userIssues, setUserIssues] = useState([]);
+    const [loadingIssues, setLoadingIssues] = useState(false);
+
+    // Fetch resources for dropdown
     const fetchResources = async () => {
         setLoadingResources(true);
         try {
@@ -40,8 +47,6 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
             
             if (response.data.success && Array.isArray(response.data.resources)) {
                 setResources(response.data.resources);
-            } else {
-                console.error('Invalid resources data format:', response.data);
             }
         } catch (err) {
             console.error('Error fetching resources:', err);
@@ -62,18 +67,14 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
             });
             
             if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                // For non-admin users, filter to show only their own issues
-                // For admin users, the backend already filters to show only their issues
                 let currentUserIssues;
                 if (user?.user_type !== 'admin') {
-                    // Non-admin users: filter to show only their own issues
                     currentUserIssues = response.data.data.filter(issue => 
                         issue.reported_by_user_id === user?.id || 
                         issue.reporter?.id === user?.id ||
                         issue.user_id === user?.id
                     );
                 } else {
-                    // Admin users: backend already filters to show only their issues
                     currentUserIssues = response.data.data;
                 }
                 setUserIssues(currentUserIssues);
@@ -90,171 +91,230 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
         }
     };
 
-    // Handle toggle between report form and issues list
-    const handleToggleView = () => {
-        if (!showIssues) {
-            // Switching to issues view, fetch user issues
-            fetchUserIssues();
-        }
-        setShowIssues(!showIssues);
-        setError(null); // Clear any previous errors
-    };
-
-    useEffect(() => {
-        console.log('ReportIssueForm props:', {
-            resourceId,
-            name,
-            resourceIdType: typeof resourceId,
-            resourceIdValue: resourceId,
-            nameType: typeof name,
-            nameValue: name
-        });
-        
-        // Fetch resources when component mounts
-        if (token) {
-            fetchResources();
-        }
-    }, [resourceId, name, token]);
-
-    // Handles changes for text inputs
+    // Handle form input changes
     const handleInputChange = (e) => {
         const { id, value } = e.target;
-        console.log(`Input changed: ${id} = "${value}"`);
-        setFormInputData(prevData => ({
-            ...prevData,
+        setFormData(prev => ({
+            ...prev,
             [id]: value
         }));
+        
+        // Clear error for this field when user starts typing
+        if (errors[id]) {
+            setErrors(prev => ({
+                ...prev,
+                [id]: null
+            }));
+        }
+        
+        // Clear general error when user makes changes
+        if (error) {
+            setError(null);
+        }
     };
 
-    // Handles the change for the 'photo' file input
+    // Handle photo selection
     const handlePhotoChange = (e) => {
-        setPhoto(e.target.files[0] || null);
+        const file = e.target.files[0];
+        setPhoto(file);
+        
+        // Clear photo-related errors
+        if (errors.photo) {
+            setErrors(prev => ({
+                ...prev,
+                photo: null
+            }));
+        }
     };
 
+    // Validate form
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Validate subject
+        if (!formData.subject.trim()) {
+            newErrors.subject = 'Subject is required.';
+        }
+
+        // Validate resource name
+        if (!formData.name.trim()) {
+            newErrors.name = 'Resource name is required.';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate form
+        if (!validateForm()) {
+            return;
+        }
+
         setLoading(true);
         setError(null);
         setSuccess(false);
 
-        console.log('=== FORM SUBMISSION DEBUG ===');
-        console.log('Current form state:', formInputData);
-
-        // Validate required fields on frontend first
-        const subjectValue = formInputData.subject?.trim() || '';
-        const nameValue = formInputData.name?.trim() || '';
-
-        console.log('Validation check:');
-        console.log('Subject:', `"${subjectValue}" (length: ${subjectValue.length})`);
-        console.log('Name:', `"${nameValue}" (length: ${nameValue.length})`);
-
-        if (!subjectValue) {
-            console.log('❌ Subject validation failed');
-            setError('Subject is required and cannot be empty.');
-            setLoading(false);
-            return;
-        }
-
-        if (!nameValue) {
-            console.log('❌ Name validation failed');
-            setError('Resource name is required and cannot be empty.');
-            setLoading(false);
-            return;
-        }
+        // Debug: Log authentication info
+        console.log('=== Authentication Debug ===');
+        console.log('User:', user);
+        console.log('Token exists:', !!token);
+        console.log('ResourceId:', resourceId);
+        console.log('Name prop:', name);
+        console.log('=== End Authentication Debug ===');
 
         try {
+            // Clean the resource name - extract just the name if it contains extra text
+            let cleanResourceName = formData.name.trim();
+            if (cleanResourceName.includes(' - ')) {
+                cleanResourceName = cleanResourceName.split(' - ')[0].trim();
+            }
+
             let response;
 
             if (photo) {
-                // If there's a photo, use FormData
-                console.log('📸 Sending with photo using FormData');
+                // Send with photo using FormData
                 const apiFormData = new FormData();
-                apiFormData.append('name', nameValue);
-                apiFormData.append('subject', subjectValue);
                 
-                if (formInputData.description?.trim()) {
-                    apiFormData.append('description', formInputData.description.trim());
+                // Try different field names that the backend might expect
+                apiFormData.append('name', cleanResourceName);
+                apiFormData.append('resource_name', cleanResourceName); // Alternative field name
+                apiFormData.append('subject', formData.subject.trim());
+                apiFormData.append('title', formData.subject.trim()); // Alternative field name
+                
+                if (formData.description?.trim()) {
+                    apiFormData.append('description', formData.description.trim());
                 }
+                
+                // Add resource_id if available
+                if (resourceId) {
+                    apiFormData.append('resource_id', resourceId.toString());
+                }
+                
+                // Add user_id if available
+                if (user?.id) {
+                    apiFormData.append('user_id', user.id.toString());
+                }
+                
                 apiFormData.append('photo', photo);
 
-                console.log('FormData contents:');
-                for (let [key, value] of apiFormData.entries()) {
-                    console.log(`${key}: "${value}"`);
-                }
+                // Debug: Log FormData contents
+                console.log('=== FormData being sent ===');
+                console.log('name:', cleanResourceName);
+                console.log('resource_name:', cleanResourceName);
+                console.log('subject:', formData.subject.trim());
+                console.log('title:', formData.subject.trim());
+                console.log('description:', formData.description?.trim() || 'null');
+                console.log('resource_id:', resourceId || 'null');
+                console.log('user_id:', user?.id || 'null');
+                console.log('photo:', photo.name);
+                console.log('=== End FormData ===');
 
                 response = await axios.post('/api/resource-issues', apiFormData, {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                       
-                    },
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
-
-                 alert("Report sent successfully ");
-            navigator('/');
             } else {
-                // If no photo, send as JSON
-                console.log('📝 Sending without photo using JSON');
+                // Send as JSON
                 const requestData = {
-                    name: nameValue,
-                    subject: subjectValue
+                    name: cleanResourceName,
+                    resource_name: cleanResourceName, // Alternative field name
+                    subject: formData.subject.trim(),
+                    title: formData.subject.trim() // Alternative field name
                 };
 
-                if (formInputData.description?.trim()) {
-                    requestData.description = formInputData.description.trim();
+                if (formData.description?.trim()) {
+                    requestData.description = formData.description.trim();
                 }
 
-                console.log('JSON data being sent:', requestData);
+                // Add resource_id if available
+                if (resourceId) {
+                    requestData.resource_id = resourceId.toString();
+                }
+
+                // Add user_id if available
+                if (user?.id) {
+                    requestData.user_id = user.id.toString();
+                }
+
+                // Debug: Log JSON data
+                console.log('=== JSON data being sent ===');
+                console.log('requestData:', requestData);
+                console.log('=== End JSON data ===');
 
                 response = await axios.post('/api/resource-issues', requestData, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                        'Content-Type': 'application/json'
+                    }
                 });
-                 alert("Report sent successfully ");
-                navigator('/');
             }
-            
-            console.log('✅ Success response:', response.data);
+
+            // Handle success
             setSuccess(true);
-            onIssueReported(response.data.issue); 
-           
+            onIssueReported(response.data.issue);
             
-            // Clear the form fields after successful submission
-            setFormInputData({
+            // Clear form
+            setFormData({
                 subject: '',
-                name: '',
+                name: name || '',
                 description: ''
             });
             setPhoto(null);
             
-            // Clear the file input element's value
+            // Clear file input
             const fileInput = document.getElementById('issuePhotoInput');
             if (fileInput) {
                 fileInput.value = '';
             }
+
+            // Show success message and navigate
+            alert('Issue reported successfully!');
+            navigate('/');
             
-            setTimeout(onClose, 2000);
         } catch (err) {
-            console.error('❌ Error reporting issue:', err);
-            console.error('❌ Error response:', err.response?.data);
-            console.error('❌ Error status:', err.response?.status);
+            console.error('Error reporting issue:', err);
+            console.error('Error response data:', err.response?.data);
+            console.error('Error status:', err.response?.status);
             
-            // Handle and display specific validation errors from Laravel
-            if (err.response && err.response.data && err.response.data.errors) {
-                const errors = err.response.data.errors;
-                console.log('❌ Validation errors:', errors);
+            // Handle validation errors from backend
+            if (err.response?.data?.errors) {
+                const backendErrors = err.response.data.errors;
+                console.log('Backend validation errors:', backendErrors);
+                setErrors(backendErrors);
+                
+                // Create a detailed error message
                 let errorMessage = 'Validation errors:\n';
-                for (const key in errors) {
-                    errorMessage += `• ${key}: ${errors[key].join(', ')}\n`;
+                for (const [field, messages] of Object.entries(backendErrors)) {
+                    if (Array.isArray(messages)) {
+                        errorMessage += `• ${field}: ${messages.join(', ')}\n`;
+                    } else {
+                        errorMessage += `• ${field}: ${messages}\n`;
+                    }
                 }
                 setError(errorMessage.trim());
-            } else if (err.response && err.response.data && err.response.data.message) {
+            } else if (err.response?.data?.message) {
                 setError(err.response.data.message);
-            } 
+            } else {
+                setError('Failed to report issue. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
+    };
+
+    // Handle toggle between report form and issues list
+    const handleToggleView = () => {
+        if (!showIssues) {
+            fetchUserIssues();
+        }
+        setShowIssues(!showIssues);
+        setError(null);
+        setErrors({});
     };
 
     // Format date for display
@@ -277,6 +337,12 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                 return { color: '#6c757d', backgroundColor: '#f8f9fa' };
         }
     };
+
+    useEffect(() => {
+        if (token) {
+            fetchResources();
+        }
+    }, [token]);
 
     return (
         <div className="report-issue-form-container">
@@ -357,21 +423,6 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                 // Report Form View
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="subject">
-                            Subject: <span className="required">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="subject"
-                            value={formInputData.subject}
-                            onChange={handleInputChange}
-                            required
-                            placeholder="e.g. Room is dirty"
-                            disabled={loading}
-                        />
-                    </div>
-                    
-                    <div className="form-group">
                         <label htmlFor="name">
                             Resource Name: <span className="required">*</span>
                         </label>
@@ -382,9 +433,9 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                         ) : (
                             <select
                                 id="name"
-                                value={formInputData.name}
+                                value={formData.name}
                                 onChange={handleInputChange}
-                                required
+                                className={errors.name ? 'error' : ''}
                                 disabled={loading}
                             >
                                 <option value="">Select a resource</option>
@@ -395,18 +446,36 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                                 ))}
                             </select>
                         )}
+                        {errors.name && <p className="error-message">{errors.name}</p>}
+                    </div>
+                    
+                    <div className="form-group">
+                        <label htmlFor="subject">
+                            Subject: <span className="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="subject"
+                            value={formData.subject}
+                            onChange={handleInputChange}
+                            placeholder="e.g., Projector not working"
+                            className={errors.subject ? 'error' : ''}
+                            disabled={loading}
+                        />
+                        {errors.subject && <p className="error-message">{errors.subject}</p>}
                     </div>
                     
                     <div className="form-group">
                         <label htmlFor="description">Description (Optional):</label>
                         <textarea
                             id="description"
-                            value={formInputData.description}
+                            value={formData.description}
                             onChange={handleInputChange}
                             rows="4"
                             placeholder="Provide more details about the issue..."
                             disabled={loading}
                         ></textarea>
+                        {errors.description && <p className="error-message">{errors.description}</p>}
                     </div>
                     
                     <div className="form-group">
@@ -423,6 +492,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                                 Selected: {photo.name}
                             </p>
                         )}
+                        {errors.photo && <p className="error-message">{errors.photo}</p>}
                     </div>
                     
                     {success && (
@@ -434,7 +504,8 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                     <div className="form-actions">
                         <button 
                             type="submit" 
-                            disabled={loading || !formInputData.subject?.trim() || !formInputData.name?.trim()}
+                            disabled={loading}
+                            className="submit-button"
                         >
                             {loading ? 'Submitting...' : 'Submit Report'}
                         </button>
@@ -442,6 +513,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                             type="button" 
                             onClick={onClose} 
                             disabled={loading}
+                            className="cancel-button"
                         >
                             Cancel
                         </button>
@@ -450,4 +522,4 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
             )}
         </div>
     );
-}
+} 
