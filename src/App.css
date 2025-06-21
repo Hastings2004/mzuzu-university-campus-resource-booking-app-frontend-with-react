@@ -4012,60 +4012,104 @@ body.dark .error-message {
 /* Settings.css */
 
 .settings-container {
-   
-    padding: 20px;
+    padding: 30px;
     max-width: 1200px;
-    margin-left: 20px auto;
-    background-color: var(--bg-secondary); 
-    border-radius: 8px;
-    box-shadow: 0 4px 8px var(--shadow-medium); 
-    font-family: var(--font-primary); 
+    margin: 0 auto;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-medium);
+    font-family: var(--font-primary);
     color: var(--text-primary);
+    min-height: calc(100vh - 120px);
 }
 
 .settings-container h1 {
     text-align: center;
-    color: var(--text-primary);
-    margin-bottom: 30px;
-    font-size: 2.5em;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 15px;
+    color: var(--primary-color);
+    margin-bottom: 40px;
+    font-size: 2.8em;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
 }
 
-.settings-items{
-     display: flex;
-    flex-wrap: nowrap;
+.settings-container h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-blue));
+    border-radius: 2px;
+}
+
+.settings-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
 }
 
 /* Styles for individual settings cards */
 .settings-section {
-    background-color: var(--bg-primary); 
-    padding: 25px; 
-    margin-bottom: 20px; 
-    margin-left: 20px;
-    max-width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px var(--shadow-small); 
-    border: 1px solid var(--border-color); 
+    background: var(--bg-primary);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px var(--shadow-small);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-blue));
+}
+
+.settings-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px var(--shadow-medium);
+    border-color: var(--primary-color);
 }
 
 .settings-section:last-child {
-    margin-bottom: 0; 
-    border-bottom: none; 
-    padding-bottom: 25px; 
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 30px;
 }
-
 
 .settings-section h2 {
     color: var(--text-primary);
-    font-size: 1.8em;
-    margin-bottom: 20px;
-    border-left: 5px solid var(--primary-color); 
-    padding-left: 10px;
+    font-size: 1.6em;
+    margin-bottom: 25px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-section h2::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-blue));
+    border-radius: 2px;
 }
 
 .settings-form .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 .settings-form label {
@@ -4074,70 +4118,131 @@ body.dark .error-message {
     font-weight: 600;
     color: var(--text-secondary);
     font-size: 0.95em;
+    transition: color 0.3s ease;
 }
 
 .settings-form input[type="text"],
 .settings-form input[type="email"],
 .settings-form input[type="password"] {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: var(--bg-input); /* Using var(--bg-input) for consistency */
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-input);
     color: var(--text-primary);
     font-size: 1em;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
 .settings-form input[type="text"]:focus,
 .settings-form input[type="email"]:focus,
 .settings-form input[type="password"]:focus {
-    border-color: var(--primary-color); 
+    border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 2px var(--primary-shadow-focus); 
+    box-shadow: 0 0 0 4px rgba(var(--primary-color-rgb), 0.1);
+    background: var(--bg-primary);
+    transform: translateY(-2px);
+}
+
+.settings-form input[type="text"]:hover,
+.settings-form input[type="email"]:hover,
+.settings-form input[type="password"]:hover {
+    border-color: var(--accent-blue);
 }
 
 .settings-form button[type="submit"] {
     display: block;
     width: 100%;
-    padding: 12px;
-    background-color: var(--primary-color); 
-    color: var(--text-light-on-dark); 
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-blue));
+    color: var(--text-light-on-dark);
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s ease, opacity 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-form button[type="submit"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.settings-form button[type="submit"]:hover::before {
+    left: 100%;
 }
 
 .settings-form button[type="submit"]:hover:not(:disabled) {
-    background-color: var(--primary-hover-color); 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.3);
+}
+
+.settings-form button[type="submit"]:active:not(:disabled) {
+    transform: translateY(0);
 }
 
 .settings-form button[type="submit"]:disabled {
-    background-color: var(--btn-disabled-bg); 
+    background: var(--btn-disabled-bg);
     opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .success-message {
-    color: var(--success-text); 
-    background-color: var(--success-bg); 
-    border: 1px solid var(--success-border); 
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+    color: var(--success-text);
+    background: linear-gradient(135deg, var(--success-bg), rgba(var(--success-text-rgb), 0.1));
+    border: 1px solid var(--success-border);
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 12px;
     text-align: center;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.success-message::before {
+    content: '✓';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    color: var(--success-text);
 }
 
 .error-message {
-    color: var(--error-text); 
-    background-color: var(--error-bg); 
-    border: 1px solid var(--error-border); 
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+    color: var(--error-text);
+    background: linear-gradient(135deg, var(--error-bg), rgba(var(--error-text-rgb), 0.1));
+    border: 1px solid var(--error-border);
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 12px;
     text-align: center;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.error-message::before {
+    content: '⚠';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    color: var(--error-text);
 }
 
 /* Theme Toggle Switch */
@@ -4147,6 +4252,10 @@ body.dark .error-message {
     gap: 15px;
     font-size: 1.1em;
     color: var(--text-primary);
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    margin-bottom: 20px;
 }
 
 .switch {
@@ -4169,9 +4278,10 @@ body.dark .error-message {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--border-color);
-    transition: .4s;
+    background: linear-gradient(135deg, var(--border-color), var(--bg-grey));
+    transition: 0.4s;
     border-radius: 34px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .slider:before {
@@ -4181,17 +4291,18 @@ body.dark .error-message {
     width: 26px;
     left: 4px;
     bottom: 4px;
-    background-color: var(--bg-primary); 
-    transition: .4s;
+    background: var(--bg-primary);
+    transition: 0.4s;
     border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 input:checked + .slider {
-    background-color: var(--primary-color); 
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-blue));
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px var(--primary-color); 
+    box-shadow: 0 0 1px var(--primary-color);
 }
 
 input:checked + .slider:before {
@@ -4202,39 +4313,130 @@ input:checked + .slider:before {
 .logout-button {
     display: block;
     width: 100%;
-    padding: 12px;
-    background-color: var(--accent-red); 
-    color: var(--text-light-on-dark); 
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent-red), #ff6b6b);
+    color: var(--text-light-on-dark);
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.logout-button:hover::before {
+    left: 100%;
 }
 
 .logout-button:hover {
-    background-color: var(--error-color); /* A more direct variable for hover */
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(var(--accent-red-rgb), 0.3);
 }
 
-/* Responsive adjustments */
+.logout-button:active {
+    transform: translateY(0);
+}
+
+/* Loading states */
+.settings-form button[type="submit"]:disabled,
+.logout-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .settings-container {
-        padding: 15px;
-        margin: 20px auto;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 12px;
     }
 
     .settings-container h1 {
-        font-size: 2em;
+        font-size: 2.2em;
+        margin-bottom: 30px;
+    }
+
+    .settings-items {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
 
     .settings-section {
-        padding: 15px; /* Adjust card padding for smaller screens */
-        margin-bottom: 15px; /* Adjust card margin for smaller screens */
+        padding: 20px;
+        border-radius: 12px;
     }
 
     .settings-section h2 {
-        font-size: 1.5em;
+        font-size: 1.4em;
+        margin-bottom: 20px;
+    }
+
+    .settings-form input[type="text"],
+    .settings-form input[type="email"],
+    .settings-form input[type="password"] {
+        padding: 12px 14px;
+        border-radius: 10px;
+    }
+
+    .settings-form button[type="submit"],
+    .logout-button {
+        padding: 14px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-container {
+        padding: 15px;
+        margin: 5px;
+    }
+
+    .settings-container h1 {
+        font-size: 1.8em;
+        margin-bottom: 25px;
+    }
+
+    .settings-section {
+        padding: 15px;
+    }
+
+    .settings-section h2 {
+        font-size: 1.3em;
+        margin-bottom: 15px;
+    }
+
+    .settings-form input[type="text"],
+    .settings-form input[type="email"],
+    .settings-form input[type="password"] {
+        padding: 10px 12px;
+        font-size: 0.95em;
+    }
+
+    .settings-form button[type="submit"],
+    .logout-button {
+        padding: 12px;
+        font-size: 1em;
+    }
+
+    .success-message,
+    .error-message {
+        padding: 12px;
+        font-size: 0.9em;
     }
 }
 
@@ -5761,5 +5963,540 @@ body.dark .issue-management-dashboard .status-wont-fix {
 
     .form-group label {
         font-size: 0.9em;
+    }
+}
+
+/* --- Report Issue Form Styles --- */
+.report-issue-form-container {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px var(--shadow-light);
+    max-width: 800px;
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+}
+
+.report-issue-form-container .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.report-issue-form-container .header-section h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    min-width: 200px;
+}
+
+.report-issue-form-container .toggle-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 140px;
+}
+
+.report-issue-form-container .toggle-button.show-issues {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.report-issue-form-container .toggle-button.show-issues:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.report-issue-form-container .toggle-button.report-new {
+    background-color: var(--accent-blue);
+    color: white;
+}
+
+.report-issue-form-container .toggle-button.report-new:hover {
+    background-color: #1976d2;
+    transform: translateY(-1px);
+}
+
+/* Form Styles */
+.report-issue-form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.report-issue-form-container .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-issue-form-container .form-group label {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.report-issue-form-container .form-group label .required {
+    color: var(--accent-red);
+    font-weight: bold;
+}
+
+.report-issue-form-container input[type="text"],
+.report-issue-form-container select,
+.report-issue-form-container textarea {
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--poppins);
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.report-issue-form-container input[type="text"]:focus,
+.report-issue-form-container select:focus,
+.report-issue-form-container textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.report-issue-form-container input[type="text"]::placeholder,
+.report-issue-form-container textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.report-issue-form-container select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.report-issue-form-container input[type="file"] {
+    padding: 8px 12px;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-grey);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.report-issue-form-container input[type="file"]:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+.report-issue-form-container input[type="file"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.report-issue-form-container .file-selected {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    padding: 4px 8px;
+    background-color: var(--bg-grey);
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Message Styles */
+.report-issue-form-container .error-message,
+.report-issue-form-container .success-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    border: 1px solid;
+}
+
+.report-issue-form-container .error-message {
+    background-color: var(--message-bg-error);
+    border-color: var(--message-border-error);
+    color: #c62828;
+}
+
+.report-issue-form-container .success-message {
+    background-color: var(--message-bg-info);
+    border-color: var(--message-border-info);
+    color: #2e7d32;
+}
+
+/* Form Actions */
+.report-issue-form-container .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.report-issue-form-container .form-actions button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.report-issue-form-container .form-actions button[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.report-issue-form-container .form-actions button[type="submit"]:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.report-issue-form-container .form-actions button[type="button"] {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.report-issue-form-container .form-actions button[type="button"]:hover:not(:disabled) {
+    background-color: var(--border-color);
+    transform: translateY(-1px);
+}
+
+.report-issue-form-container .form-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Issues List Styles */
+.report-issue-form-container .issues-list-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.report-issue-form-container .issues-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.report-issue-form-container .issue-item {
+    background-color: var(--bg-secondary-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.report-issue-form-container .issue-item:hover {
+    box-shadow: 0 4px 12px var(--shadow-light);
+    transform: translateY(-2px);
+}
+
+.report-issue-form-container .issue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.report-issue-form-container .issue-title {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    min-width: 200px;
+}
+
+.report-issue-form-container .issue-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.report-issue-form-container .issue-status.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.report-issue-form-container .issue-status.in_progress {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.report-issue-form-container .issue-status.resolved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.report-issue-form-container .issue-status.closed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.report-issue-form-container .issue-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-issue-form-container .issue-detail {
+    color: var(--text-secondary);
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.report-issue-form-container .issue-detail strong {
+    color: var(--text-primary);
+    font-weight: 600;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+.report-issue-form-container .issue-photo {
+    margin-top: 12px;
+}
+
+.report-issue-form-container .issue-photo p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.report-issue-form-container .issue-photo img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    object-fit: cover;
+}
+
+.report-issue-form-container .no-issues-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    background-color: var(--bg-grey);
+    border-radius: 12px;
+    border: 2px dashed var(--border-color);
+}
+
+.report-issue-form-container .loading-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--primary-color);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Dark Mode Overrides */
+body.dark .report-issue-form-container {
+    background: var(--bg-light);
+    border-color: var(--border-color);
+}
+
+body.dark .report-issue-form-container input[type="text"],
+body.dark .report-issue-form-container select,
+body.dark .report-issue-form-container textarea {
+    background-color: var(--bg-grey);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark .report-issue-form-container input[type="file"] {
+    background-color: var(--bg-light);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark .report-issue-form-container .issue-item {
+    background-color: var(--bg-light);
+    border-color: var(--border-color);
+}
+
+body.dark .report-issue-form-container .issue-status.pending {
+    background-color: #2d3748;
+    color: #fbd38d;
+}
+
+body.dark .report-issue-form-container .issue-status.in_progress {
+    background-color: #2c5282;
+    color: #90cdf4;
+}
+
+body.dark .report-issue-form-container .issue-status.resolved {
+    background-color: #22543d;
+    color: #9ae6b4;
+}
+
+body.dark .report-issue-form-container .issue-status.closed {
+    background-color: #742a2a;
+    color: #feb2b2;
+}
+
+body.dark .report-issue-form-container .no-issues-message {
+    background-color: var(--bg-light);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .report-issue-form-container {
+        padding: 16px;
+        margin: 0 8px;
+        border-radius: 8px;
+    }
+
+    .report-issue-form-container .header-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .report-issue-form-container .header-section h3 {
+        text-align: center;
+        font-size: 1.3rem;
+    }
+
+    .report-issue-form-container .toggle-button {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .report-issue-form-container .form-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .report-issue-form-container .form-actions button {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+
+    .report-issue-form-container .issue-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .report-issue-form-container .issue-title {
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .report-issue-form-container .issue-status {
+        align-self: center;
+        padding: 8px 16px;
+        font-size: 11px;
+    }
+
+    .report-issue-form-container .issue-detail {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .report-issue-form-container .issue-detail strong {
+        min-width: auto;
+    }
+
+    .report-issue-form-container .issue-photo img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .report-issue-form-container {
+        padding: 12px;
+        margin: 0 4px;
+    }
+
+    .report-issue-form-container .header-section h3 {
+        font-size: 1.2rem;
+    }
+
+    .report-issue-form-container input[type="text"],
+    .report-issue-form-container select,
+    .report-issue-form-container textarea {
+        padding: 10px 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .report-issue-form-container .issue-item {
+        padding: 16px;
+    }
+
+    .report-issue-form-container .issue-title {
+        font-size: 0.95rem;
+    }
+
+    .report-issue-form-container .issue-detail {
+        font-size: 13px;
+    }
+
+    .report-issue-form-container .no-issues-message,
+    .report-issue-form-container .loading-message {
+        padding: 30px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 320px) {
+    .report-issue-form-container {
+        padding: 8px;
+        margin: 0 2px;
+    }
+
+    .report-issue-form-container .header-section h3 {
+        font-size: 1.1rem;
+    }
+
+    .report-issue-form-container .toggle-button {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .report-issue-form-container .form-actions button {
+        padding: 12px 16px;
+        font-size: 14px;
     }
 }

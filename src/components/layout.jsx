@@ -28,16 +28,17 @@ export default function Layout() {
 
     const fetchUnreadCount = async () => {
       try {
-        const res = await fetch('/api/notifications/unread', {
+        const res = await fetch('/api/notifications', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
         const data = await res.json();
-        if (res.ok && typeof data.notifications === 'number') {
-          setUnreadCount(data.notifications);
-          console.log(data.notifications);
+        if (res.ok) {
+          const notifications = Array.isArray(data) ? data : (data.notifications || []);
+          const unread = notifications.filter(n => !n.read_at).length;
+          setUnreadCount(unread);
         } else {
           setUnreadCount(0);
         }

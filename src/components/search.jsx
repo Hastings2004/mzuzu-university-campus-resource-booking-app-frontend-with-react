@@ -78,7 +78,7 @@ export default function GlobalSearch() {
 
         try {
             const response = await fetch(`/api/search/global?${queryParams.toString()}`, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -275,7 +275,7 @@ export default function GlobalSearch() {
                                 <ul className="resource-list">
                                     {searchResults.resources.map(resource => (
                                         <li key={`resource-${resource.id}`} className="resource-item">
-                                            <h5>{resource.name} ({resource.type})</h5>
+                                            <h5>{resource.name} ({resource.category})</h5>
                                             <p><strong>Location:</strong> {resource.location || 'N/A'}</p>
                                             <p><strong>Capacity:</strong> {resource.capacity || 'N/A'}</p>
                                             <p><strong>Status:</strong> {resource.status}</p>

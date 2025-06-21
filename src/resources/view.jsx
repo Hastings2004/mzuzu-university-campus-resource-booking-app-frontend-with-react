@@ -151,18 +151,12 @@ export default function View() {
         let fullStartTime, fullEndTime;
 
         if (bookingOption === "single_day") {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-            const dateString = `${year}-${month}-${day}`;
-
-            if (!startTime || !endTime) {
+            if (!startDate || !startTime || !endTime) {
                 setIsResourceAvailable(null);
                 return;
             }
-            fullStartTime = new Date(`${dateString}T${startTime}`);
-            fullEndTime = new Date(`${dateString}T${endTime}`);
+            fullStartTime = new Date(`${startDate}T${startTime}`);
+            fullEndTime = new Date(`${startDate}T${endTime}`);
 
         } else { // multi_day
             if (!startDate || !startTime || !endDate || !endTime) {
@@ -239,7 +233,7 @@ export default function View() {
 
     useEffect(() => {
         // Trigger availability check when relevant time/date inputs change
-        if (bookingOption === "single_day" && startTime && endTime) {
+        if (bookingOption === "single_day" && startDate && startTime && endTime) {
             handleAvailabilityCheck();
         } else if (bookingOption === "multi_day" && startDate && startTime && endDate && endTime) {
             handleAvailabilityCheck();
@@ -247,114 +241,215 @@ export default function View() {
             setIsResourceAvailable(null);
             setBookingMessage("");
         }
-    }, [startTime, endTime, startDate, endDate, bookingOption]);
+    }, [startDate, startTime, endDate, endTime, bookingOption]);
 
     const requiresDocument = user?.user_type === 'student' &&
         (bookingType === 'student_meeting' || bookingType === 'church_meeting');
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        setValidationErrors({});
-        setBookingMessage("Submitting...");
-
-        if (!resource || !resource.id) {
-            setBookingMessage("Resource not loaded. Please refresh and try again.");
-            return;
-        }
-
-        let startDateTime, endDateTime;
+        async function handleSubmit(e) {
+            e.preventDefault();
+            setValidationErrors({});
+            setBookingMessage("Submitting...");
         
-        if (bookingOption === 'single_day') {
-            if (!startDate || !startTime || !endTime) {
-                setBookingMessage("For single day bookings, please provide a start date, start time, and end time.");
+            // Validate user authentication
+            if (!user || !user.id) {
+                setBookingMessage("You must be logged in to make a booking.");
                 return;
             }
-            startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
-            endDateTime = moment(`${startDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
-        } else { // multi_day
-            if (!startDate || !startTime || !endDate || !endTime) {
-                setBookingMessage("For multi-day bookings, please provide all start/end dates and times.");
+        
+            if (!token) {
+                setBookingMessage("Authentication token missing. Please log in again.");
                 return;
             }
-            startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
-            endDateTime = moment(`${endDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
-        }
-
-        if (!startDateTime.isValid() || !endDateTime.isValid()) {
-            setBookingMessage("The dates or times provided are not valid. Please check them.");
-            return;
-        }
-
-        if (!endDateTime.isAfter(startDateTime)) {
-            setBookingMessage("The booking end time must be after the start time.");
-            return;
-        }
-
-        if (startDateTime.isBefore(moment())) {
-            setBookingMessage("Bookings must be for a future time.");
-            return;
-        }
         
-        const trimmedPurpose = purpose ? purpose.trim() : "";
-        if (trimmedPurpose.length < 10 || trimmedPurpose.length > 500) {
-            setBookingMessage("Please provide a purpose between 10 and 500 characters.");
-            return;
-        }
+            // Validate resource
+            if (!resource || !resource.id) {
+                setBookingMessage("Resource not loaded. Please refresh and try again.");
+                return;
+            }
         
-        if (requiresDocument && !supportingDocument) {
-            setBookingMessage("A supporting document is required for this booking type.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('resource_id', resource.id);
-        formData.append('start_time', startDateTime.toISOString());
-        formData.append('end_time', endDateTime.toISOString());
-        formData.append('purpose', trimmedPurpose);
-        formData.append('booking_type', bookingType);
-
-        if (user?.user_type === 'admin' && priority) {
-            formData.append('priority', priority);
-        }
+            // Validate booking type
+            if (!bookingType) {
+                setBookingMessage("Please select a booking type.");
+                return;
+            }
         
-        if (supportingDocument) {
-            formData.append('supporting_document', supportingDocument);
-        }
-
-        try {
-            const response = await fetch('/api/bookings', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                },
-                body: formData,
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setBookingMessage(data.message || "Booking created successfully!");
-                getResourceBookings(); // Refresh the bookings list
-                // Clear form
-                setPurpose('');
-                setPriority('');
-                setBookingType('');
-                setSupportingDocument(null);
-            } else {
-                if (response.status === 422) {
-                    setBookingMessage(data.message || 'Please fix the errors below.');
-                    setValidationErrors(data.errors);
-                } else {
-                    setBookingMessage(data.message || 'An error occurred.');
+            // Date and time validation
+            let startDateTime, endDateTime;
+            
+            if (bookingOption === 'single_day') {
+                if (!startDate || !startTime || !endTime) {
+                    setBookingMessage("For single day bookings, please provide a start date, start time, and end time.");
+                    return;
                 }
+                startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
+                endDateTime = moment(`${startDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
+            } else { // multi_day
+                if (!startDate || !startTime || !endDate || !endTime) {
+                    setBookingMessage("For multi-day bookings, please provide all start/end dates and times.");
+                    return;
+                }
+                startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
+                endDateTime = moment(`${endDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
             }
-        } catch (error) {
-            setBookingMessage('A network error occurred. Please try again later.');
-            console.error("Booking submission error:", error);
-        }
-    }
+        
+            if (!startDateTime.isValid() || !endDateTime.isValid()) {
+                setBookingMessage("The dates or times provided are not valid. Please check them.");
+                return;
+            }
+        
+            if (!endDateTime.isAfter(startDateTime)) {
+                setBookingMessage("The booking end time must be after the start time.");
+                return;
+            }
+        
+            if (startDateTime.isBefore(moment())) {
+                setBookingMessage("Bookings must be for a future time.");
+                return;
+            }
+            
+            // Purpose validation
+            const trimmedPurpose = purpose ? purpose.trim() : "";
+            if (trimmedPurpose.length < 10 || trimmedPurpose.length > 500) {
+                setBookingMessage("Please provide a purpose between 10 and 500 characters.");
+                return;
+            }
+            
+            // Document validation
+            if (requiresDocument && !supportingDocument) {
+                setBookingMessage("A supporting document is required for this booking type.");
+                return;
+            }
+        
+            // Check availability before submitting
+            if (isResourceAvailable === false) {
+                setBookingMessage("Resource is not available for the selected time. Please choose different times.");
+                return;
+            }
+        
+            // Create FormData
+            const formData = new FormData();
+            
+            // Add required fields with proper conversion
+            formData.append('resource_id', resource.id.toString());
+            formData.append('user_id', user.id.toString());
+            formData.append('start_time', startDateTime.toISOString());
+            formData.append('end_time', endDateTime.toISOString());
+            formData.append('purpose', trimmedPurpose);
+            formData.append('booking_type', bookingType);
+        
+            // Add optional fields
+            if (user?.user_type === 'admin' && priority) {
+                formData.append('priority', priority.toString());
+            }
+            
+            if (supportingDocument) {
+                formData.append('supporting_document', supportingDocument);
+            }
+        
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            };
+        
+            let body;
+        
+            if (supportingDocument) {
+                body = formData;
+            } else {
+                headers['Content-Type'] = 'application/json';
+                const data = {};
+                for (let pair of formData.entries()) {
+                    data[pair[0]] = pair[1];
+                }
+                body = JSON.stringify(data);
+            }
+        
+            // Debug logging
+            console.log('Submitting booking with data:', {
+                resource_id: resource.id,
+                user_id: user.id,
+                start_time: startDateTime.toISOString(),
+                end_time: endDateTime.toISOString(),
+                purpose: trimmedPurpose,
+                booking_type: bookingType,
+                priority: priority || 'not set',
+                has_document: !!supportingDocument,
+                user_type: user.user_type
+            });
+        
+            try {
+                const response = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: headers,
+                    body: body,
+                });
+        
+                const data = await response.json();
+                
+                console.log('API Response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+        
+                if (response.ok) {
+                    // Success
+                    setBookingMessage(data.message || "Booking created successfully!");
+                    alert('Booking created successfully!');
 
+                    
+                    // Send notification
+                    await sendNotification(`Your booking for ${resource.name} has been submitted successfully.`);
+                    navigate('/booking');
+                    // Refresh the bookings list
+                    getResourceBookings();
+                    
+                    // Clear form
+                    setStartDate('');
+                    setEndDate('');
+                    setStartTime('');
+                    setEndTime('');
+                    setPurpose('');
+                    setPriority('');
+                    setBookingType('');
+                    setSupportingDocument(null);
+                    setBookingOption('single_day');
+                    setIsResourceAvailable(null);
+                    
+                    // Reset file input
+                    const fileInput = document.getElementById('supportingDocument');
+                    if (fileInput) fileInput.value = '';
+                    
+                } else {
+                    // Handle different error types
+                    console.error('Booking submission failed:', data);
+                    
+                    if (response.status === 422) {
+                        // Validation errors
+                        setBookingMessage(data.message || 'Please fix the validation errors below.');
+                        if (data.errors) {
+                            setValidationErrors(data.errors);
+                        }
+                    } else if (response.status === 401) {
+                        setBookingMessage('Authentication failed. Please log in again.');
+                        // Optionally redirect to login
+                    } else if (response.status === 403) {
+                        setBookingMessage('You do not have permission to book this resource.');
+                    } else if (response.status === 409) {
+                        setBookingMessage('Resource is not available for the selected time. Please choose different times.');
+                        setIsResourceAvailable(false);
+                    } else if (response.status === 500) {
+                        setBookingMessage('Server error occurred. Please try again later.');
+                    } else {
+                        setBookingMessage(data.message || `Error: ${response.status} - ${response.statusText}`);
+                    }
+                }
+            } catch (error) {
+                console.error("Network/Fetch error:", error);
+                setBookingMessage(`Network error: ${error.message}. Please check your connection and try again.`);
+            }
+        }
     async function handleDelete(e) {
         e.preventDefault();
 
@@ -498,7 +593,7 @@ export default function View() {
 
                                             
                                             <div className="form-group">
-                                                <label htmlFor="startDate">Start Date:</label>
+                                                <label htmlFor="startDate">{bookingOption === 'single_day' ? 'Date:' : 'Start Date:'}</label>
                                                     <input
                                                         type="date"
                                                         id="startDate"

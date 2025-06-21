@@ -82,12 +82,13 @@ export default function Home() {
 
                 {/* Category Filter Section */}
                 <div className="category-filter-container">
-                    <label htmlFor="category-select">Filter by Category:</label>
+                    <label htmlFor="category-select" className="category-filter-label">Filter by Category:</label>
                     <select
                         id="category-select"
                         className="category-dropdown"
                         value={selectedCategory}
                         onChange={(e) => handleCategoryChange(e.target.value)}
+                        aria-label="Select resource category"
                     >
                         {categories.map((cat) => (
                             <option key={cat.value} value={cat.value}>
@@ -95,7 +96,6 @@ export default function Home() {
                             </option>
                         ))}
                     </select>
-                   
                 </div>
 
                 {loading && <p className="loading-message">Loading resources...</p>}

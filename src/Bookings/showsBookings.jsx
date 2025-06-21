@@ -18,6 +18,11 @@ export default function MyBookings() {
     const [filterStatus, setFilterStatus] = useState('all');
     // --- END NEW STATES ---
 
+    // --- NEW STATES FOR PAGINATION ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const [paginationInfo, setPaginationInfo] = useState(null);
+    // --- END NEW STATES ---
+
     // --- NEW STATES FOR REJECT MODAL ---
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
@@ -36,7 +41,18 @@ export default function MyBookings() {
     // --- END NEW STATES ---
 
     const fetchBookings = useCallback(async () => {
+        console.log("fetchBookings called with:", { 
+            token: !!token, 
+            user: !!user, 
+            userType: user?.user_type,
+            filterPriority, 
+            sortOrder, 
+            filterStatus,
+            currentPage 
+        });
+        
         if (!token) {
+            console.log("No token found, redirecting to login");
             setLoading(false);
             setError("You must be logged in to view bookings.");
             navigate('/login');
@@ -50,18 +66,27 @@ export default function MyBookings() {
 
             // --- CONSTRUCT URL WITH QUERY PARAMETERS ---
             const queryParams = new URLSearchParams();
+            
+            // Priority filter
             if (filterPriority !== 'all') {
                 queryParams.append('priority', filterPriority);
             }
-            if (sortOrder) {
-                queryParams.append('order', sortOrder);
-            }
-            if (filterStatus !== 'all') {
+            
+            // Status filter - only send for admin users since backend has different logic for regular users
+            if (filterStatus !== 'all' && user?.user_type === 'admin') {
                 queryParams.append('status', filterStatus);
             }
             
-            // If you want to add pagination, you can also append page and limit here
+            // Sorting - backend expects 'sort_by' and 'order'
+            queryParams.append('sort_by', 'created_at'); // Default sort by created_at
+            queryParams.append('order', sortOrder);
+            
+            // Pagination
+            queryParams.append('per_page', '15'); // Match backend default
+            queryParams.append('page', currentPage.toString());
+            
             const url = `/api/bookings?${queryParams.toString()}`;
+            console.log("Making API call to:", url);
 
             const res = await fetch(url, {
                 method: 'GET',
@@ -71,25 +96,38 @@ export default function MyBookings() {
                 }
             });
 
+            console.log("API response status:", res.status);
             const data = await res.json();
+            console.log("API response data:", data);
 
             if (res.ok) {
+                console.log("API call successful, processing data...");
                 
                 if (data.success) {
+                    console.log("Data has success flag, checking bookings array...");
                     
-                    if (Array.isArray(data.bookings)) {
+                    // Handle paginated response from Laravel backend
+                    if (data.bookings && Array.isArray(data.bookings)) {
+                        console.log("Found bookings array with", data.bookings.length, "bookings");
                         setBookings(data.bookings);
-                    } else if (data.data && Array.isArray(data.data.data)) { // For Laravel paginate response
-                        setBookings(data.data.data);
+                        
+                        // Store pagination info if needed for future pagination controls
+                        if (data.pagination) {
+                            console.log("Pagination info:", data.pagination);
+                            setPaginationInfo(data.pagination);
+                        }
                     } else {
+                        console.log("Unexpected data format:", data);
                         setError(data.message || "Received unexpected data format for bookings.");
                         setBookings([]);
                     }
                 } else {
+                    console.log("API returned success: false");
                     setError(data.message || "Failed to fetch bookings.");
                     setBookings([]);
                 }
             } else {
+                console.log("API call failed with status:", res.status);
                 setError(data.message || "Failed to fetch bookings.");
                 console.error("Failed to fetch bookings:", data);
 
@@ -101,20 +139,25 @@ export default function MyBookings() {
                 }
             }
         } catch (err) {
+            console.log("Network error occurred:", err);
             setError("An error occurred while fetching bookings. Please check your network connection.");
             console.error("Network or API error:", err);
         } finally {
             setLoading(false);
         }
-    }, [token, navigate, setUser, filterPriority, sortOrder, filterStatus]);
+    }, [token, navigate, setUser, filterPriority, sortOrder, filterStatus, currentPage]);
 
     useEffect(() => {
+        console.log("useEffect triggered with:", { token: !!token, user: !!user, userType: user?.user_type });
         if (token && user) {
+            console.log("Token and user exist, calling fetchBookings");
             fetchBookings();
         } else {
+            console.log("Token or user missing, clearing bookings");
             setBookings([]);
             setLoading(false);
             if (!user) {
+                console.log("No user, setting error");
                 setError("Please log in to view bookings.");
             }
         }
@@ -389,6 +432,7 @@ export default function MyBookings() {
 
     const handleAdminStatusFilter = (status) => {
         setFilterStatus(status);
+        setCurrentPage(1); // Reset to first page when filter changes
     };
 
     // --- Render Logic ---
@@ -411,6 +455,38 @@ export default function MyBookings() {
             <h1 className="my-bookings-title">
                 {isAdmin ? "All System Bookings" : "My Bookings"}
             </h1>
+
+            {/* Report Issue Link for Non-Admin Users */}
+            {!isAdmin && (
+                <div style={{ marginBottom: '20px', textAlign: 'right' }}>
+                    <Link 
+                        to="/reportIssueForm" 
+                        style={{
+                            display: 'inline-block',
+                            padding: '10px 20px',
+                            backgroundColor: 'var(--primary-color, #007bff)',
+                            color: 'var(--text-light-on-dark, white)',
+                            textDecoration: 'none',
+                            borderRadius: '6px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'var(--primary-color-dark, #0056b3)';
+                            e.target.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'var(--primary-color, #007bff)';
+                            e.target.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        📋 Report an Issue
+                    </Link>
+                </div>
+            )}
 
             {message && (
                 <p className={message.includes('successfully') ? 'success-message' : 'error-message'}>
@@ -479,7 +555,10 @@ export default function MyBookings() {
                 <select
                     id="priority-filter"
                     value={filterPriority}
-                    onChange={(e) => setFilterPriority(e.target.value)}
+                    onChange={(e) => {
+                        setFilterPriority(e.target.value);
+                        setCurrentPage(1); // Reset to first page when filter changes
+                    }}
                 >
                     <option value="all">All Priorities</option>
                     <option value="low">Low</option>
@@ -491,7 +570,10 @@ export default function MyBookings() {
                 <select
                     id="sort-order"
                     value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
+                    onChange={(e) => {
+                        setSortOrder(e.target.value);
+                        setCurrentPage(1); // Reset to first page when sort changes
+                    }}
                 >
                     <option value="desc">Newest First</option>
                     <option value="asc">Oldest First</option>
@@ -1004,6 +1086,98 @@ export default function MyBookings() {
                     </table>
                 </div>
             )}
+
+            {/* --- PAGINATION CONTROLS --- */}
+            {paginationInfo && paginationInfo.last_page > 1 && (
+                <div className="pagination-controls" style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginTop: '20px',
+                    padding: '15px',
+                    backgroundColor: 'var(--bg-light)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)'
+                }}>
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        style={{
+                            padding: '8px 12px',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            backgroundColor: currentPage === 1 ? 'var(--bg-disabled)' : 'var(--bg-light)',
+                            color: currentPage === 1 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (currentPage !== 1) {
+                                e.target.style.backgroundColor = 'var(--bg-hover)';
+                                e.target.style.borderColor = 'var(--primary-color)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (currentPage !== 1) {
+                                e.target.style.backgroundColor = 'var(--bg-light)';
+                                e.target.style.borderColor = 'var(--border-color)';
+                            }
+                        }}
+                    >
+                        Previous
+                    </button>
+
+                    <span style={{
+                        color: 'var(--text-secondary)',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                    }}>
+                        Page {currentPage} of {paginationInfo.last_page}
+                    </span>
+
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(paginationInfo.last_page, prev + 1))}
+                        disabled={currentPage === paginationInfo.last_page}
+                        style={{
+                            padding: '8px 12px',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            backgroundColor: currentPage === paginationInfo.last_page ? 'var(--bg-disabled)' : 'var(--bg-light)',
+                            color: currentPage === paginationInfo.last_page ? 'var(--text-disabled)' : 'var(--text-primary)',
+                            cursor: currentPage === paginationInfo.last_page ? 'not-allowed' : 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (currentPage !== paginationInfo.last_page) {
+                                e.target.style.backgroundColor = 'var(--bg-hover)';
+                                e.target.style.borderColor = 'var(--primary-color)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (currentPage !== paginationInfo.last_page) {
+                                e.target.style.backgroundColor = 'var(--bg-light)';
+                                e.target.style.borderColor = 'var(--border-color)';
+                            }
+                        }}
+                    >
+                        Next
+                    </button>
+
+                    <span style={{
+                        color: 'var(--text-secondary)',
+                        fontSize: '12px',
+                        marginLeft: '15px'
+                    }}>
+                        Showing {paginationInfo.from || 0} to {paginationInfo.to || 0} of {paginationInfo.total || 0} bookings
+                    </span>
+                </div>
+            )}
+            {/* --- END PAGINATION CONTROLS --- */}
         </div>
     );
 }

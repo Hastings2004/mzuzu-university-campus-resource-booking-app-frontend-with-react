@@ -3,7 +3,7 @@ import { AppContext } from '../context/appContext';
 import axios from 'axios';
 
 export default function ReportIssueForm({ resourceId, name, onClose, onIssueReported }) {
-    const { token } = useContext(AppContext);
+    const { token, user } = useContext(AppContext);
 
     // State for text inputs (subject, description, name)
     const [formInputData, setFormInputData] = useState({
@@ -13,10 +13,92 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
     });
     // State for the file input (photo)
     const [photo, setPhoto] = useState(null);
+    
+    // State for resources dropdown
+    const [resources, setResources] = useState([]);
+    const [loadingResources, setLoadingResources] = useState(false);
+
+    // State for toggle between report form and issues list
+    const [showIssues, setShowIssues] = useState(false);
+    const [userIssues, setUserIssues] = useState([]);
+    const [loadingIssues, setLoadingIssues] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+
+    // Fetch resources from database
+    const fetchResources = async () => {
+        setLoadingResources(true);
+        try {
+            const response = await axios.get('/api/resources', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.data.success && Array.isArray(response.data.resources)) {
+                setResources(response.data.resources);
+            } else {
+                console.error('Invalid resources data format:', response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching resources:', err);
+            setError('Failed to load resources. Please try again.');
+        } finally {
+            setLoadingResources(false);
+        }
+    };
+
+    // Fetch user's issues
+    const fetchUserIssues = async () => {
+        setLoadingIssues(true);
+        try {
+            const response = await axios.get('/api/resource-issues', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data && response.data.data && Array.isArray(response.data.data)) {
+                // For non-admin users, filter to show only their own issues
+                // For admin users, the backend already filters to show only their issues
+                let currentUserIssues;
+                if (user?.user_type !== 'admin') {
+                    // Non-admin users: filter to show only their own issues
+                    currentUserIssues = response.data.data.filter(issue => 
+                        issue.reported_by_user_id === user?.id || 
+                        issue.reporter?.id === user?.id ||
+                        issue.user_id === user?.id
+                    );
+                } else {
+                    // Admin users: backend already filters to show only their issues
+                    currentUserIssues = response.data.data;
+                }
+                setUserIssues(currentUserIssues);
+            } else {
+                console.error('Invalid user issues data format:', response.data);
+                setUserIssues([]);
+            }
+        } catch (err) {
+            console.error('Error fetching user issues:', err);
+            setError('Failed to load your issues. Please try again.');
+            setUserIssues([]);
+        } finally {
+            setLoadingIssues(false);
+        }
+    };
+
+    // Handle toggle between report form and issues list
+    const handleToggleView = () => {
+        if (!showIssues) {
+            // Switching to issues view, fetch user issues
+            fetchUserIssues();
+        }
+        setShowIssues(!showIssues);
+        setError(null); // Clear any previous errors
+    };
 
     useEffect(() => {
         console.log('ReportIssueForm props:', {
@@ -27,7 +109,12 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
             nameType: typeof name,
             nameValue: name
         });
-    }, [resourceId, name]);
+        
+        // Fetch resources when component mounts
+        if (token) {
+            fetchResources();
+        }
+    }, [resourceId, name, token]);
 
     // Handles changes for text inputs
     const handleInputChange = (e) => {
@@ -170,124 +257,197 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
         }
     };
 
+    // Format date for display
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleString();
+    };
+
+    // Get status color
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'pending':
+                return { color: '#856404', backgroundColor: '#fff3cd' };
+            case 'in_progress':
+                return { color: '#0c5460', backgroundColor: '#d1ecf1' };
+            case 'resolved':
+                return { color: '#155724', backgroundColor: '#d4edda' };
+            case 'closed':
+                return { color: '#721c24', backgroundColor: '#f8d7da' };
+            default:
+                return { color: '#6c757d', backgroundColor: '#f8f9fa' };
+        }
+    };
+
     return (
         <div className="report-issue-form-container">
-            <h3>Report Issue for: {name}</h3>
+            <div className="header-section">
+                <h3>{showIssues ? 'My Reported Issues' : `Report Issue for: ${name}`}</h3>
+                <button
+                    type="button"
+                    onClick={handleToggleView}
+                    className={`toggle-button ${showIssues ? 'report-new' : 'show-issues'}`}
+                >
+                    {showIssues ? 'Report New Issue' : 'Show My Issues'}
+                </button>
+            </div>
             
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="subject">Subject: <span style={{color: 'red'}}>*</span></label>
-                    <input
-                        type="text"
-                        id="subject"
-                        value={formInputData.subject}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="e.g., Projector not working, Room is dirty"
-                        disabled={loading}
-                    />
-                   
+            {error && (
+                <div className="error-message">
+                    {error}
                 </div>
-                
-                <div className="form-group">
-                    <label htmlFor="name">Resource Name: <span style={{color: 'red'}}>*</span></label>
-                    <input
-                        type="text"
-                        id="name"
-                        value={formInputData.name}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="Enter the exact resource name from database"
-                        disabled={loading}
-                    />
-                   
-                </div>
-                
-                <div className="form-group">
-                    <label htmlFor="description">Description (Optional):</label>
-                    <textarea
-                        id="description"
-                        value={formInputData.description}
-                        onChange={handleInputChange}
-                        rows="4"
-                        placeholder="Provide more details about the issue..."
-                        disabled={loading}
-                    ></textarea>
-                </div>
-                
-                <div className="form-group">
-                    <label htmlFor="issuePhotoInput">Attach Photo (Optional):</label>
-                    <input
-                        type="file"
-                        id="issuePhotoInput"
-                        accept="image/*"
-                        onChange={handlePhotoChange}
-                        disabled={loading}
-                    />
-                    {photo && (
-                        <p style={{fontSize: '0.9em', color: '#666', marginTop: '5px'}}>
-                            Selected: {photo.name}
+            )}
+
+            {showIssues ? (
+                // Issues List View
+                <div className="issues-list-container">
+                    {loadingIssues ? (
+                        <p className="loading-message">Loading your issues...</p>
+                    ) : userIssues.length > 0 ? (
+                        <div className="issues-list">
+                            {userIssues.map((issue, index) => (
+                                <div key={issue.id || index} className="issue-item">
+                                    <div className="issue-header">
+                                        <h4 className="issue-title">{issue.subject}</h4>
+                                        <span className={`issue-status ${issue.status}`}>
+                                            {issue.status?.replace('_', ' ').toUpperCase()}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="issue-details">
+                                        <div className="issue-detail">
+                                            <strong>Resource:</strong> {issue.name}
+                                        </div>
+                                        
+                                        {issue.description && (
+                                            <div className="issue-detail">
+                                                <strong>Description:</strong> {issue.description}
+                                            </div>
+                                        )}
+                                        
+                                        <div className="issue-detail">
+                                            <strong>Reported:</strong> {formatDate(issue.created_at)}
+                                        </div>
+                                        
+                                        {issue.updated_at !== issue.created_at && (
+                                            <div className="issue-detail">
+                                                <strong>Last Updated:</strong> {formatDate(issue.updated_at)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {issue.photo && (
+                                        <div className="issue-photo">
+                                            <p><strong>Attached Photo:</strong></p>
+                                            <img 
+                                                src={issue.photo} 
+                                                alt="Issue photo" 
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="no-issues-message">
+                            You haven't reported any issues yet.
                         </p>
                     )}
                 </div>
-                
-                {error && (
-                    <div className="error-message" style={{
-                        whiteSpace: 'pre-line', 
-                        background: '#ffebee', 
-                        padding: '10px', 
-                        borderRadius: '4px',
-                        border: '1px solid #ffcdd2',
-                        color: '#c62828'
-                    }}>
-                        {error}
+            ) : (
+                // Report Form View
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="subject">
+                            Subject: <span className="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="subject"
+                            value={formInputData.subject}
+                            onChange={handleInputChange}
+                            required
+                            placeholder="e.g. Room is dirty"
+                            disabled={loading}
+                        />
                     </div>
-                )}
-                {success && (
-                    <div className="success-message" style={{
-                        background: '#e8f5e8', 
-                        padding: '10px', 
-                        borderRadius: '4px',
-                        border: '1px solid #4caf50',
-                        color: '#2e7d32'
-                    }}>
-                        Issue reported successfully!
+                    
+                    <div className="form-group">
+                        <label htmlFor="name">
+                            Resource Name: <span className="required">*</span>
+                        </label>
+                        {loadingResources ? (
+                            <select disabled>
+                                <option>Loading resources...</option>
+                            </select>
+                        ) : (
+                            <select
+                                id="name"
+                                value={formInputData.name}
+                                onChange={handleInputChange}
+                                required
+                                disabled={loading}
+                            >
+                                <option value="">Select a resource</option>
+                                {resources.map(resource => (
+                                    <option key={resource.id} value={resource.name}>
+                                        {resource.name} - {resource.location} (Capacity: {resource.capacity})
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
-                )}
-                
-                <div className="form-actions">
-                    <button 
-                        type="submit" 
-                        disabled={loading || !formInputData.subject?.trim() || !formInputData.name?.trim()}
-                        style={{
-                            padding: '10px 20px',
-                            marginRight: '10px',
-                            backgroundColor: loading ? '#ccc' : '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: loading ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        {loading ? 'Submitting...' : 'Submit Report'}
-                    </button>
-                    <button 
-                        type="button" 
-                        onClick={onClose} 
-                        disabled={loading}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#6c757d',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: loading ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </form>
+                    
+                    <div className="form-group">
+                        <label htmlFor="description">Description (Optional):</label>
+                        <textarea
+                            id="description"
+                            value={formInputData.description}
+                            onChange={handleInputChange}
+                            rows="4"
+                            placeholder="Provide more details about the issue..."
+                            disabled={loading}
+                        ></textarea>
+                    </div>
+                    
+                    <div className="form-group">
+                        <label htmlFor="issuePhotoInput">Attach Photo (Optional):</label>
+                        <input
+                            type="file"
+                            id="issuePhotoInput"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            disabled={loading}
+                        />
+                        {photo && (
+                            <p className="file-selected">
+                                Selected: {photo.name}
+                            </p>
+                        )}
+                    </div>
+                    
+                    {success && (
+                        <div className="success-message">
+                            Issue reported successfully!
+                        </div>
+                    )}
+                    
+                    <div className="form-actions">
+                        <button 
+                            type="submit" 
+                            disabled={loading || !formInputData.subject?.trim() || !formInputData.name?.trim()}
+                        >
+                            {loading ? 'Submitting...' : 'Submit Report'}
+                        </button>
+                        <button 
+                            type="button" 
+                            onClick={onClose} 
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            )}
         </div>
     );
 }
