@@ -60,7 +60,9 @@ export default function Layout() {
   async function handleLogout(e) {
     e.preventDefault();
 
-    if (!window.confirm("Are you sure you want to logout?")) {
+    // Show confirmation dialog
+    const isConfirmed = window.confirm("Are you sure you want to logout?");
+    if (!isConfirmed) {
       return;
     }
 
@@ -322,7 +324,11 @@ export default function Layout() {
             <li>
               <NavLink
                 to="/createResource"
-                className={({ isActive }) => (isActive ? "active" : "")}
+                className={({ isActive }) => {
+                  const path = location.pathname;
+                  const isResourcePath = path.startsWith('/resources/') || path === '/createResource' || path === '/createResource/';
+                  return (isActive || isResourcePath) ? "active" : "";
+                }}
                 onClick={handleNavLinkClick}
               >
                 <i className="bx bxs-component"></i>

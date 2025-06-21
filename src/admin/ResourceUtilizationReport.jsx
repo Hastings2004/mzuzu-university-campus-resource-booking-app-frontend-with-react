@@ -3,6 +3,7 @@ import { AppContext } from '../context/appContext';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import logoImage from '../assets/logo.png';
 
 export default function ResourceUtilizationReport() {
     const { token, user } = useContext(AppContext);
@@ -130,11 +131,48 @@ export default function ResourceUtilizationReport() {
         try {
             const doc = new jsPDF();
 
-            // Add title
+            // Set font to Times New Roman
+            doc.setFont('times', 'normal');
+
+            // Add logo (you can replace this with your actual logo path)
+            try {
+                const pageWidth = doc.internal.pageSize.width;
+                const logoWidth = 30;
+                const logoX = (pageWidth - logoWidth) / 2;
+                doc.addImage(logoImage, 'PNG', logoX, 15, logoWidth, 15);
+            } catch (logoError) {
+                console.warn('Could not load logo:', logoError);
+                // Continue without logo if it fails to load
+            }
+            
+            // Add company name and header information
+            doc.setFontSize(14);
+            doc.setFont('times', 'bold');
+            const systemText = 'Campus Resource Booking System';
+            const systemTextWidth = doc.getTextWidth(systemText);
+            const pageWidth = doc.internal.pageSize.width;
+            const systemTextX = (pageWidth - systemTextWidth) / 2;
+            doc.text(systemText, systemTextX, 45);
+            
+            // Add report title
             doc.setFontSize(16);
-            doc.text('Resource Utilization Report', 14, 20);
+            const reportText = 'Resource Utilization Report';
+            const reportTextWidth = doc.getTextWidth(reportText);
+            const reportTextX = (pageWidth - reportTextWidth) / 2;
+            doc.text(reportText, reportTextX, 60);
+            
+            // Add report period
             doc.setFontSize(10);
-            doc.text(`Period: ${reportPeriod.start_date} to ${reportPeriod.end_date}`, 14, 28);
+            doc.setFont('times', 'normal');
+            doc.text(`Report Period: ${reportPeriod.start_date} to ${reportPeriod.end_date}`, 14, 80);
+            
+            // Add generation date
+            const currentDate = new Date().toLocaleDateString();
+            doc.text(`Generated on: ${currentDate}`, 14, 90);
+            
+            // Add additional header information
+            doc.text('Department: Information Technology', 14, 100);
+            doc.text('Report Type: Monthly Utilization Analysis', 14, 110);
 
             // Prepare table data
             const tableColumn = ["Resource Name", "Total Booked Hours", "Total Available Hours", "Utilization Percentage (%)"];
@@ -156,11 +194,34 @@ export default function ResourceUtilizationReport() {
             autoTable(doc, {
                 head: [tableColumn],
                 body: tableRows,
-                startY: 40,
+                startY: 125, // Increased startY to accommodate header content with more spacing
                 theme: 'striped',
                 headStyles: { fillColor: [20, 20, 100] },
-                margin: { top: 30 }
+                margin: { top: 30 },
+                styles: {
+                    font: 'times',
+                    fontSize: 10
+                },
+                headStyles: {
+                    fillColor: [20, 20, 100],
+                    font: 'times',
+                    fontSize: 10
+                }
             });
+
+            // Add footer information
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                
+                // Add page number
+                doc.setFontSize(8);
+                doc.text(`Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 15);
+                
+                // Add footer text with more spacing
+                doc.text('This report is generated automatically by the Campus Resource Management System', 14, doc.internal.pageSize.height - 8);
+                doc.text('For questions or concerns, please contact the IT department', 14, doc.internal.pageSize.height - 3);
+            }
 
             // Save PDF
             const filename = `Resource_Utilization_Report_${reportPeriod.start_date}_to_${reportPeriod.end_date}.pdf`;

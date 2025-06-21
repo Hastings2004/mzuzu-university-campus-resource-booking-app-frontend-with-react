@@ -18,6 +18,23 @@ export default function MyBookings() {
     const [filterStatus, setFilterStatus] = useState('all');
     // --- END NEW STATES ---
 
+    // --- NEW STATES FOR REJECT MODAL ---
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectReason, setRejectReason] = useState('');
+    const [rejectNotes, setRejectNotes] = useState('');
+    const [rejectingBookingId, setRejectingBookingId] = useState(null);
+    const [rejectLoading, setRejectLoading] = useState(false);
+    // --- END NEW STATES ---
+
+    // --- NEW STATES FOR CANCEL MODAL ---
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [cancelRefundAmount, setCancelRefundAmount] = useState('');
+    const [cancelNotes, setCancelNotes] = useState('');
+    const [cancellingBookingId, setCancellingBookingId] = useState(null);
+    const [cancelLoading, setCancelLoading] = useState(false);
+    // --- END NEW STATES ---
+
     const fetchBookings = useCallback(async () => {
         if (!token) {
             setLoading(false);
@@ -103,13 +120,101 @@ export default function MyBookings() {
         }
     }, [user, token, fetchBookings]);
 
-    const handleStatusUpdate = async (bookingId, newStatus) => {
-        if (!user || user.user_type !== 'admin') {
-            setMessage("Unauthorized to perform this action.");
+    // --- NEW FUNCTION FOR HANDLING USER CANCELLATIONS ---
+    const handleUserCancel = async (bookingId) => {
+        if (!user) {
+            setMessage("You must be logged in to perform this action.");
             return;
         }
 
-        // Using a custom modal/dialog instead of window.confirm for better UX
+        // For user cancellations, we might need to use a different endpoint or approach
+        // Let's try using a PATCH request to update the status directly
+        if (!window.confirm("Are you sure you want to cancel this booking?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/bookings/${bookingId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: 'cancelled'
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage(data.message || "Booking cancelled successfully!");
+                fetchBookings(); // Re-fetch bookings to update list
+            } else {
+                // If PATCH doesn't work, try alternative approach
+                console.log("PATCH failed, trying alternative approach:", data);
+                
+                // Alternative: Try using a different endpoint or method
+                const altRes = await fetch(`/api/bookings/${bookingId}/user-cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const altData = await altRes.json();
+
+                if (altRes.ok) {
+                    setMessage(altData.message || "Booking cancelled successfully!");
+                    fetchBookings();
+                } else {
+                    setMessage(altData.message || "Failed to cancel booking. Please contact support.");
+                    console.error("Alternative cancel approach failed:", altData);
+                }
+            }
+        } catch (err) {
+            setMessage("An error occurred while trying to cancel the booking.");
+            console.error("Network error during user cancel:", err);
+        }
+    };
+
+    const handleStatusUpdate = async (bookingId, newStatus) => {
+        // Check if user is logged in
+        if (!user) {
+            setMessage("You must be logged in to perform this action.");
+            return;
+        }
+
+        // Admin-only actions
+        if (['approve', 'reject'].includes(newStatus)) {
+            if (user.user_type !== 'admin') {
+                setMessage("Unauthorized to perform this action.");
+                return;
+            }
+        }
+
+        // Special handling for reject - show modal instead of direct action (admin only)
+        if (newStatus === 'reject') {
+            setRejectingBookingId(bookingId);
+            setShowRejectModal(true);
+            return;
+        }
+
+        // Special handling for cancel - show modal for admin cancellations
+        if (newStatus === 'cancel' && user.user_type === 'admin') {
+            setCancellingBookingId(bookingId);
+            setShowCancelModal(true);
+            return;
+        }
+
+        // Special handling for user cancellations
+        if (newStatus === 'cancel' && user.user_type !== 'admin') {
+            handleUserCancel(bookingId);
+            return;
+        }
+
+        // For other actions, use simple confirmation
         if (!window.confirm(`Are you sure you want to ${newStatus} this booking?`)) {
             return;
         }
@@ -134,6 +239,116 @@ export default function MyBookings() {
         } catch (err) {
             setMessage(`An error occurred while trying to ${newStatus} the booking.`);
             console.error(`Network error during ${newStatus}:`, err);
+        }
+    };
+
+    // --- NEW FUNCTION FOR HANDLING REJECT SUBMISSION ---
+    const handleRejectSubmit = async () => {
+        if (!rejectReason.trim()) {
+            setMessage("Rejection reason is required.");
+            return;
+        }
+
+        setRejectLoading(true);
+        try {
+            const res = await fetch(`/api/bookings/${rejectingBookingId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reason: rejectReason.trim(),
+                    notes: rejectNotes.trim() || null
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage(data.message || "Booking rejected successfully!");
+                setShowRejectModal(false);
+                setRejectReason('');
+                setRejectNotes('');
+                setRejectingBookingId(null);
+                fetchBookings(); // Re-fetch bookings to update list
+            } else {
+                if (data.errors) {
+                    // Handle validation errors
+                    const errorMessages = Object.values(data.errors).flat().join(', ');
+                    setMessage(`Validation failed: ${errorMessages}`);
+                } else {
+                    setMessage(data.message || "Failed to reject booking.");
+                }
+                console.error("Failed to reject booking:", data);
+            }
+        } catch (err) {
+            setMessage("An error occurred while trying to reject the booking.");
+            console.error("Network error during reject:", err);
+        } finally {
+            setRejectLoading(false);
+        }
+    };
+
+    // --- NEW FUNCTION FOR HANDLING CANCEL SUBMISSION ---
+    const handleCancelSubmit = async () => {
+        if (!cancelReason.trim()) {
+            setMessage("Cancellation reason is required.");
+            return;
+        }
+
+        setCancelLoading(true);
+        try {
+            const requestBody = {
+                reason: cancelReason.trim(),
+                notes: cancelNotes.trim() || null
+            };
+
+            // Add refund amount if provided
+            if (cancelRefundAmount.trim()) {
+                const refundAmount = parseFloat(cancelRefundAmount);
+                if (isNaN(refundAmount) || refundAmount < 0) {
+                    setMessage("Refund amount must be a valid positive number.");
+                    setCancelLoading(false);
+                    return;
+                }
+                requestBody.refund_amount = refundAmount;
+            }
+
+            const res = await fetch(`/api/bookings/${cancellingBookingId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage(data.message || "Booking cancelled successfully!");
+                setShowCancelModal(false);
+                setCancelReason('');
+                setCancelRefundAmount('');
+                setCancelNotes('');
+                setCancellingBookingId(null);
+                fetchBookings(); // Re-fetch bookings to update list
+            } else {
+                if (data.errors) {
+                    // Handle validation errors
+                    const errorMessages = Object.values(data.errors).flat().join(', ');
+                    setMessage(`Validation failed: ${errorMessages}`);
+                } else {
+                    setMessage(data.message || "Failed to cancel booking.");
+                }
+                console.error("Failed to cancel booking:", data);
+            }
+        } catch (err) {
+            setMessage("An error occurred while trying to cancel the booking.");
+            console.error("Network error during cancel:", err);
+        } finally {
+            setCancelLoading(false);
         }
     };
 
@@ -250,9 +465,9 @@ export default function MyBookings() {
                     </button>
                      <button
                         onClick={() => handleAdminStatusFilter('completed')}
-                        className={`status-filter-button ${filterStatus === 'rejected' ? 'active' : ''}`}
+                        className={`status-filter-button ${filterStatus === 'completed' ? 'active' : ''}`}
                     >
-                        completed
+                        Completed
                     </button>
                 </div>
             )}
@@ -284,6 +499,423 @@ export default function MyBookings() {
             </div>
             {/* --- END FILTER AND SORT CONTROLS --- */}
 
+            {/* --- REJECT MODAL --- */}
+            {showRejectModal && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'var(--modal-overlay-bg, rgba(0, 0, 0, 0.5))',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="modal-content" style={{
+                        backgroundColor: 'var(--bg-light)',
+                        color: 'var(--text-primary)',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        maxHeight: '80vh',
+                        overflow: 'auto',
+                        border: '1px solid var(--border-color)',
+                        boxShadow: '0 4px 20px var(--shadow-medium)'
+                    }}>
+                        <h3 style={{ 
+                            color: 'var(--text-primary)', 
+                            marginBottom: '15px',
+                            borderBottom: '2px solid var(--border-color)',
+                            paddingBottom: '10px'
+                        }}>Reject Booking</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                            Please provide a reason for rejecting this booking:
+                        </p>
+                        
+                        <div style={{ marginBottom: '15px' }}>
+                            <label htmlFor="reject-reason" style={{ 
+                                display: 'block', 
+                                marginBottom: '5px', 
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)'
+                            }}>
+                                Reason: <span style={{ color: 'var(--accent-red)' }}>*</span>
+                            </label>
+                            <textarea
+                                id="reject-reason"
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                                placeholder="Enter the reason for rejection..."
+                                style={{
+                                    width: '100%',
+                                    minHeight: '80px',
+                                    padding: '12px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    resize: 'vertical',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                                }}
+                                maxLength={500}
+                                required
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-color)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--primary-color-light)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'var(--border-color)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label htmlFor="reject-notes" style={{ 
+                                display: 'block', 
+                                marginBottom: '5px', 
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)'
+                            }}>
+                                Additional Notes (Optional):
+                            </label>
+                            <textarea
+                                id="reject-notes"
+                                value={rejectNotes}
+                                onChange={(e) => setRejectNotes(e.target.value)}
+                                placeholder="Any additional notes or comments..."
+                                style={{
+                                    width: '100%',
+                                    minHeight: '60px',
+                                    padding: '12px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    resize: 'vertical',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                                }}
+                                maxLength={500}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-color)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--primary-color-light)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'var(--border-color)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    setShowRejectModal(false);
+                                    setRejectReason('');
+                                    setRejectNotes('');
+                                    setRejectingBookingId(null);
+                                }}
+                                style={{
+                                    padding: '10px 20px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    cursor: rejectLoading ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    transition: 'all 0.2s ease',
+                                    opacity: rejectLoading ? 0.6 : 1
+                                }}
+                                disabled={rejectLoading}
+                                onMouseEnter={(e) => {
+                                    if (!rejectLoading) {
+                                        e.target.style.backgroundColor = 'var(--bg-hover)';
+                                        e.target.style.borderColor = 'var(--primary-color)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!rejectLoading) {
+                                        e.target.style.backgroundColor = 'var(--bg-light)';
+                                        e.target.style.borderColor = 'var(--border-color)';
+                                    }
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRejectSubmit}
+                                style={{
+                                    padding: '10px 20px',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--accent-red)',
+                                    color: 'var(--text-light-on-dark)',
+                                    cursor: rejectLoading ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    transition: 'all 0.2s ease',
+                                    opacity: rejectLoading ? 0.7 : 1
+                                }}
+                                disabled={rejectLoading}
+                                onMouseEnter={(e) => {
+                                    if (!rejectLoading) {
+                                        e.target.style.backgroundColor = 'var(--accent-red-dark, #c82333)';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!rejectLoading) {
+                                        e.target.style.backgroundColor = 'var(--accent-red)';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                {rejectLoading ? 'Rejecting...' : 'Reject Booking'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* --- END REJECT MODAL --- */}
+
+            {/* --- CANCEL MODAL --- */}
+            {showCancelModal && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'var(--modal-overlay-bg, rgba(0, 0, 0, 0.5))',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="modal-content" style={{
+                        backgroundColor: 'var(--bg-light)',
+                        color: 'var(--text-primary)',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        maxHeight: '80vh',
+                        overflow: 'auto',
+                        border: '1px solid var(--border-color)',
+                        boxShadow: '0 4px 20px var(--shadow-medium)'
+                    }}>
+                        <h3 style={{ 
+                            color: 'var(--text-primary)', 
+                            marginBottom: '15px',
+                            borderBottom: '2px solid var(--border-color)',
+                            paddingBottom: '10px'
+                        }}>Cancel Booking</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                            Please provide a reason for cancelling this booking:
+                        </p>
+                        
+                        <div style={{ marginBottom: '15px' }}>
+                            <label htmlFor="cancel-reason" style={{ 
+                                display: 'block', 
+                                marginBottom: '5px', 
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)'
+                            }}>
+                                Reason: <span style={{ color: 'var(--accent-red)' }}>*</span>
+                            </label>
+                            <textarea
+                                id="cancel-reason"
+                                value={cancelReason}
+                                onChange={(e) => setCancelReason(e.target.value)}
+                                placeholder="Enter the reason for cancellation..."
+                                style={{
+                                    width: '100%',
+                                    minHeight: '80px',
+                                    padding: '12px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    resize: 'vertical',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                                }}
+                                maxLength={500}
+                                required
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-color)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--primary-color-light)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'var(--border-color)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label htmlFor="cancel-refund-amount" style={{ 
+                                display: 'block', 
+                                marginBottom: '5px', 
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)'
+                            }}>
+                                Refund Amount (Optional):
+                            </label>
+                            <input
+                                id="cancel-refund-amount"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={cancelRefundAmount}
+                                onChange={(e) => setCancelRefundAmount(e.target.value)}
+                                placeholder="Enter the refund amount..."
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-color)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--primary-color-light)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'var(--border-color)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label htmlFor="cancel-notes" style={{ 
+                                display: 'block', 
+                                marginBottom: '5px', 
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)'
+                            }}>
+                                Additional Notes (Optional):
+                            </label>
+                            <textarea
+                                id="cancel-notes"
+                                value={cancelNotes}
+                                onChange={(e) => setCancelNotes(e.target.value)}
+                                placeholder="Any additional notes or comments..."
+                                style={{
+                                    width: '100%',
+                                    minHeight: '60px',
+                                    padding: '12px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    resize: 'vertical',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                                }}
+                                maxLength={500}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-color)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--primary-color-light)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'var(--border-color)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    setShowCancelModal(false);
+                                    setCancelReason('');
+                                    setCancelRefundAmount('');
+                                    setCancelNotes('');
+                                    setCancellingBookingId(null);
+                                }}
+                                style={{
+                                    padding: '10px 20px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    cursor: cancelLoading ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    transition: 'all 0.2s ease',
+                                    opacity: cancelLoading ? 0.6 : 1
+                                }}
+                                disabled={cancelLoading}
+                                onMouseEnter={(e) => {
+                                    if (!cancelLoading) {
+                                        e.target.style.backgroundColor = 'var(--bg-hover)';
+                                        e.target.style.borderColor = 'var(--primary-color)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!cancelLoading) {
+                                        e.target.style.backgroundColor = 'var(--bg-light)';
+                                        e.target.style.borderColor = 'var(--border-color)';
+                                    }
+                                }}
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={handleCancelSubmit}
+                                style={{
+                                    padding: '10px 20px',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--accent-red)',
+                                    color: 'var(--text-light-on-dark)',
+                                    cursor: cancelLoading ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    transition: 'all 0.2s ease',
+                                    opacity: cancelLoading ? 0.7 : 1
+                                }}
+                                disabled={cancelLoading}
+                                onMouseEnter={(e) => {
+                                    if (!cancelLoading) {
+                                        e.target.style.backgroundColor = 'var(--accent-red-dark, #c82333)';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!cancelLoading) {
+                                        e.target.style.backgroundColor = 'var(--accent-red)';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                {cancelLoading ? 'Cancelling...' : 'Cancel Booking'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* --- END CANCEL MODAL --- */}
 
             {bookings.length === 0 ? (
                 <p className="no-bookings-message">

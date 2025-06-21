@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, AlignmentType, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
+import logoImage from '../assets/logo.png';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, PointElement, LineElement);
 
@@ -265,45 +266,34 @@ export default function Statistical() {
     };
 
     // Helper function to capture and add chart to PDF
-
     const addChartToPdf = async (doc, chartRef, title, yOffset) => {
-
         if (chartRef.current) {
-
            
-
             const chartContainer = chartRef.current.closest('.chart-container');
-
             if (chartContainer) {
-
                 const canvas = await html2canvas(chartContainer, {
-
-                    scale: 2, 
-
+                    scale: 1.5, // Reduced from 2 to 1.5 for smaller size
                     useCORS: true, 
-
                     logging: false, 
-
                 });
-
                 const imgData = canvas.toDataURL('image/png');
-
-                const imgWidth = 180; 
-
+                const imgWidth = 140; // Reduced from 180 to 140 for smaller charts
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
+                // Check if chart would overflow the page
+                if (yOffset + imgHeight + 30 > doc.internal.pageSize.height - 30) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+
+                doc.setFontSize(12);
+                doc.setFont('times', 'bold');
                 doc.text(title, 14, yOffset);
-
                 doc.addImage(imgData, 'PNG', 14, yOffset + 5, imgWidth, imgHeight);
-
-                return yOffset + imgHeight + 20; 
-
+                return yOffset + imgHeight + 25; // Reduced spacing from 20 to 25
             }
-
         }
-
         return yOffset; 
-
     };
 
     // Excel Export Function
@@ -608,165 +598,142 @@ export default function Statistical() {
 
         const doc = new jsPDF('p', 'mm', 'a4'); 
 
-        let yOffset = 20; 
+        // Set font to Times New Roman
+        doc.setFont('times', 'normal');
 
-        doc.setFontSize(20);
+        // Add logo
+        try {
+            const pageWidth = doc.internal.pageSize.width;
+            const logoWidth = 30;
+            const logoX = (pageWidth - logoWidth) / 2;
+            doc.addImage(logoImage, 'PNG', logoX, 15, logoWidth, 15);
+        } catch (logoError) {
+            console.warn('Could not load logo:', logoError);
+            // Continue without logo if it fails to load
+        }
+
+        // Add company name and header information
+        doc.setFontSize(14);
+        doc.setFont('times', 'bold');
+        const systemText = 'Campus Resource Booking System';
+        const systemTextWidth = doc.getTextWidth(systemText);
+        const pageWidth = doc.internal.pageSize.width;
+        const systemTextX = (pageWidth - systemTextWidth) / 2;
+        doc.text(systemText, systemTextX, 45);
         
-
-        doc.text('Statistical Dashboard Report', 14, yOffset);
-
-        yOffset += 10;
-
+        // Add report title
+        doc.setFontSize(16);
+        const reportText = 'Statistical Dashboard Report';
+        const reportTextWidth = doc.getTextWidth(reportText);
+        const reportTextX = (pageWidth - reportTextWidth) / 2;
+        doc.text(reportText, reportTextX, 60);
+        
+        // Add generation date
         doc.setFontSize(10);
+        doc.setFont('times', 'normal');
+        const currentDate = new Date().toLocaleDateString();
+        const currentTime = new Date().toLocaleTimeString();
+        doc.text(`Generated on: ${currentDate} at ${currentTime}`, 14, 80);
+        
+        // Add user type information
+        doc.text(`User Type: ${user?.user_type === 'admin' ? 'Administrator' : 'Regular User'}`, 14, 90);
+        doc.text(`Report Type: ${user?.user_type === 'admin' ? 'Admin Dashboard Statistics' : 'Personal Usage Statistics'}`, 14, 100);
 
-        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, yOffset);
-
-        yOffset += 20; // Space after title
+        let yOffset = 120; // Start after header content
 
         // Add KPIs as simple text instead of table
-
         doc.setFontSize(12);
-
+        doc.setFont('times', 'bold');
         doc.text('Key Performance Indicators:', 14, yOffset);
-
         yOffset += 10;
 
         if (user?.user_type === 'admin') {          
-
             doc.setFontSize(10);
-
+            doc.setFont('times', 'normal');
             doc.text(`Total Resources: ${dashboardData?.kpis?.total_resources || 'N/A'}`, 14, yOffset);
-
             yOffset += 7;
-
             doc.text(`Total Bookings: ${dashboardData?.kpis?.total_bookings || 'N/A'}`, 14, yOffset);
-
             yOffset += 7;
-
             doc.text(`Total Users: ${dashboardData?.kpis?.total_users || 'N/A'}`, 14, yOffset);
-
             yOffset += 7;
-
             doc.text(`Available Resources: ${dashboardData?.kpis?.available_resources || 'N/A'}`, 14, yOffset);
-
-            yOffset += 15;
+            yOffset += 20;
 
         } else {
-
             doc.setFontSize(10);
-
+            doc.setFont('times', 'normal');
             doc.text(`My Total Bookings: ${dashboardData?.my_total_bookings || 'N/A'}`, 14, yOffset);
-
             yOffset += 7;
-
             doc.text(`My Upcoming Bookings: ${dashboardData?.my_upcoming_bookings_count || 'N/A'}`, 14, yOffset);
-
-            yOffset += 15;
-
+            yOffset += 20;
         }
 
         // Add charts based on user type
-
         if (user?.user_type === 'admin') {
-
             yOffset = await addChartToPdf(doc, bookingsByStatusChartRef, 'Bookings by Status', yOffset);
-
             
-
-            // Check if we need a new page
-
-            if (yOffset > 200) {
-
+            // Check if we need a new page - more conservative check
+            if (yOffset > 180) {
                 doc.addPage();
-
                 yOffset = 20;
-
             }
-
             
-
             yOffset = await addChartToPdf(doc, topBookedResourcesChartRef, 'Top 5 Most Booked Resources', yOffset);
-
             
-
-            if (yOffset > 200) {
-
+            if (yOffset > 180) {
                 doc.addPage();
-
                 yOffset = 20;
-
             }
-
             
-
             yOffset = await addChartToPdf(doc, resourcesAvailabilityChartRef, 'Resource Availability Overview', yOffset);
-
             
-
-            if (yOffset > 200) {
-
+            if (yOffset > 180) {
                 doc.addPage();
-
                 yOffset = 20;
-
             }
-
             yOffset = await addChartToPdf(doc, monthlyBookingsChartRef, 'Monthly Overall Booking Trends', yOffset);
-
             
-
-            if (yOffset > 200) {
-
+            if (yOffset > 180) {
                 doc.addPage();
-
                 yOffset = 20;
-
             }
-
             
-
             yOffset = await addChartToPdf(doc, resourceUtilizationChartRef, 'Resource Utilization (Booked Hours) Over Time', yOffset);
-
             
-
         } else {
-
             yOffset = await addChartToPdf(doc, myBookingsChartRef, 'My Personal Booking Trends', yOffset);
-
             
-
-            if (yOffset > 200) {
-
+            if (yOffset > 180) {
                 doc.addPage();
-
                 yOffset = 20;
-
             }
-
             
-
             yOffset = await addChartToPdf(doc, topBookedResourcesChartRef, 'Overall Popular Resources', yOffset);
-
             
-
-            if (yOffset > 200) {
-
+            if (yOffset > 180) {
                 doc.addPage();
-
                 yOffset = 20;
-
             }
-
             
-
             yOffset = await addChartToPdf(doc, currentResourceAvailabilityChartRef, 'Current Resource Availability', yOffset);
+        }
 
+        // Add footer information
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            
+            // Add page number
+            doc.setFontSize(8);
+            doc.text(`Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 15);
+            
+            // Add footer text with more spacing
+            doc.text('This report is generated automatically by the Campus Resource Management System', 14, doc.internal.pageSize.height - 8);
+            doc.text('For questions or concerns, please contact the IT department', 14, doc.internal.pageSize.height - 3);
         }
 
         doc.save('Statistical_Dashboard_Report.pdf');
-
         setGeneratingPdf(false);
-
     };
 
     if (loading) {

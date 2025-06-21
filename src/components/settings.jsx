@@ -102,7 +102,7 @@ export default function Settings() {
 
         try {
             const response = await fetch('/api/user/password', { // Your API endpoint for password change
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`

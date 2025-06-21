@@ -16,6 +16,7 @@ import CreateResource from './resources/create';
 import Statistical from './admin/statistical';
 import ResourceSearch from './components/search';
 import UserManagement from './admin/userManagement';
+import EditUser from './admin/editUser';
 import Settings from './components/settings';
 import Notifications from './components/notifications';
 import GlobalSearch from './components/search';
@@ -23,6 +24,7 @@ import ResourceUtilizationReport from './admin/ResourceUtilizationReport';
 import TimetableImport from './components/TimetableImport';
 import IssueManagementDashboard from './admin/IssueManagementDashboard';
 import ReportIssueForm from './components/ReportIssueForm';
+
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -42,6 +44,7 @@ export default function App() {
           <Route path='profile' element={<ShowProfile />} />
           <Route path='statistical' element={<Statistical />}/>
           <Route path="users" element={<UserManagement />} />
+          <Route path="users/edit/:id" element={<EditUser />} />
           <Route path="booking" element={<MyBookings />}/>
           <Route path="booking/:id" element={<ViewBooking />} />
           <Route path="search" element={<GlobalSearch />} />

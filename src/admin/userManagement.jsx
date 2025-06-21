@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useCallback } from "react";
 import { AppContext } from "../context/appContext";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { useNavigate, Link } from "react-router-dom"; // Import Link for navigation
 
 export default function UserManagement() {
     // Destructure user and token from AppContext
@@ -110,7 +110,7 @@ export default function UserManagement() {
                                 <th>Last Name</th>
                                 <th>Email</th>
                                 <th>User Type</th>
-                                {/* Add more headers as needed */}
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,7 +121,14 @@ export default function UserManagement() {
                                     <td>{u.last_name}</td>
                                     <td>{u.email}</td>
                                     <td><span className={`user-type-${u.user_type}`}>{u.user_type}</span></td>
-                                    {/* Add more cells as needed */}
+                                    <td>
+                                        <Link 
+                                            to={`/users/edit/${u.id}`} 
+                                            className="action-link edit-link"
+                                        >
+                                            View/Edit
+                                        </Link>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
