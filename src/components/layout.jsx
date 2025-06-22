@@ -308,6 +308,16 @@ export default function Layout() {
                     <span className="text">Issue management</span>
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink
+                    to="/news"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >
+                    <i className="bx bx-folder-open"></i>
+                    <span className="text">News</span>
+                  </NavLink>
+                </li>
               </>
             )}
             
