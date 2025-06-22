@@ -81,21 +81,6 @@ export default function CreateResource() {
 
         const dataToSend = new FormData();
 
-        // **ADD THIS LINE FOR CSRF TOKEN**
-        // Assumes your Blade file (e.g., app.blade.php) has:
-        // <meta name="csrf-token" content="{{ csrf_token() }}">
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')
-            ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            : null;
-
-        if (csrfToken) {
-            dataToSend.append('_token', csrfToken);
-        } else {
-            console.error("CSRF token not found. Form submission may fail.");
-            setMessage("Security error: CSRF token missing. Please refresh the page.");
-            return; // Prevent submission without token
-        }
-
         dataToSend.append('name', formData.name);
         dataToSend.append('description', formData.description);
         dataToSend.append('location', formData.location);

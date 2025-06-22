@@ -222,6 +222,119 @@ export default function MyBookings() {
         }
     };
 
+    // --- NEW FUNCTION FOR HANDLING DOCUMENT DOWNLOADS ---
+    const handleDocumentDownload = async (bookingId, event) => {
+        event.preventDefault();
+        
+        if (!user) {
+            setMessage("You must be logged in to download documents.");
+            return;
+        }
+
+        try {
+            // Use the download endpoint
+            const res = await fetch(`/api/bookings/${bookingId}/download-document`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                // Get the blob from the response
+                const blob = await res.blob();
+                
+                // Create a download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Extract filename from response headers or use default
+                const contentDisposition = res.headers.get('content-disposition');
+                let filename = 'document.pdf';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1].replace(/['"]/g, '');
+                    }
+                }
+                
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                setMessage("Document downloaded successfully!");
+            } else if (res.status === 404) {
+                // API endpoint doesn't exist yet - show fallback message
+                setMessage("Document download feature is not yet available. Please contact the administrator.");
+                console.warn("Document download API endpoint not implemented yet");
+            } else {
+                const data = await res.json();
+                setMessage(data.message || "Failed to download document.");
+                console.error("Failed to download document:", data);
+            }
+        } catch (err) {
+            setMessage("An error occurred while downloading the document.");
+            console.error("Network error during document download:", err);
+        }
+    };
+
+    // --- NEW FUNCTION FOR HANDLING DOCUMENT VIEWING ---
+    const handleDocumentView = async (bookingId, event) => {
+        event.preventDefault();
+        
+        if (!user) {
+            setMessage("You must be logged in to view documents.");
+            return;
+        }
+
+        try {
+            // First, try to fetch the document with authentication
+            const res = await fetch(`/api/bookings/${bookingId}/document`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                // Get the blob from the response
+                const blob = await res.blob();
+                
+                // Create a URL for the blob
+                const url = window.URL.createObjectURL(blob);
+                
+                // Open in new tab
+                window.open(url, '_blank');
+                
+                // Clean up the URL after a delay
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                }, 1000);
+                
+            } else if (res.status === 404) {
+                // API endpoint doesn't exist yet - show fallback message
+                setMessage("Document view feature is not yet available. Please contact the administrator.");
+                console.warn("Document view API endpoint not implemented yet");
+            } else if (res.status === 401) {
+                setMessage("Authentication failed. Please log in again.");
+                console.error("Authentication error when viewing document");
+            } else {
+                const data = await res.json();
+                setMessage(data.message || "Failed to view document.");
+                console.error("Failed to view document:", data);
+            }
+        } catch (err) {
+            setMessage("An error occurred while opening the document.");
+            console.error("Network error during document view:", err);
+        }
+    };
+
     const handleStatusUpdate = async (bookingId, newStatus) => {
         // Check if user is logged in
         if (!user) {
@@ -1004,48 +1117,174 @@ export default function MyBookings() {
                     {isAdmin ? "No bookings in the system yet with current filters." : "You have no bookings yet with current filters."}
                 </p>
             ) : (
-                <div className="bookings-table-wrapper">
-                    <table className="bookings-table">
+                <div className="bookings-table-wrapper" style={{
+                    width: '100%',
+                    overflowX: 'auto',
+                    overflowY: 'visible',
+                    maxWidth: '100%',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px var(--shadow-light)',
+                    marginBottom: '20px'
+                }}>
+                    <table className="bookings-table" style={{
+                        width: '100%',
+                        minWidth: '1200px',
+                        borderCollapse: 'collapse',
+                        backgroundColor: 'var(--bg-light)',
+                        fontSize: '14px',
+                        tableLayout: 'fixed'
+                    }}>
                         <thead>
-                            <tr>
-                                {isAdmin && <th>ID</th>} {/* Only show ID for admin */}
-                                <th>Booking Reference</th>
-                                <th>Resource</th>
-                                {isAdmin && <th>Booked By</th>} {/* Only show Booked By for admin */}
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                                <th>Purpose</th>
-                                {isAdmin && <th>Priority</th>} {/* Only show Priority for admin */}
-                                <th>Status</th>
-                                <th>Actions</th>
+                            <tr style={{
+                                backgroundColor: 'blue',
+                                color: 'var(--text-light-on-dark)',
+                                fontWeight: '600'
+                            }}>
+                                {isAdmin && <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '50px', width: '50px' }}>ID</th>}
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '120px', width: '120px' }}>Booking Reference</th>
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '150px', width: '150px' }}>Resource</th>
+                                {isAdmin && <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '180px', width: '180px' }}>Booked By</th>}
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '140px', width: '140px' }}>Start Time</th>
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '140px', width: '140px' }}>End Time</th>
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '200px', width: '200px' }}>Purpose</th>
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '140px', width: '140px' }}>Supporting Document</th>
+                                {isAdmin && <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '80px', width: '80px' }}>Priority</th>}
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '100px', width: '100px' }}>Status</th>
+                                <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '200px', width: '200px' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {bookings.map(booking => (
-                                <tr key={booking.id}>
-                                    {isAdmin && <td>{booking.id}</td>} {/* Only show ID for admin */}
-                                    <td>{booking.booking_reference || 'N/A'}</td>
-                                    <td>
-                                        <Link to={`/resources/${booking.resource?.id}`} className="resource-link">
+                                <tr key={booking.id} style={{
+                                    borderBottom: '1px solid var(--border-color)',
+                                    transition: 'background-color 0.2s ease'
+                                }} onMouseEnter={(e) => {
+                                    e.target.parentElement.style.backgroundColor = 'var(--bg-hover, #f8f9fa)';
+                                }} onMouseLeave={(e) => {
+                                    e.target.parentElement.style.backgroundColor = 'transparent';
+                                }}>
+                                    {isAdmin && <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>{booking.id}</td>}
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', wordBreak: 'break-word' }}>{booking.booking_reference || 'N/A'}</td>
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
+                                        <Link to={`/resources/${booking.resource?.id}`} className="resource-link" style={{
+                                            color: 'var(--primary-color)',
+                                            textDecoration: 'none',
+                                            fontWeight: '500'
+                                        }}>
                                             {booking.resource?.name || 'N/A'}
                                         </Link>
                                     </td>
-                                    {isAdmin && ( // Only show Booked By for admin
-                                        <td>
+                                    {isAdmin && (
+                                        <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
                                             {booking.user ? (
                                                 <>
                                                     {booking.user.first_name} {booking.user.last_name}
                                                     <br />
-                                                    <small>{booking.user.email}</small>
+                                                    <small style={{ color: 'var(--text-secondary)' }}>{booking.user.email}</small>
                                                 </>
                                             ) : 'N/A'}
                                         </td>
                                     )}
-                                    <td>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
-                                    <td>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
-                                    <td className="purpose">{booking.purpose}</td>
-                                    {isAdmin && <td>{booking.priority || 'N/A'}</td>} {/* Only show Priority for admin */}
-                                    <td>
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>{moment(booking.start_time).format('YYYY-MM-DD HH:mm')}</td>
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>{moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</td>
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', wordBreak: 'break-word', maxWidth: '200px' }} className="purpose">{booking.purpose}</td>
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
+                                        {booking.supporting_document ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ 
+                                                    fontSize: '12px', 
+                                                    color: 'var(--text-secondary)',
+                                                    fontWeight: '500'
+                                                }}>
+                                                    📄 Document Available
+                                                </span>
+                                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                                    <button 
+                                                        onClick={(e) => handleDocumentView(booking.id, e)}
+                                                        className="document-link"
+                                                        style={{
+                                                            color: 'var(--primary-color)',
+                                                            textDecoration: 'none',
+                                                            fontWeight: '500',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '3px',
+                                                            padding: '3px 6px',
+                                                            borderRadius: '4px',
+                                                            backgroundColor: 'var(--primary-color-light, rgba(0, 123, 255, 0.1))',
+                                                            transition: 'all 0.2s ease',
+                                                            fontSize: '11px',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            fontFamily: 'inherit'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.target.style.backgroundColor = 'var(--primary-color, #007bff)';
+                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
+                                                            e.target.style.transform = 'translateY(-1px)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.target.style.backgroundColor = 'var(--primary-color-light, rgba(0, 123, 255, 0.1))';
+                                                            e.target.style.color = 'var(--primary-color)';
+                                                            e.target.style.transform = 'translateY(0)';
+                                                        }}
+                                                    >
+                                                        👁️ View
+                                                    </button>
+                                                    <button 
+                                                        onClick={(e) => handleDocumentDownload(booking.id, e)}
+                                                        className="document-link"
+                                                        style={{
+                                                            color: 'var(--accent-green, #28a745)',
+                                                            textDecoration: 'none',
+                                                            fontWeight: '500',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '3px',
+                                                            padding: '3px 6px',
+                                                            borderRadius: '4px',
+                                                            backgroundColor: 'var(--accent-green-light, rgba(40, 167, 69, 0.1))',
+                                                            transition: 'all 0.2s ease',
+                                                            fontSize: '11px',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            fontFamily: 'inherit'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.target.style.backgroundColor = 'var(--accent-green, #28a745)';
+                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
+                                                            e.target.style.transform = 'translateY(-1px)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.target.style.backgroundColor = 'var(--accent-green-light, rgba(40, 167, 69, 0.1))';
+                                                            e.target.style.color = 'var(--accent-green, #28a745)';
+                                                            e.target.style.transform = 'translateY(0)';
+                                                        }}
+                                                    >
+                                                        📥 Download
+                                                    </button>
+                                                </div>
+                                                <small style={{ 
+                                                    fontSize: '10px', 
+                                                    color: 'var(--text-secondary)',
+                                                    fontStyle: 'italic'
+                                                }}>
+                                                    {booking.supporting_document.split('/').pop() || 'Document'}
+                                                </small>
+                                            </div>
+                                        ) : (
+                                            <span style={{ 
+                                                color: 'var(--text-secondary)', 
+                                                fontStyle: 'italic',
+                                                fontSize: '13px'
+                                            }}>
+                                                No document
+                                            </span>
+                                        )}
+                                    </td>
+                                    {isAdmin && <td>{booking.priority || 'N/A'}</td>}
+                                    <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
                                         <span className={
                                             booking.status === 'approved' ? 'status-approved' :
                                                 booking.status === 'pending' ? 'status-pending' :
@@ -1055,30 +1294,96 @@ export default function MyBookings() {
                                                                 booking.status === 'rejected' ? 'status-rejected' :
                                                                     booking.status === 'completed' ? 'status-completed':
                                                                     'status-default' // Fallback class
-                                        }>
+                                        } style={{
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '12px',
+                                            fontWeight: '500',
+                                            textTransform: 'capitalize'
+                                        }}>
                                             {booking.status}
                                         </span>
                                     </td>
-                                    <td className="booking-actions-cell">
-                                        <Link to={`/booking/${booking.id}`} className="action-button view-button">View</Link>
-                                        {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
-                                            <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button">Edit</Link>
-                                        )}
+                                    <td className="booking-actions-cell" style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
+                                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                            <Link to={`/booking/${booking.id}`} className="action-button view-button" style={{
+                                                padding: '4px 8px',
+                                                fontSize: '11px',
+                                                textDecoration: 'none',
+                                                borderRadius: '4px',
+                                                backgroundColor: 'var(--primary-color)',
+                                                color: 'var(--text-light-on-dark)',
+                                                fontWeight: '500',
+                                                transition: 'all 0.2s ease'
+                                            }}>View</Link>
+                                            {(isAdmin || (booking.user_id === user.id && ['pending', 'approved'].includes(booking.status))) && (
+                                                <Link to={`/bookings/${booking.id}/edit`} className="action-button edit-button" style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '11px',
+                                                    textDecoration: 'none',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: 'var(--accent-blue, #17a2b8)',
+                                                    color: 'var(--text-light-on-dark)',
+                                                    fontWeight: '500',
+                                                    transition: 'all 0.2s ease'
+                                                }}>Edit</Link>
+                                            )}
 
-                                        {booking.status === 'pending' && isAdmin && (
-                                            <>
-                                                <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button">Approve</button>
-                                                <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button">Reject</button>
-                                            </>
-                                        )}
-                                        {/* Allow user to cancel their own pending/approved bookings */}
-                                        {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
-                                            <button onClick={() => handleStatusUpdate(booking.id, 'cancel')} className="action-button cancel-button">Cancel</button>
-                                        )}
-                                        {/* Admin can delete any booking, especially useful for rejected/cancelled/expired ones */}
-                                        {isAdmin && (
-                                            <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button">Delete</button>
-                                        )}
+                                            {booking.status === 'pending' && isAdmin && (
+                                                <>
+                                                    <button onClick={() => handleStatusUpdate(booking.id, 'approve')} className="action-button approve-button" style={{
+                                                        padding: '4px 8px',
+                                                        fontSize: '11px',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        backgroundColor: 'var(--accent-green, #28a745)',
+                                                        color: 'var(--text-light-on-dark)',
+                                                        fontWeight: '500',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease'
+                                                    }}>Approve</button>
+                                                    <button onClick={() => handleStatusUpdate(booking.id, 'reject')} className="action-button reject-button" style={{
+                                                        padding: '4px 8px',
+                                                        fontSize: '11px',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        backgroundColor: 'var(--accent-red, #dc3545)',
+                                                        color: 'var(--text-light-on-dark)',
+                                                        fontWeight: '500',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease'
+                                                    }}>Reject</button>
+                                                </>
+                                            )}
+                                            {/* Allow user to cancel their own pending/approved bookings */}
+                                            {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
+                                                <button onClick={() => handleStatusUpdate(booking.id, 'cancel')} className="action-button cancel-button" style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '11px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: 'var(--accent-orange, #fd7e14)',
+                                                    color: 'var(--text-light-on-dark)',
+                                                    fontWeight: '500',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}>Cancel</button>
+                                            )}
+                                            {/* Admin can delete any booking, especially useful for rejected/cancelled/expired ones */}
+                                            {isAdmin && (
+                                                <button onClick={() => handleDeleteBooking(booking.id)} className="action-button delete-button" style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '11px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: 'var(--accent-red, #dc3545)',
+                                                    color: 'var(--text-light-on-dark)',
+                                                    fontWeight: '500',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}>Delete</button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

@@ -116,6 +116,33 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
     // Handle photo selection
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
+        
+        // Validate file type and size
+        if (file) {
+            // Check file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                setError('Please select a valid image file (JPEG, PNG, or GIF).');
+                e.target.value = '';
+                return;
+            }
+            
+            // Check file size (2MB = 2 * 1024 * 1024 bytes)
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                setError('Image size must be less than 2MB.');
+                e.target.value = '';
+                return;
+            }
+            
+            console.log('Selected file:', {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                sizeInMB: (file.size / (1024 * 1024)).toFixed(2)
+            });
+        }
+        
         setPhoto(file);
         
         // Clear photo-related errors
@@ -124,6 +151,11 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                 ...prev,
                 photo: null
             }));
+        }
+        
+        // Clear general error when user selects a file
+        if (error) {
+            setError(null);
         }
     };
 
@@ -176,14 +208,12 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
             let response;
 
             if (photo) {
-                // Send with photo using FormData
+                // Send with photo using FormData and fetch (not axios)
                 const apiFormData = new FormData();
                 
-                // Try different field names that the backend might expect
+                // Add all required fields
                 apiFormData.append('name', cleanResourceName);
-                apiFormData.append('resource_name', cleanResourceName); // Alternative field name
                 apiFormData.append('subject', formData.subject.trim());
-                apiFormData.append('title', formData.subject.trim()); // Alternative field name
                 
                 if (formData.description?.trim()) {
                     apiFormData.append('description', formData.description.trim());
@@ -204,27 +234,57 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                 // Debug: Log FormData contents
                 console.log('=== FormData being sent ===');
                 console.log('name:', cleanResourceName);
-                console.log('resource_name:', cleanResourceName);
                 console.log('subject:', formData.subject.trim());
-                console.log('title:', formData.subject.trim());
                 console.log('description:', formData.description?.trim() || 'null');
                 console.log('resource_id:', resourceId || 'null');
                 console.log('user_id:', user?.id || 'null');
                 console.log('photo:', photo.name);
+                console.log('photo type:', photo.type);
+                console.log('photo size:', photo.size);
                 console.log('=== End FormData ===');
 
-                response = await axios.post('/api/resource-issues', apiFormData, {
+                // Debug: Log FormData entries
+                console.log('=== FormData entries ===');
+                for (let [key, value] of apiFormData.entries()) {
+                    if (value instanceof File) {
+                        console.log(`${key}:`, {
+                            name: value.name,
+                            type: value.type,
+                            size: value.size
+                        });
+                    } else {
+                        console.log(`${key}:`, value);
+                    }
+                }
+                console.log('=== End FormData entries ===');
+
+                // Use fetch instead of axios for file uploads
+                const fetchResponse = await fetch('/api/resource-issues', {
+                    method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
-                    }
+                        // Don't set Content-Type - let browser set it with boundary for FormData
+                    },
+                    body: apiFormData
                 });
+
+                console.log('=== Fetch Response Debug ===');
+                console.log('Response status:', fetchResponse.status);
+                console.log('Response headers:', Object.fromEntries(fetchResponse.headers.entries()));
+                console.log('=== End Fetch Response Debug ===');
+
+                if (!fetchResponse.ok) {
+                    const errorData = await fetchResponse.json();
+                    console.log('Error response data:', errorData);
+                    throw { response: { data: errorData, status: fetchResponse.status } };
+                }
+
+                response = { data: await fetchResponse.json() };
             } else {
-                // Send as JSON
+                // Send as JSON using axios
                 const requestData = {
                     name: cleanResourceName,
-                    resource_name: cleanResourceName, // Alternative field name
-                    subject: formData.subject.trim(),
-                    title: formData.subject.trim() // Alternative field name
+                    subject: formData.subject.trim()
                 };
 
                 if (formData.description?.trim()) {
