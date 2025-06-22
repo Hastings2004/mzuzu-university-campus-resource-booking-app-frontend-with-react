@@ -238,6 +238,16 @@ export default function Layout() {
                 <span className="text">Home</span>
               </NavLink>
             </li>
+            <li>
+              <NavLink
+                to="/booking"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bxs-calendar-check"></i>
+                <span className="text">Bookings</span>
+              </NavLink>
+            </li>
             
             {user && user.user_type !== 'admin' && (
               <li> 
@@ -314,7 +324,7 @@ export default function Layout() {
                     className={({ isActive }) => (isActive ? "active" : "")}
                     onClick={handleNavLinkClick}
                   >
-                    <i className="bx bx-folder-open"></i>
+                    <i className="bx bx-message-dots"></i>
                     <span className="text">News</span>
                   </NavLink>
                 </li>
@@ -344,17 +354,6 @@ export default function Layout() {
               >
                 <i className="bx bxs-component"></i>
                 <span className="text">Resources</span>
-              </NavLink>
-            </li>
-            
-            <li>
-              <NavLink
-                to="/booking"
-                className={({ isActive }) => (isActive ? "active" : "")}
-                onClick={handleNavLinkClick}
-              >
-                <i className="bx bxs-calendar-check"></i>
-                <span className="text">Bookings</span>
               </NavLink>
             </li>
             
