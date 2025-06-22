@@ -29,18 +29,6 @@ export default function View() {
     const [isResourceAvailable, setIsResourceAvailable] = useState(null);
     const [supportingDocument, setSupportingDocument] = useState(null); // NEW STATE FOR DOCUMENT
     
-    const availabilityStyle = {
-        checking: { color: 'blue', fontWeight: 'bold', backgroundColor: '#e9ecef', padding: '10px', borderRadius: '5px' },
-        available: { color: 'green', fontWeight: 'bold', backgroundColor: '#d4edda', padding: '10px', borderRadius: '5px' },
-        notAvailable: { color: 'red', fontWeight: 'bold', backgroundColor: '#f8d7da', padding: '10px', borderRadius: '5px' }
-    };
-
-    const statusStyles = {
-        pending: { color: '#856404', backgroundColor: '#fff3cd', padding: '5px 10px', borderRadius: '3px', fontSize: '12px' },
-        approved: { color: '#155724', backgroundColor: '#d4edda', padding: '5px 10px', borderRadius: '3px', fontSize: '12px' },
-        in_use: { color: '#721c24', backgroundColor: '#f8d7da', padding: '5px 10px', borderRadius: '3px', fontSize: '12px' }
-    };
-
     async function getResource() {
         const res = await fetch(`/api/resources/${id}`, {
             method: 'get',
@@ -649,13 +637,13 @@ export default function View() {
                                             </div>
 
                                             {isResourceAvailable === true && (
-                                                <p style={availabilityStyle.available}>Resource is available for these times.</p>
+                                                <p className="availability-message available">Resource is available for these times.</p>
                                             )}
                                             {isResourceAvailable === false && (
-                                                <p style={availabilityStyle.notAvailable}>Resource is NOT available for these times. Please adjust your selection.</p>
+                                                <p className="availability-message not-available">Resource is NOT available for these times. Please adjust your selection.</p>
                                             )}
                                             {isResourceAvailable === null && (startTime || (bookingOption === "multi_day" && startDate)) && (endTime || (bookingOption === "multi_day" && endDate)) && (
-                                                <p style={availabilityStyle.checking}>Checking availability...</p>
+                                                <p className="availability-message checking">Checking availability...</p>
                                             )}
 
                                             <div className='form-group'>

@@ -6860,3 +6860,218 @@ body.dark .photo-modal-close:hover {
         min-width: 150px;
     }
 } 
+
+/* --- Single Resource View Page --- */
+.single-resource-container {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin-left: 2rem auto;
+    background-color: var(--bg-light);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px var(--shadow-light);
+}
+
+.resource-content {
+    flex: 2;
+}
+
+.resource-main {
+    padding-right: 2rem;
+    border-right: 1px solid var(--border-color);
+}
+
+.single-resource-card {
+    background: var(--bg-light);
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.single-resource-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+}
+
+.single-resource-detail {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.single-resource-detail strong {
+    color: var(--text-primary);
+}
+
+/* Booking Form Section */
+.booking-form-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.booking-form-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.booking-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.booking-form .radio-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.booking-form .form-input,
+.booking-form .form-textarea,
+.booking-form .form-input[type="file"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--bg-grey);
+    color: var(--text-primary);
+}
+
+.booking-form .form-input:focus,
+.booking-form .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.action-button.book-button {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.booking-message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Availability Messages */
+.availability-message {
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.availability-message.available {
+    color: var(--accent-green);
+    background-color: #d4edda;
+}
+
+.availability-message.not-available {
+    color: var(--accent-red);
+    background-color: #f8d7da;
+}
+
+.availability-message.checking {
+    color: var(--accent-blue);
+    background-color: #e9ecef;
+}
+
+body.dark .availability-message.available {
+    background-color: #2e7d32;
+    color: #fff;
+}
+
+body.dark .availability-message.not-available {
+    background-color: #c62828;
+    color: #fff;
+}
+
+body.dark .availability-message.checking {
+    background-color: #455a64;
+    color: #fff;
+}
+
+/* Resource Actions */
+.resource-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Sidebar */
+.booking-status-sidebar {
+    flex: 1;
+}
+
+.resource-sidebar h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.booking-status-section {
+    margin-bottom: 2rem;
+}
+
+.booking-status-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.booking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.booking-item {
+    background-color: var(--bg-secondary-card);
+    padding: 1rem;
+    border-radius: 5px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.booking-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.booking-info p strong {
+    color: var(--text-primary);
+}
+
+@media (max-width: 992px) {
+    .single-resource-container {
+        flex-direction: column;
+    }
+    .resource-main {
+        padding-right: 0;
+        border-right: none;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+}
+
+@media (max-width: 768px) {
+    .single-resource-container {
+        padding: 1rem;
+    }
+    .single-resource-card {
+        padding: 1.5rem;
+    }
+}
