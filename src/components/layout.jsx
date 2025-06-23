@@ -261,6 +261,20 @@ export default function Layout() {
                 </NavLink>
               </li>
             )}
+            <li>
+              <NavLink
+                to="/createResource"
+                className={({ isActive }) => {
+                  const path = location.pathname;
+                  const isResourcePath = path.startsWith('/resources/') || path === '/createResource' || path === '/createResource/';
+                  return (isActive || isResourcePath) ? "active" : "";
+                }}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bxs-component"></i>
+                <span className="text">Resources</span>
+              </NavLink>
+            </li>
             
             {user && user.user_type === 'admin' && (
               <>
@@ -339,21 +353,6 @@ export default function Layout() {
               >
                 <i className="bx bx-search-alt"></i>
                 <span className="text">Searching</span>
-              </NavLink>
-            </li>
-            
-            <li>
-              <NavLink
-                to="/createResource"
-                className={({ isActive }) => {
-                  const path = location.pathname;
-                  const isResourcePath = path.startsWith('/resources/') || path === '/createResource' || path === '/createResource/';
-                  return (isActive || isResourcePath) ? "active" : "";
-                }}
-                onClick={handleNavLinkClick}
-              >
-                <i className="bx bxs-component"></i>
-                <span className="text">Resources</span>
               </NavLink>
             </li>
             

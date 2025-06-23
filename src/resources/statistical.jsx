@@ -137,7 +137,7 @@ export default function Statistical() {
             label: 'My Total Bookings',
             data: dashboardData.my_monthly_bookings?.map(item => item.total_bookings) || [],
             fill: false,
-            borderColor: 'rgba(54, 162, 235, 1)', // Blue color for personal trend
+            borderColor: 'rgba(54, 162, 235, 1)', 
             tension: 0.3,
             pointRadius: 5,
             pointHoverRadius: 8,
