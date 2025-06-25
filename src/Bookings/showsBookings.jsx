@@ -298,7 +298,7 @@ export default function MyBookings() {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+                    //'Accept': 'application/json'
                 }
             });
 
@@ -566,7 +566,7 @@ export default function MyBookings() {
     return (
         <div className="my-bookings-container">
             <h1 className="my-bookings-title">
-                {isAdmin ? "All System Bookings" : "My Bookings"}
+                {isAdmin ? "All Bookings" : "My Bookings"}
             </h1>
 
             {/* Report Issue Link for Non-Admin Users */}
@@ -1141,7 +1141,7 @@ export default function MyBookings() {
                                 color: 'var(--text-light-on-dark)',
                                 fontWeight: '600'
                             }}>
-                                {isAdmin && <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '50px', width: '50px' }}>ID</th>}
+                                
                                 <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '120px', width: '120px' }}>Booking Reference</th>
                                 <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '150px', width: '150px' }}>Resource</th>
                                 {isAdmin && <th style={{ padding: '12px 8px', textAlign: 'left', minWidth: '180px', width: '180px' }}>Booked By</th>}
@@ -1164,7 +1164,7 @@ export default function MyBookings() {
                                 }} onMouseLeave={(e) => {
                                     e.target.parentElement.style.backgroundColor = 'transparent';
                                 }}>
-                                    {isAdmin && <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>{booking.id}</td>}
+                                   
                                     <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', wordBreak: 'break-word' }}>{booking.booking_reference || 'N/A'}</td>
                                     <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
                                         <Link to={`/resources/${booking.resource?.id}`} className="resource-link" style={{

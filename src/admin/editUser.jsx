@@ -143,12 +143,7 @@ export default function EditUser() {
             <div className="content">
                 <div className="header-actions">
                     <h2>Edit User</h2>
-                    <button 
-                        onClick={() => navigate('/users')} 
-                        className="button secondary-button"
-                    >
-                        Back to User Management
-                    </button>
+                    
                 </div>
 
                 {success && <p className="success-message">{success}</p>}
@@ -160,12 +155,21 @@ export default function EditUser() {
                         <div className="user-details">
                             <p><strong>Name:</strong> {userData.first_name} {userData.last_name}</p>
                             <p><strong>Email:</strong> {userData.email}</p>
+                            <p><strong>{userData.user_type === 'student' ? 'Registration Number:' : 'Employee Number:'}
+                            </strong> {userData.identity_number}</p>
+                            <p><strong>Phone:</strong>  {userData.phone}</p>
+                            <p><strong>District:</strong> {userData.district}</p>
+                            <p><strong>Village:</strong> {userData.village}</p>
+                            <p><strong>Physical Address:</strong> {userData.physical_address}</p>
+                            <p><strong>Postal Address:</strong> {userData.post_address}</p>
+                           
+
                             <p><strong>Current User Type:</strong> 
                                 <span className={`user-type-${userData.user_type}`}>
                                     {userData.user_type}
                                 </span>
-                            </p>
-                            <p><strong>Current Role ID:</strong> {userData.role_id || 'Not set'}</p>
+                            </p>   
+
                         </div>
                     </div>
                 )}
@@ -185,24 +189,10 @@ export default function EditUser() {
                             <option value="student">Student</option>
                             <option value="staff">Staff</option>
                             <option value="admin">Admin</option>
-                            <option value="guest">Guest</option>
                         </select>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="role_id">Role ID:</label>
-                        <input
-                            type="number"
-                            id="role_id"
-                            name="role_id"
-                            value={formData.role_id}
-                            onChange={handleInputChange}
-                            className="form-input"
-                            placeholder="Enter role ID (optional)"
-                            min="1"
-                        />
-                        <small className="form-help">Leave empty if no specific role is assigned</small>
-                    </div>
+                   
 
                     <div className="form-actions">
                         <button 

@@ -12,6 +12,7 @@ import UpdateBooking from './Bookings/updateBooking';
 import UpdateResource from './resources/update';
 import ShowProfile from './profile/showProfile';
 import CreateResource from './resources/create';
+import ShowResource from './resources/showResource';
 import Statistical from './admin/statistical';
 import UserManagement from './admin/userManagement';
 import EditUser from './admin/editUser';
@@ -24,6 +25,8 @@ import IssueManagementDashboard from './admin/IssueManagementDashboard';
 import ReportIssueForm from './components/ReportIssueForm';
 import NewsCreate from './admin/news';
 
+import DocumentViewPlaceholder from './components/DocumentViewPlaceholder';
+
 export default function App() {
   const { user } = useContext(AppContext);
 
@@ -33,6 +36,7 @@ export default function App() {
         
         <Route path="/login" element={user ? <Home /> : <Login />} />
         <Route path="/register" element={user ? <Home /> : <Register />} />
+        <Route path="/document-view/:id" element={<DocumentViewPlaceholder />} />
         <Route path="/" element={user ? <Layout /> : <Login />}>
           
           <Route index element={user ? <Home /> : <Login />} /> 
@@ -54,6 +58,7 @@ export default function App() {
           <Route path='issue-management' element={<IssueManagementDashboard />} />
           <Route path='reportIssueForm' element={< ReportIssueForm />} />
           <Route path='news' element={ <NewsCreate /> } />
+          <Route path="viewResource" element={<ShowResource />} />
         </Route>
 
         

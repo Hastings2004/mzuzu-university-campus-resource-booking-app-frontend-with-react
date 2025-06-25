@@ -44,7 +44,7 @@ export default function Login(){
 
     async function handleLogin(e){
         e.preventDefault();
-        setIsLoading(true); // Set loading true when submission starts
+        setIsLoading(true); 
         setErrors({}); // Clear previous errors
 
         console.log("Attempting login with:", { email: formData.email, password: formData.password ? '[HIDDEN]' : 'empty' });
@@ -61,8 +61,8 @@ export default function Login(){
             const response = await fetch("/api/login", {
                 method: "post",
                 headers: {
-                    "Content-Type": "application/json", // Specify content type
-                    "Accept": "application/json" // Add Accept header for Laravel
+                    "Content-Type": "application/json", 
+                    "Accept": "application/json" 
                 },
                 body: JSON.stringify(formData),
             });
@@ -100,7 +100,15 @@ export default function Login(){
                 console.log("Login successful, token received:", data.token ? 'Yes' : 'No');
                 localStorage.setItem("token", data.token);
                 setToken(data.token);
-                navigate("/");
+                
+                // Check if user is admin and redirect accordingly
+                if (data.user && data.user.user_type === 'admin') {
+                    console.log("Admin user detected, redirecting to statistical dashboard");
+                    navigate("/statistical");
+                } else {
+                    console.log("Regular user, redirecting to home page");
+                    navigate("/");
+                }
             } else {
                 // Other error cases
                 setErrors(prev => ({ ...prev, general: data.message || "Login failed. Please try again." }));

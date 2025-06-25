@@ -545,6 +545,42 @@ export default function View() {
                         {resource ? (
                             <div key={resource.id} className="single-resource-card">
                                 <h2 className="single-resource-title">{resource.name}</h2>
+                                
+                                {/* Resource Image */}
+                                <div className="resource-image-container">
+                                    {(() => {
+                                        // Prioritize image_url since it contains the full URL
+                                        const imageUrl = resource.image_url || resource.image || resource.photo || resource.photo_url || resource.image_path;
+                                        
+                                        if (imageUrl) {
+                                            return (
+                                                <img 
+                                                    src={imageUrl} 
+                                                    alt={resource.name} 
+                                                    className="single-resource-image"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'block';
+                                                    }}
+                                                />
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                    {(() => {
+                                        const imageUrl = resource.image_url || resource.image || resource.photo || resource.photo_url || resource.image_path;
+                                        if (!imageUrl || imageUrl === '') {
+                                            return (
+                                                <div className="resource-image-placeholder">
+                                                    <span className="placeholder-icon">📷</span>
+                                                    <span className="placeholder-text">No Image Available</span>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                </div>
+                                
                                 <p className="single-resource-detail"><strong>Description:</strong> {resource.description}</p>
                                 <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
                                 <p className="single-resource-detail"><strong>Capacity:</strong> {resource.capacity}</p>

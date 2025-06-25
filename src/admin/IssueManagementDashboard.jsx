@@ -113,7 +113,6 @@ export default function IssueManagementDashboard() {
                 <table className="issues-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Resource</th>
                             <th>Subject</th>
                             <th>Description</th>
@@ -128,8 +127,7 @@ export default function IssueManagementDashboard() {
                     </thead>
                     <tbody>
                         {filteredIssues.map(issue => (
-                            <tr key={issue.id}>
-                                <td data-label="ID">{issue.id}</td>
+                            <tr key={issue.id}>                                
                                 <td data-label="Resource">{issue.resource?.name || 'N/A'}</td>
                                 <td data-label="Subject">{issue.subject}</td>
                                 <td data-label="Description">{issue.description || 'N/A'}</td>

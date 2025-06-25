@@ -2,8 +2,8 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 
-export default function Home() {
-    const { token } = useContext(AppContext);
+export default function ShowResource() {
+    const { token, user } = useContext(AppContext);
 
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -94,8 +94,33 @@ export default function Home() {
     return (
         <>
             <div className="home-dashboard-section">
-                <h1>Available Resources</h1>
-
+                <div className="resource-header" style={{alignItems: 'center', justifyContent: 'space-between'}}>
+                    <h1>Available Resources</h1>
+                    {user && user.user_type === 'admin' && (
+                        <Link 
+                            to="/createResource" 
+                            className="create-resource-btn"
+                            style={{
+                                padding: '10px 20px',
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                textDecoration: 'none',
+                                borderRadius: '5px',
+                                fontWeight: 'bold',
+                                transition: 'background-color 0.3s ease',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textAlign: 'center',
+                                marginLeft: 'auto'
+                            }}
+                        >
+                            Create Resource
+                        </Link>
+                    )}
+                </div>
                 {/* Category Filter Section */}
                 <div className="category-filter-container">
                     <label htmlFor="category-select" className="category-filter-label">Filter by Category:</label>

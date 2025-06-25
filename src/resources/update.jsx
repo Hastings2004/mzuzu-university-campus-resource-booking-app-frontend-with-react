@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { AppContext } from "../context/appContext";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -13,9 +13,13 @@ export default function UpdateResource() {
         location: '',
         capacity: '',
         availability_status: 'available', // Default value
+        image: null,
     });
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState('');
+    const [imagePreview, setImagePreview] = useState(null);
+    const [currentImage, setCurrentImage] = useState(null);
+    const imageInputRef = useRef(null);
 
     useEffect(() => {
         if (!token || user?.user_type !== 'admin') {
@@ -44,6 +48,7 @@ export default function UpdateResource() {
                     location: resource.location || '',
                     capacity: resource.capacity || '',
                     availability_status: resource.availability_status || 'available',
+                    image: resource.image || null,
                 });
             } else {
                 throw new Error(data.message || "Failed to fetch resource data.");
@@ -64,14 +69,25 @@ export default function UpdateResource() {
             return;
         }
 
+        const dataToSend = new FormData();
+        dataToSend.append('name', formData.name);
+        dataToSend.append('description', formData.description);
+        dataToSend.append('location', formData.location);
+        dataToSend.append('capacity', formData.capacity);
+        dataToSend.append('availability_status', formData.availability_status);
+
+        if (formData.image) {
+            dataToSend.append('image', formData.image);
+        }
+
         try {
             const response = await fetch(`/api/resources/${id}`, {
                 method: "PUT",
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
+                    // Don't set Content-Type header - browser will set it for FormData
                 },
-                body: JSON.stringify(formData)
+                body: dataToSend
             });
 
             const data = await response.json();
@@ -98,6 +114,40 @@ export default function UpdateResource() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    // Handle file input changes
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        
+        // Validate file type
+        if (file && !file.type.startsWith('image/')) {
+            setErrors(prevErrors => ({ ...prevErrors, image: ['Please select a valid image file.'] }));
+            setMessage('');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file && file.size > 5 * 1024 * 1024) {
+            setErrors(prevErrors => ({ ...prevErrors, image: ['Image file size must be less than 5MB.'] }));
+            setMessage('');
+            return;
+        }
+        
+        setFormData(prev => ({ ...prev, image: file }));
+        setErrors(prevErrors => ({ ...prevErrors, image: undefined }));
+        setMessage('');
+
+        // Create image preview
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImagePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setImagePreview(null);
+        }
     };
 
     if (!user || user.user_type !== 'admin') {
@@ -171,20 +221,44 @@ export default function UpdateResource() {
                             {errors.capacity && <p className="error">{errors.capacity[0]}</p>}
                         </div>
 
+                        {/* Image Upload */}
                         <div className="form-detail">
-                            <label htmlFor="availability_status">Availability Status</label>
-                            <select
-                                id="availability_status"
-                                name="availability_status"
-                                className="input"
-                                value={formData.availability_status}
-                                onChange={handleChange}
-                            >
-                                <option value="available">Available</option>
-                                <option value="unavailable">Unavailable</option>
-                                <option value="maintenance">Under Maintenance</option>
-                            </select>
-                            {errors.availability_status && <p className="error">{errors.availability_status[0]}</p>}
+                            <label htmlFor="image">Resource Image (Optional)</label>
+                            <input
+                                type="file"
+                                id="image"
+                                name="image"
+                                accept="image/*"
+                                className={`input ${errors.image ? 'input-error' : ''}`}
+                                onChange={handleImageChange}
+                                ref={imageInputRef}
+                            />
+                            <p className="help-text">Supported formats: JPG, PNG, GIF. Maximum size: 5MB</p>
+                            {errors.image && <p className="error-text">{errors.image[0]}</p>}
+                            
+                            {/* Image Preview */}
+                            {imagePreview && (
+                                <div className="image-preview-container">
+                                    <img 
+                                        src={imagePreview} 
+                                        alt="Resource preview" 
+                                        className="image-preview"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        className="remove-image-btn"
+                                        onClick={() => {
+                                            setFormData(prev => ({ ...prev, image: null }));
+                                            setImagePreview(null);
+                                            if (imageInputRef.current) {
+                                                imageInputRef.current.value = "";
+                                            }
+                                        }}
+                                    >
+                                        Remove Image
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="form-detail">

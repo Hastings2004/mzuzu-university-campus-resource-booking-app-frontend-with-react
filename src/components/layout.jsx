@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
+import moment from 'moment';
 
 export default function Layout() {
   const { user, token, setUser, setToken } = useContext(AppContext);
@@ -17,6 +18,23 @@ export default function Layout() {
   const [initials, setInitials] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   
+  const isAdmin = user && user.user_type === 'admin';
+  const resourceTypes = [
+    'Meeting Room', 'Classrooms', 'Vehicle', 'ICT LABS', 'Auditorium',
+  ];
+  const [searchType, setSearchType] = useState('resources');
+  const [keyword, setKeyword] = useState('');
+  const [resourceType, setResourceType] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [userId, setUserId] = useState('');
+  const [searchResults, setSearchResults] = useState({ resources: [], bookings: [], users: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [searchDebounceTimeout, setSearchDebounceTimeout] = useState(null);
+
   useEffect(() => { 
     if (user) {
       initialsUserData().then(setInitials);
@@ -51,6 +69,20 @@ export default function Layout() {
     const interval = setInterval(fetchUnreadCount, 60000); // Optional: refresh every 60s
     return () => clearInterval(interval);
   }, [user, token]);
+
+  useEffect(() => {
+    if (!isAdmin && searchType === 'users') {
+      setSearchType('resources');
+    }
+  }, [isAdmin, searchType]);
+
+  // Clear search results when navigating to different pages
+  useEffect(() => {
+    setSearchResults({ resources: [], bookings: [], users: [] });
+    setSearchPerformed(false);
+    setError(null);
+    setShowAdvanced(false);
+  }, [location.pathname]);
 
   async function initialsUserData() {
     const firstLetter = user?.first_name?.charAt(0).toUpperCase() || '';
@@ -163,7 +195,68 @@ export default function Layout() {
   const handleTopNavbarSearch = (e) => {
     e.preventDefault();
     const searchValue = e.target.elements.search.value;
-    navigate(`/search?keyword=${encodeURIComponent(searchValue)}`);
+    setKeyword(searchValue);
+    performSearch(searchValue);
+    setShowAdvanced(false); // Hide advanced on simple search
+  };
+
+  const performSearch = async (kw) => {
+    if (!token) {
+      setError('Authentication token missing.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setSearchResults({ resources: [], bookings: [], users: [] });
+    setSearchPerformed(true);
+    const queryParams = new URLSearchParams();
+    if ((kw ?? keyword).trim()) queryParams.append('query', (kw ?? keyword).trim());
+    if (searchType === 'resources' && resourceType) queryParams.append('resource_type', resourceType);
+    if (searchType === 'bookings' && startTime) queryParams.append('start_time', startTime);
+    if (searchType === 'bookings' && endTime) queryParams.append('end_time', endTime);
+    if (isAdmin && userId) queryParams.append('user_id', userId);
+    const hasSearchParams = (kw ?? keyword).trim() || resourceType || startTime || endTime || userId;
+    if (!hasSearchParams && searchType !== 'resources') {
+      setLoading(false);
+      setSearchResults({ resources: [], bookings: [], users: [] });
+      return;
+    }
+    try {
+      const response = await fetch(`/api/search/global?${queryParams.toString()}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        if (data.results_by_type) {
+          setSearchResults(data.results_by_type);
+        } else {
+          setError(data.message || 'Received unexpected data format for global search.');
+        }
+      } else {
+        setError(data.message || 'Failed to perform search.');
+      }
+    } catch (err) {
+      setError('Network error or server unavailable.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setKeyword('');
+    setResourceType('');
+    setStartTime('');
+    setEndTime('');
+    setUserId('');
+    setSearchResults({ resources: [], bookings: [], users: [] });
+    setError(null);
+    setSearchPerformed(false);
+    setSearchType('resources');
   };
 
   const getBreadcrumbTitle = () => {
@@ -215,6 +308,18 @@ export default function Layout() {
     return 'Dashboard';
   };
 
+  useEffect(() => {
+    if (!showAdvanced) return; // Only auto-search in advanced mode
+    if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
+    const timeout = setTimeout(() => {
+      if (keyword || resourceType || startTime || endTime || userId) {
+        performSearch();
+      }
+    }, 400); // 400ms debounce
+    setSearchDebounceTimeout(timeout);
+    return () => clearTimeout(timeout);
+  }, [keyword, searchType, resourceType, startTime, endTime, userId, showAdvanced]);
+
   return (
     <>
       <div className={`dashboard-container ${isSidebarOpen ? "" : "sidebar-closed"}`}>
@@ -241,7 +346,11 @@ export default function Layout() {
             <li>
               <NavLink
                 to="/booking"
-                className={({ isActive }) => (isActive ? "active" : "")}
+                className={({ isActive }) => {
+                  const path = location.pathname;
+                  const isBookingPath = path.startsWith('/booking/') || path === '/booking/:id' || path === '/bookings/:id/edit';
+                  return (isActive || isBookingPath) ? "active" : "";
+                }}
                 onClick={handleNavLinkClick}
               >
                 <i className="bx bxs-calendar-check"></i>
@@ -263,10 +372,19 @@ export default function Layout() {
             )}
             <li>
               <NavLink
-                to="/createResource"
+                to="/viewResource"
                 className={({ isActive }) => {
                   const path = location.pathname;
-                  const isResourcePath = path.startsWith('/resources/') || path === '/createResource' || path === '/createResource/';
+                  const isResourcePath = path.startsWith('/resources/') 
+                  || path === '/createResource' || path === '/createResource/' 
+                  || path === '/resources/edit/' || path === '/resources/edit'
+                  || path === '/resources/edit/:id' || path === '/resources/edit/:id/'
+                  || path === '/resources/:id' || path === '/resources/:id/'
+                  || path === '/resources/:id/edit' || path === '/resources/:id/edit/'
+                  || path === '/resources/:id/edit/:id' || path === '/resources/:id/edit/:id/'
+                  || path === '/resources/:id/edit/:id/edit' || path === '/resources/:id/edit/:id/edit/'
+                  || path === '/resources/:id/edit/:id/edit/:id' || path === '/resources/:id/edit/:id/edit/:id/'
+                  || path === '/resources/:id/edit/:id/edit/:id/edit' || path === '/resources/:id/edit/:id/edit/:id/edit/'
                   return (isActive || isResourcePath) ? "active" : "";
                 }}
                 onClick={handleNavLinkClick}
@@ -371,13 +489,15 @@ export default function Layout() {
 
         <section id="content">
           <nav>
-            <i className="bx bx-menu" onClick={toggleSidebar}></i>
-            
+            <i className="bx bx-menu" onClick={toggleSidebar}></i>           
             <form onSubmit={handleTopNavbarSearch}>
               <div className="form-input">
                 <input type="text" placeholder="Search..." name="search" id="search-field" required />
                 <button type="submit" className="search-btn">
                   <i className="bx bx-search"></i>
+                </button>
+                <button type="button" className="advanced-btn" style={{marginLeft:'6px'}} onClick={()=>setShowAdvanced(v=>!v)}>
+                  {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
                 </button>
               </div>
             </form>
@@ -481,9 +601,135 @@ export default function Layout() {
                     </a>
                   </li>
                 </ul>
+                 {/* Back Button */}
+            <button
+              type="button"
+              className="back-btn"
+              onClick={() => navigate(-1)}
+              title="Go Back"
+              style={{marginLeft:'1rem', marginTop:'1rem', backgroundColor:'green', color:'white', border:'none', padding:'0.5rem 1rem', borderRadius:'0.25rem', cursor:'pointer'}}
+            >
+              <i className="bx bx-arrow-back"></i>
+              <span className="text">Back</span>
+            </button>
               </div>
             </div>
-            <Outlet />
+            {/* ADVANCED SEARCH FILTERS */}
+            {showAdvanced && (
+              <div className="search-form" style={{marginBottom:'1rem', background:'#f9f9f9', padding:'1rem', borderRadius:'8px'}}>
+                <div className="form-group">
+                  <label htmlFor="searchType">Search For:</label>
+                  <select id="searchType" value={searchType} onChange={e=>{setSearchType(e.target.value); setResourceType(''); setStartTime(''); setEndTime(''); setUserId('');}}>
+                    <option value="resources">Resources</option>
+                    <option value="bookings">Bookings</option>
+                    {isAdmin && <option value="users">Users</option>}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="keyword">Keyword:</label>
+                  <input type="text" id="keyword" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder={searchType==='resources'?"e.g., Room A, ICT LAB 1":searchType==='bookings'?"e.g., MZUNI-RBA-001, Meeting, John":searchType==='users'?"e.g., John Doe, john@example.com":""} />
+                </div>
+                {searchType==='resources' && (
+                  <div className="form-group">
+                    <label htmlFor="resourceType">Resource Type:</label>
+                    <select id="resourceType" value={resourceType} onChange={e=>setResourceType(e.target.value)}>
+                      <option value="">All Types</option>
+                      {resourceTypes.map(rType=>(<option key={rType} value={rType}>{rType}</option>))}
+                    </select>
+                  </div>
+                )}
+                {searchType==='bookings' && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="startTime">Start Time:</label>
+                      <input type="datetime-local" id="startTime" value={startTime} onChange={e=>setStartTime(e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="endTime">End Time:</label>
+                      <input type="datetime-local" id="endTime" value={endTime} onChange={e=>setEndTime(e.target.value)} />
+                    </div>
+                  </>
+                )}
+                {isAdmin && (searchType==='bookings'||searchType==='users') && (
+                  <div className="form-group">
+                    <label htmlFor="userId">User ID (Admin):</label>
+                    <input type="text" id="userId" value={userId} onChange={e=>setUserId(e.target.value)} placeholder="Optional: Enter User ID" />
+                  </div>
+                )}
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={handleReset} disabled={loading}>Reset</button>
+                  <button type="button" className="btn btn-primary" onClick={()=>performSearch()}>Search</button>
+                </div>
+              </div>
+            )}
+            {/* SEARCH RESULTS */}
+            {(searchPerformed || loading) && (
+              <div className="search-results" style={{marginBottom:'2rem'}}>
+                <h3>Search Results</h3>
+                {error && <p className="error-message">{error}</p>}
+                {loading && <p>Loading results...</p>}
+                {!loading && searchPerformed && searchResults.resources.length===0 && searchResults.bookings.length===0 && searchResults.users.length===0 && !error && (
+                  <p>No results found matching your criteria.</p>
+                )}
+                {!loading && searchPerformed && (
+                  <>
+                    {searchResults.resources.length>0 && (
+                      <div className="results-section">
+                        <h4>Resources ({searchResults.resources.length})</h4>
+                        <ul className="resource-list">
+                          {searchResults.resources.map(resource=>(
+                            <li key={`resource-${resource.id}`} className="resource-item">
+                              <h5>{resource.name} ({resource.category})</h5>
+                              <p><strong>Location:</strong> {resource.location || 'N/A'}</p>
+                              <p><strong>Capacity:</strong> {resource.capacity || 'N/A'}</p>
+                              <p><strong>Status:</strong> {resource.status}</p>
+                              <p className="text-sm">{resource.description}</p>
+                              <NavLink to={`/resources/${resource.id}`} className="text-blue-500 block">View Details</NavLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {searchResults.bookings.length>0 && (
+                      <div className="results-section">
+                        <h4>Bookings ({searchResults.bookings.length})</h4>
+                        <ul className="booking-list">
+                          {searchResults.bookings.map(booking=>(
+                            <li key={`booking-${booking.id}`} className="booking-item">
+                              <h5>Ref: {booking.booking_reference}</h5>
+                              <p><strong>Resource:</strong> {booking.resource?.name || 'N/A'} ({booking.resource?.type || 'N/A'})</p>
+                              <p><strong>Purpose:</strong> {booking.purpose}</p>
+                              <p><strong>Status:</strong> {booking.status}</p>
+                              <p><strong>Time:</strong> {moment(booking.start_time).format('YYYY-MM-DD HH:mm')} - {moment(booking.end_time).format('YYYY-MM-DD HH:mm')}</p>
+                              {isAdmin && booking.user && (
+                                <p><strong>Booked By:</strong> {booking.user.first_name} {booking.user.last_name} ({booking.user.email})</p>
+                              )}
+                              <NavLink to={`/booking/${booking.id}`} className="text-blue-500 block">View Details</NavLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {isAdmin && searchResults.users.length>0 && (
+                      <div className="results-section">
+                        <h4>Users ({searchResults.users.length})</h4>
+                        <ul className="user-list">
+                          {searchResults.users.map(userResult=>(
+                            <li key={`user-${userResult.id}`} className="user-item">
+                              <h5>{userResult.first_name} {userResult.last_name}</h5>
+                              <p><strong>Email:</strong> {userResult.email}</p>
+                              <p><strong>User Type:</strong> {userResult.user_type}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {!(searchPerformed || loading) && <Outlet />}
           </main>
         </section>
       </div>

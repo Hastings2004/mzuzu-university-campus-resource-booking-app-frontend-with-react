@@ -194,7 +194,7 @@ export default function ResourceUtilizationReport() {
             autoTable(doc, {
                 head: [tableColumn],
                 body: tableRows,
-                startY: 125, // Increased startY to accommodate header content with more spacing
+                startY: 125, 
                 theme: 'striped',
                 headStyles: { fillColor: [20, 20, 100] },
                 margin: { top: 30 },
@@ -218,9 +218,8 @@ export default function ResourceUtilizationReport() {
                 doc.setFontSize(8);
                 doc.text(`Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 15);
                 
-                // Add footer text with more spacing
                 doc.text('This report is generated automatically by the Campus Resource Management System', 14, doc.internal.pageSize.height - 8);
-                doc.text('For questions or concerns, please contact the IT department', 14, doc.internal.pageSize.height - 3);
+                
             }
 
             // Save PDF

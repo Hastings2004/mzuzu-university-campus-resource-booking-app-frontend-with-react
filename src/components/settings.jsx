@@ -12,6 +12,12 @@ export default function Settings() {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
+    const [identityNumber, setIdentityNumber] = useState('');
+    const [phone, setPhone] = useState('');
+    const [physicalAddress, setPhysicalAddress] = useState('');
+    const [postAddress, setPostAddress] = useState('');
+    const [district, setDistrict] = useState('');
+    const [village, setVillage] = useState('');
     const [profileMessage, setProfileMessage] = useState('');
     const [profileError, setProfileError] = useState('');
     const [profileLoading, setProfileLoading] = useState(false);
@@ -29,6 +35,12 @@ export default function Settings() {
             setFirstName(user.first_name || '');
             setLastName(user.last_name || '');
             setEmail(user.email || '');
+            setIdentityNumber(user.identity_number || '');
+            setPhone(user.phone || '');
+            setPhysicalAddress(user.physical_address || '');
+            setPostAddress(user.post_address || '');
+            setDistrict(user.district || '');
+            setVillage(user.village || '');
         }
     }, [user]);
 
@@ -45,7 +57,7 @@ export default function Settings() {
         }
 
         try {
-            const response = await fetch('/api/user/profile', { // Your API endpoint for profile updates
+            const response = await fetch('/api/user/profile', { 
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,7 +66,13 @@ export default function Settings() {
                 body: JSON.stringify({
                     first_name: firstName,
                     last_name: lastName,
-                    email: email
+                    email: email,
+                    identity_number: identityNumber,
+                    phone: phone,
+                    physical_address: physicalAddress,
+                    post_address: postAddress,
+                    district: district,
+                    village: village
                 })
             });
 
@@ -62,7 +80,18 @@ export default function Settings() {
 
             if (response.ok) {
                 // Update user in context and local storage
-                const updatedUser = { ...user, first_name: firstName, last_name: lastName, email: email };
+                const updatedUser = { 
+                    ...user, 
+                    first_name: firstName, 
+                    last_name: lastName, 
+                    email: email,
+                    identity_number: identityNumber,
+                    phone: phone,
+                    physical_address: physicalAddress,
+                    post_address: postAddress,
+                    district: district,
+                    village: village
+                };
                 setUser(updatedUser); // Update context
                 localStorage.setItem('user', JSON.stringify(updatedUser)); // Update local storage
                 setProfileMessage(data.message || "Profile updated successfully!");
@@ -162,6 +191,7 @@ export default function Settings() {
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             disabled={profileLoading}
+                            readOnly
                         />
                     </div>
                     <div className="form-group">
@@ -172,6 +202,7 @@ export default function Settings() {
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             disabled={profileLoading}
+                            readOnly
                         />
                     </div>
                     <div className="form-group">
@@ -181,6 +212,74 @@ export default function Settings() {
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            disabled={profileLoading}
+                            readOnly
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="identityNumber">
+                            {user?.user_type === 'student' ? 'Registration Number:' : 
+                             user?.user_type === 'staff' ? 'Employee Number:' : 'Identity Number:'}
+                        </label>
+                        <input
+                            type="text"
+                            id="identityNumber"
+                            value={identityNumber}
+                            onChange={(e) => setIdentityNumber(e.target.value)}
+                            maxLength={255}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="phone">Phone:</label>
+                        <input
+                            type="tel"
+                            id="phone"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            maxLength={30}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="physicalAddress">Physical Address:</label>
+                        <textarea
+                            id="physicalAddress"
+                            value={physicalAddress}
+                            onChange={(e) => setPhysicalAddress(e.target.value)}
+                            disabled={profileLoading}
+                            rows={3}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="postAddress">Post Address:</label>
+                        <textarea
+                            id="postAddress"
+                            value={postAddress}
+                            onChange={(e) => setPostAddress(e.target.value)}
+                            disabled={profileLoading}
+                            rows={3}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="district">District:</label>
+                        <input
+                            type="text"
+                            id="district"
+                            value={district}
+                            onChange={(e) => setDistrict(e.target.value)}
+                            maxLength={255}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="village">Village:</label>
+                        <input
+                            type="text"
+                            id="village"
+                            value={village}
+                            onChange={(e) => setVillage(e.target.value)}
+                            maxLength={255}
                             disabled={profileLoading}
                         />
                     </div>
@@ -237,15 +336,7 @@ export default function Settings() {
                 </form>
             </section>
 
-            
-
-            {/* Logout Section */}
-            <section className="settings-section">
-                <h2>Account Actions</h2>
-                <button onClick={handleLogout} className="logout-button">
-                    Logout
-                </button>
-            </section>
+        
             </div>
         </div>
     );

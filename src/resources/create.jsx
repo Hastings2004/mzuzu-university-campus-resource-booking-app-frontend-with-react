@@ -19,6 +19,7 @@ export default function CreateResource() {
 
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState('');
+    const [imagePreview, setImagePreview] = useState(null);
     const imageInputRef = useRef(null);
 
     // Effect to check if the user is an admin on component mount
@@ -40,9 +41,35 @@ export default function CreateResource() {
     // Handle file input changes
     const handleImageChange = (e) => {
         const file = e.target.files[0];
+        
+        // Validate file type
+        if (file && !file.type.startsWith('image/')) {
+            setErrors(prevErrors => ({ ...prevErrors, image: ['Please select a valid image file.'] }));
+            setMessage('');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file && file.size > 5 * 1024 * 1024) {
+            setErrors(prevErrors => ({ ...prevErrors, image: ['Image file size must be less than 5MB.'] }));
+            setMessage('');
+            return;
+        }
+        
         setFormData({ ...formData, image: file });
         setErrors(prevErrors => ({ ...prevErrors, image: undefined }));
         setMessage('');
+
+        // Create image preview
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImagePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setImagePreview(null);
+        }
     };
 
     // Handle form submission
@@ -126,6 +153,7 @@ export default function CreateResource() {
                 if (imageInputRef.current) {
                     imageInputRef.current.value = ""; // Clear file input
                 }
+                setImagePreview(null); // Clear image preview
                 setErrors({});
                 // Navigate after a short delay to allow message to be seen
                 setTimeout(() => navigate("/"), 2000);
@@ -243,25 +271,7 @@ export default function CreateResource() {
                                 </select>
                                 {errors.category && <p className="error-message">{errors.category[0]}</p>}
                             </div>
-
-                            {/* Status */}
-                            <div className="form-detail">
-                                <label htmlFor="status">Status</label>
-                                <select
-                                    id="status"
-                                    name="status"
-                                    className={`input ${errors.status ? 'input-error' : ''}`}
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                >
-                                    <option value="available">Available</option>
-                                    <option value="booked">Booked</option>
-                                    <option value="maintenance">Under Maintenance</option>
-                                    <option value="unavailable">Unavailable</option>
-                                </select>
-                                {errors.status && <p className="error-text">{errors.status[0]}</p>}
-                            </div>
-
+                            
                             {/* Image Upload */}
                             <div className="form-detail">
                                 <label htmlFor="image">Resource Image (Optional)</label>
@@ -270,11 +280,36 @@ export default function CreateResource() {
                                     id="image"
                                     name="image"
                                     accept="image/*" // Only allow image files
-                                    className={`input-file ${errors.image ? 'input-error' : ''}`}
+                                    className={`input ${errors.image ? 'input-error' : ''}`}
                                     onChange={handleImageChange}
                                     ref={imageInputRef} // Attach ref to clear input
                                 />
+                                <p className="help-text">Supported formats: JPG, PNG, GIF. Maximum size: 5MB</p>
                                 {errors.image && <p className="error-text">{errors.image[0]}</p>}
+                                
+                                {/* Image Preview */}
+                                {imagePreview && (
+                                    <div className="image-preview-container">
+                                        <img 
+                                            src={imagePreview} 
+                                            alt="Resource preview" 
+                                            className="image-preview"
+                                        />
+                                        <button 
+                                            type="button" 
+                                            className="remove-image-btn"
+                                            onClick={() => {
+                                                setFormData({ ...formData, image: null });
+                                                setImagePreview(null);
+                                                if (imageInputRef.current) {
+                                                    imageInputRef.current.value = "";
+                                                }
+                                            }}
+                                        >
+                                            Remove Image
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Submit Button */}
