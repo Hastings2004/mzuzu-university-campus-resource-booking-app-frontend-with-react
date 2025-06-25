@@ -9,6 +9,14 @@ export default function EditUser() {
 
     const [userData, setUserData] = useState(null);
     const [formData, setFormData] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        district: '',
+        village: '',
+        physical_address: '',
+        post_address: '',
         user_type: '',
         role_id: ''
     });
@@ -45,6 +53,14 @@ export default function EditUser() {
                 const fetchedUser = data.user || data;
                 setUserData(fetchedUser);
                 setFormData({
+                    first_name: fetchedUser.first_name || '',
+                    last_name: fetchedUser.last_name || '',
+                    email: fetchedUser.email || '',
+                    phone: fetchedUser.phone || '',
+                    district: fetchedUser.district || '',
+                    village: fetchedUser.village || '',
+                    physical_address: fetchedUser.physical_address || '',
+                    post_address: fetchedUser.post_address || '',
                     user_type: fetchedUser.user_type || '',
                     role_id: fetchedUser.role_id || ''
                 });
@@ -79,7 +95,7 @@ export default function EditUser() {
         }
 
         try {
-            const response = await fetch(`/api/users/${id}`, {
+            const response = await fetch(`/api/users/${id}/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -142,8 +158,7 @@ export default function EditUser() {
         <div className="container">
             <div className="content">
                 <div className="header-actions">
-                    <h2>Edit User</h2>
-                    
+                    <h2>Edit User Role</h2>
                 </div>
 
                 {success && <p className="success-message">{success}</p>}
@@ -162,19 +177,17 @@ export default function EditUser() {
                             <p><strong>Village:</strong> {userData.village}</p>
                             <p><strong>Physical Address:</strong> {userData.physical_address}</p>
                             <p><strong>Postal Address:</strong> {userData.post_address}</p>
-                           
-
                             <p><strong>Current User Type:</strong> 
                                 <span className={`user-type-${userData.user_type}`}>
                                     {userData.user_type}
                                 </span>
                             </p>   
-
                         </div>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="edit-form">
+                    
                     <div className="form-group">
                         <label htmlFor="user_type">User Type:</label>
                         <select
@@ -191,8 +204,6 @@ export default function EditUser() {
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-
-                   
 
                     <div className="form-actions">
                         <button 

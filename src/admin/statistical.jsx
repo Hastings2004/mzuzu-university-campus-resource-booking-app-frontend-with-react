@@ -910,7 +910,7 @@ export default function Statistical() {
             
             // Add footer text with more spacing
             doc.text('This report is generated automatically by the Campus Resource Management System', 14, doc.internal.pageSize.height - 8);
-            doc.text('For questions or concerns, please contact the IT department', 14, doc.internal.pageSize.height - 3);
+            
         }
 
         doc.save('Statistical_Dashboard_Report.pdf');

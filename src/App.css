@@ -367,10 +367,11 @@ body {
 
 .login-footer {
     width: 100%;
+
     text-align: center;
     margin-top: 40px;
     font-size: 0.8em;
-    color: var(--text-light-on-dark);
+    color: var(--primary-color);
     position: absolute;
     bottom: 20px;
     left: 0;
@@ -688,76 +689,6 @@ body {
     cursor: pointer;
     color: var(--text-primary);
     font-size: 28px;
-}
-
-#content nav .nav-link {
-    font-size: 16px;
-    transition: color 0.3s ease;
-}
-
-#content nav .nav-link:hover {
-    color: var(--primary-color);
-}
-
-#content nav form {
-    max-width: 400px;
-    width: 100%;
-    flex-grow: 1; 
-}
-
-#content nav form {
-     margin-right: 35%;
-}
-
-#content nav form .form-input {
-    display: flex;
-    align-items: center;
-    height: 40px;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    overflow: hidden;
-   
-}
-
-#content nav form .form-input input {
-    flex-grow: 1;
-    padding: 0 16px;
-    height: 100%;
-    border: none;
-    background: var(--bg-grey);
-    border-radius: 20px 0 0 20px;
-    outline: none;
-    width: 100%;
-    color: var(--text-primary);
-    font-family: var(--poppins);
-}
-
-#content nav form .form-input button {
-    width: 50px;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--primary-color);
-    color: var(--text-light-on-dark);
-    font-size: 20px;
-    border: none;
-    outline: none;
-    border-radius: 0 20px 20px 0;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-#content nav form .form-input button:hover {
-    background: var(--primary-dark);
-}
-
-
-#content nav .left-icons {
-    display: flex; 
-    align-items: center; 
-    gap: 24px; 
-    margin-left: 20px; 
 }
 
 

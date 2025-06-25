@@ -14,7 +14,7 @@ export default function Register() {
         first_name: "", 
         last_name: "",   
         email: "",
-        user_type: "",
+        user_type: "student",
         password: "",
         password_confirmation: "",
     });
@@ -78,176 +78,126 @@ export default function Register() {
     };
     return (
         <>
-            <div className="auth-container">
-                <div className='head'>
-                    <div className='slogan-banner'>
-                        <p>Join Mzuzu University Resource Booking App Get Started with Easy Booking!</p>
+        <div className="auth-container">
+            <div className='head'>
+                
+                <div className='slogan-banner'>
+                    <p>Welcome to Mzuzu University Resource Booking App – Your Gateway to Effortless Booking!</p>
+                </div>
+                
+                <div className='auth-content'>
+                    <div>
+                        <img src={logo} alt="logo" width={110} height={110}/>
+                        <h2>Resource Booking App</h2>
                     </div>
-
-                    <div className='content'>
-                        <div>
-                            <img src={logo} alt="logo" width={110} height={110} />
-                            <h2 style={h2Style}>Resource Booking App</h2>
-                        </div>
-                        <div>
-                            <h3>Register</h3>
-                            {errors.general && <p className='error general-error'>{errors.general}</p>}
-                        </div>
-                        <form onSubmit={handleRegistration} id='form'>
-                            <div className='form-content'>
-                                <div className='form-details'>
-                                    <input
-                                        type="text"
-                                        id="first_name" 
-                                        className={`input ${errors.first_name ? 'input-error' : ''}`}
-                                        placeholder="First Name"
-                                        value={formData.first_name}
-                                        onChange={handleInputChange}
-                                        autoComplete="given-name" 
-                                        required
-                                    />
-                                    {errors.first_name && <span className="error">{errors.first_name}</span>}
-                                </div>
-                                <div className='form-details'>
-                                    <input
-                                        type="text"
-                                        id="last_name" 
-                                        className={`input ${errors.last_name ? 'input-error' : ''}`}
-                                        placeholder="Last Name"
-                                        value={formData.last_name}
-                                        onChange={handleInputChange}
-                                        autoComplete="family-name" 
-                                        required
-                                    />
-                                    {errors.last_name && <span className="error">{errors.last_name}</span>}
-                                </div>
-                                
-                                <div className='form-details'>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        className={`input ${errors.email ? 'input-error' : ''}`}
-                                        placeholder="Email"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        autoComplete="email"
-                                        required
-                                    />
-                                    {errors.email && <span className="error">{errors.email}</span>}
-                                </div>
-
-                                {/* Student ID input, show only if user_type is 'student' */}
-                                {formData.user_type === 'student' && (
-                                    <div className='form-details'>
-                                        <input
-                                            type="text"
-                                            id="student_id"
-                                            className={`input ${errors.student_id ? 'input-error' : ''}`}
-                                            placeholder="Student ID"
-                                            value={formData.student_id}
-                                            onChange={handleInputChange}
-                                            required={formData.user_type === 'student'}
-                                        />
-                                        {errors.student_id && <span className="error">{errors.student_id}</span>}
-                                    </div>
-                                )}
-                                {formData.user_type === 'staff' && (
-                                    <div className='form-details'>
-                                        <input
-                                            type="text"
-                                            id="student_id"
-                                            className={`input ${errors.student_id ? 'input-error' : ''}`}
-                                            placeholder="Staff ID"
-                                            value={formData.staff_id}
-                                            onChange={handleInputChange}
-                                            required={formData.user_type === 'student'}
-                                        />
-                                        {errors.student_id && <span className="error">{errors.student_id}</span>}
-                                    </div>
-                                )}
-
-                                <div className='form-details'>
-                                    <select
-                                        name="user_type"
-                                        id="user_type"
-                                        className={`input ${errors.user_type ? 'input-error' : ''}`}
-                                        value={formData.user_type}
-                                        onChange={handleInputChange}
-                                        required
-                                    >
-                                        <option value="">-------------------Select user type---------------------</option>
-                                        <option value="student">Student</option>
-                                        <option value="staff">Staff</option>
-                                        <option value="guest">Guest</option>
-                                    </select>
-                                    {errors.user_type && <span className="error">{errors.user_type}</span>}
-                                </div>
-
-                                <div className='form-details password-field'>
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        id="password"
-                                        className={`input ${errors.password ? 'input-error' : ''}`}
-                                        placeholder="Password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        autoComplete="new-password"
-                                        required
-                                    />
-                                    <span
-                                        className="password-toggle-icon"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                    </span>
-                                    {errors.password && <span className="error">{errors.password}</span>}
-                                </div>
-
-                                <div className='form-details password-field'>
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        id="password_confirmation"
-                                        className={`input ${errors.password_confirmation ? 'input-error' : ''}`}
-                                        placeholder="Confirm Password"
-                                        value={formData.password_confirmation}
-                                        onChange={handleInputChange}
-                                        autoComplete="new-password"
-                                        required
-                                    />
-                                    <span
-                                        className="password-toggle-icon"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    >
-                                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                                    </span>
-                                    {errors.password_confirmation && <span className="error">{errors.password_confirmation}</span>}
-                                </div>
-
-                                <div className='form-details'>
-                                    <button type='submit' disabled={isLoading}>
-                                        {isLoading ? 'Registering...' : 'Register'}
-                                    </button>
-                                </div>
-
-                                <div className='account'>
-                                    <div>
-                                        <p>Already have an account?
-                                            <span>
-                                                <Link to="/login" className="nav-link">
-                                                    Login
-                                                </Link>
-                                            </span>
-                                        </p>
-                                    </div>
+                    <div>
+                        <h3>Register</h3>
+                        {errors.general && <p className='error general-error'>{errors.general}</p>} {/* General error message */}
+                    </div>
+                    <form onSubmit={handleRegistration} id='form'>
+                        <div className='form-content'>
+                            <div className='form-details'>
+                                <input 
+                                    type="text"
+                                    id="first_name"
+                                    className={`input ${errors.first_name ? 'input-error' : ''}`}
+                                    placeholder="First Name"
+                                    value={formData.first_name}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                                {errors.first_name && <p className='error'>{errors.first_name}</p>}
+                            </div>
+                            <div className='form-details'>
+                                <input 
+                                    type="text"
+                                    id="last_name"
+                                    className={`input ${errors.last_name ? 'input-error' : ''}`}
+                                    placeholder="Last Name"
+                                    value={formData.last_name}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                                {errors.last_name && <p className='error'>{errors.last_name}</p>}
+                            </div>
+                            <div className='form-details'>
+                                <input 
+                                    type="email"
+                                    id='email' 
+                                    className={`input ${errors.email ? 'input-error' : ''}`}
+                                    placeholder='Email'
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    autoComplete="username"
+                                    required
+                                />
+                                {errors.email && <p className='error'>{errors.email}</p>}
+                            </div>
+                            
+                            <div className='form-details password-field'>
+                                <input 
+                                    type={showPassword ? "text" : "password"}
+                                    id='password' 
+                                    className={`input ${errors.password ? 'input-error' : ''}`}
+                                    placeholder='Password'
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    autoComplete="new-password"
+                                    required
+                                />
+                                <span 
+                                    className="password-toggle-icon" 
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </span>
+                                {errors.password && <p className='error'>{errors.password}</p>}
+                            </div>
+                            <div className='form-details password-field'>
+                                <input 
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    id='password_confirmation' 
+                                    className={`input ${errors.password_confirmation ? 'input-error' : ''}`}
+                                    placeholder='Confirm Password'
+                                    value={formData.password_confirmation}
+                                    onChange={handleInputChange}
+                                    autoComplete="new-password"
+                                    required
+                                />
+                                <span 
+                                    className="password-toggle-icon" 
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                </span>
+                                {errors.password_confirmation && <p className='error'>{errors.password_confirmation}</p>}
+                            </div>
+                            <div className='form-details'>
+                                <button type="submit" disabled={isLoading}>
+                                    {isLoading ? 'Registering...' : 'Register'}
+                                </button>
+                            </div>
+                            <div className='account'>
+                                <div>
+                                    <p>Already have an account? 
+                                        <span> 
+                                            <Link to="/login" className="nav-link">
+                                                Login
+                                            </Link>
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
+                   
                 </div>
-                <footer className="login-footer">
-                    <p>&copy; {new Date().getFullYear()} Resource Booking App. All rights reserved.</p>
-                </footer>
             </div>
+            {/* Optional: Add a subtle footer/copyright */}
+            <footer className="login-footer">
+                <p>&copy; {new Date().getFullYear()} Resource Booking App. All rights reserved.</p>
+            </footer>
+        </div>
         </>
     );
 }

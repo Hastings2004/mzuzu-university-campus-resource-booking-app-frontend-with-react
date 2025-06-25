@@ -34,6 +34,7 @@ export default function Layout() {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [searchDebounceTimeout, setSearchDebounceTimeout] = useState(null);
+  const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => { 
     if (user) {
@@ -82,6 +83,14 @@ export default function Layout() {
     setSearchPerformed(false);
     setError(null);
     setShowAdvanced(false);
+  }, [location.pathname]);
+
+  // Track if we can go back
+  useEffect(() => {
+    // Check if we're not on the home page or if there's history
+    const isNotHome = location.pathname !== '/';
+    const hasHistory = window.history.length > 1;
+    setCanGoBack(isNotHome && hasHistory);
   }, [location.pathname]);
 
   async function initialsUserData() {
@@ -189,6 +198,15 @@ export default function Layout() {
     if (isSmallDevice) {
       setIsSidebarOpen(false);
       setIsProfileDropdownOpen(false);
+    }
+  };
+
+  const handleBackButton = () => {
+    if (canGoBack) {
+      navigate(-1);
+    } else {
+      // If we can't go back, go to home page
+      navigate('/');
     }
   };
 
@@ -605,12 +623,12 @@ export default function Layout() {
             <button
               type="button"
               className="back-btn"
-              onClick={() => navigate(-1)}
-              title="Go Back"
-              style={{marginLeft:'1rem', marginTop:'1rem', backgroundColor:'green', color:'white', border:'none', padding:'0.5rem 1rem', borderRadius:'0.25rem', cursor:'pointer'}}
+              onClick={handleBackButton}
+              title={canGoBack ? "Go Back" : "Go Home"}
+              style={{marginLeft:'1rem', marginTop:'1rem', marginBottom:'1rem', backgroundColor:'green', color:'white', border:'none', padding:'0.5rem 1rem', borderRadius:'0.25rem', cursor:'pointer'}}
             >
-              <i className="bx bx-arrow-back"></i>
-              <span className="text">Back</span>
+              <i className={canGoBack ? "bx bx-arrow-back" : "bx bxs-home"}></i>
+              <span className="text">{canGoBack ? 'Back' : 'Home'}</span>
             </button>
               </div>
             </div>
