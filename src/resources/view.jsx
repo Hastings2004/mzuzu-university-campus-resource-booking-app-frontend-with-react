@@ -522,7 +522,7 @@ export default function View() {
 
         return (
             <div className="booking-status-section">
-                <h4>{resource.name} Has {bookings.length} Bookings</h4>
+                <h4>{resource?.name || 'Resource'} Has {bookings.length} Bookings</h4>
                 <div className="booking-list">
                     {bookings.map((booking, index) => (
                         <div key={booking.id || index} className="booking-item">                            
@@ -770,7 +770,7 @@ export default function View() {
                                 
                             </div>
                         ) : (
-                            <p className="resource-not-found-message">Loading resource or resource not found!</p>
+                            <p className="">Loading resource or resource not found!</p>
                         )}
                     </div>
                 </div>
