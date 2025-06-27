@@ -90,6 +90,8 @@ export default function UpdateResource() {
                 body: dataToSend
             });
 
+            console.log(response);
+
             const data = await response.json();
 
             if (!response.ok) {
@@ -101,7 +103,7 @@ export default function UpdateResource() {
             } else {
                 setMessage("Resource updated successfully!");
                 setTimeout(() => {
-                    navigate(`/resources/view/${id}`);
+                    navigate(`/resources/${id}`);
                 }, 1500);
             }
         } catch (error) {

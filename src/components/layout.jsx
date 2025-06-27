@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
-import logo from '../assets/logo.png';
+import logo1 from '../assets/logo1.jpg';
 import moment from 'moment';
 
 export default function Layout() {
@@ -344,7 +344,7 @@ export default function Layout() {
         <section id="sidebar" className={isSidebarOpen ? "" : "hide"}>
           <div className="brand">
             <center>
-              <img src={logo} alt="logo" width={70} height={70} />
+              <img src={logo1} alt="logo" width={100} height={100} />
               <h3>Mzuzu University</h3>
               <p className="text">Resource Booking App</p>
             </center>
