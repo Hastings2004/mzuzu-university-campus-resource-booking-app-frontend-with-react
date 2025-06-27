@@ -351,7 +351,24 @@ export default function Layout() {
           </div>
 
           <ul className="side-menu top">
+            {user && user.user_type == 'admin' && (
+              <>
+                <li>
+                  <NavLink
+                    to="/statistical"
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleNavLinkClick}
+                  >
+                    <i className="bx bx-chart"></i>
+                    <span className="text">Statistical Dashboard</span>
+                  </NavLink>
+                </li>
+                
+              
+              </>
+            )}
             <li> 
+              
               <NavLink
                 to="/"
                 className={({ isActive }) => (isActive ? "active" : "")}
@@ -414,16 +431,6 @@ export default function Layout() {
             
             {user && user.user_type === 'admin' && (
               <>
-                <li>
-                  <NavLink
-                    to="/statistical"
-                    className={({ isActive }) => (isActive ? "active" : "")}
-                    onClick={handleNavLinkClick}
-                  >
-                    <i className="bx bx-chart"></i>
-                    <span className="text">Statistical Dashboard</span>
-                  </NavLink>
-                </li>
                 
                 <li>
                   <NavLink
