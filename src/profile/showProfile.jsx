@@ -1,333 +1,403 @@
-import { useCallback, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppContext } from "../context/appContext";
+// Settings.jsx
+import React, { useContext, useState, useEffect } from 'react';
+import { AppContext } from '../context/appContext'; // Adjust path as needed
+import { useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function ShowProfile() {
-    const { token, user, setUser } = useContext(AppContext);
+    const { user, setUser, token, logout, isDarkMode, toggleTheme } = useContext(AppContext);
     const navigate = useNavigate();
 
-    const [profileData, setProfileData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isEditing, setIsEditing] = useState(false); 
-    const [updateForm, setUpdateForm] = useState({ 
-        first_name: '',
-        last_name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
-    const [updateError, setUpdateError] = useState({}); 
-    const [updateSuccess, setUpdateSuccess] = useState(''); 
+    // State for profile editing
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [identityNumber, setIdentityNumber] = useState('');
+    const [phone, setPhone] = useState('');
+    const [physicalAddress, setPhysicalAddress] = useState('');
+    const [postAddress, setPostAddress] = useState('');
+    const [district, setDistrict] = useState('');
+    const [village, setVillage] = useState('');
+    const [profileMessage, setProfileMessage] = useState('');
+    const [profileError, setProfileError] = useState('');
+    const [profileLoading, setProfileLoading] = useState(false);
 
-    // --- Fetch Profile Data ---
-    const getProfileData = useCallback(async () => {
-        if (!token) {
-            setLoading(false);
-            setError("User not authenticated. Please log in.");
-            navigate('/login');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            setError(null);
-
-            // Fetch the authenticated user's profile
-            const response = await fetch('/api/profile', { 
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                const fetchedUser = data.user || data;
-                setProfileData(fetchedUser);
-                setUser(fetchedUser); 
-
-                setUpdateForm({
-                    first_name: fetchedUser.first_name || '',
-                    last_name: fetchedUser.last_name || '',
-                    email: fetchedUser.email || '',
-                    password: '', 
-                    password_confirmation: '',
-                });
-            } else {
-                setError(data.message || `Failed to fetch user profile (Status: ${response.status}).`);
-                if (response.status === 401 || response.status === 403) {
-                    alert("Your session has expired or is invalid. Please log in again.");
-                    setUser(null);
-                    navigate('/login');
-                }
-            }
-        } catch (err) {
-            setError('A network error occurred: ' + err.message);
-            alert("A network error occurred. Redirecting to login.");
-            setUser(null);
-            navigate('/login');
-        } finally {
-            setLoading(false);
-        }
-    }, [token, navigate, setUser]);
+    // State for password change
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [passwordMessage, setPasswordMessage] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false); 
 
     useEffect(() => {
-        getProfileData();
-    }, [getProfileData]);
+        if (user) {
+            setFirstName(user.first_name || '');
+            setLastName(user.last_name || '');
+            setEmail(user.email || '');
+            setIdentityNumber(user.identity_number || '');
+            setPhone(user.phone || '');
+            setPhysicalAddress(user.physical_address || '');
+            setPostAddress(user.post_address || '');
+            setDistrict(user.district || '');
+            setVillage(user.village || '');
+        }
+    }, [user]);
 
-    // --- Update Profile Data ---
-    const handleFormChange = (e) => {
-        setUpdateForm({ ...updateForm, [e.target.name]: e.target.value });
-        setUpdateError({ ...updateError, [e.target.name]: '' }); 
-    };
-
-    const handleUpdateSubmit = async (e) => {
+    const handleProfileUpdate = async (e) => {
         e.preventDefault();
-        setUpdateError({}); 
-        setUpdateSuccess(''); 
+        setProfileLoading(true);
+        setProfileMessage('');
+        setProfileError('');
 
-        if (!profileData || !profileData.id) {
-            setUpdateError({ general: "User ID not available for update." });
+        if (!token) {
+            setProfileError("Authentication required. Please log in.");
+            setProfileLoading(false);
             return;
         }
-
-        // Basic client-side validation (can be more extensive)
-        if (updateForm.password && updateForm.password.length < 8) {
-            setUpdateError(prev => ({ ...prev, password: "Password must be at least 8 characters." }));
-            return;
-        }
-        if (updateForm.password !== updateForm.password_confirmation) {
-            setUpdateError(prev => ({ ...prev, password_confirmation: "Passwords do not match." }));
-            return;
-        }
-        if (updateForm.email && !/\S+@\S+\.\S+/.test(updateForm.email)) {
-            setUpdateError(prev => ({ ...prev, email: "Invalid email format." }));
-            return;
-        }
-
-        // Prepare data to send: only send fields that have changed or password fields if they are set
-        const dataToSend = {};
-        if (updateForm.first_name !== profileData.first_name) dataToSend.first_name = updateForm.first_name;
-        if (updateForm.last_name !== profileData.last_name) dataToSend.last_name = updateForm.last_name;
-        if (updateForm.email !== profileData.email) dataToSend.email = updateForm.email;
-        if (updateForm.password) { 
-            dataToSend.password = updateForm.password;
-            dataToSend.password_confirmation = updateForm.password_confirmation;
-        }
-
-        // Don't send empty requests if nothing changed (except password which is special)
-        if (Object.keys(dataToSend).length === 0) {
-            setUpdateSuccess("No changes detected.");
-            setIsEditing(false);
-            return;
-        }
-
 
         try {
-            const response = await fetch(`/api/users/${profileData.id}/update`, { 
-                method: 'PUT', 
+            const response = await fetch('/api/user/profile', { 
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(dataToSend)
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                    identity_number: identityNumber,
+                    phone: phone,
+                    physical_address: physicalAddress,
+                    post_address: postAddress,
+                    district: district,
+                    village: village
+                })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                setUpdateSuccess(data.message || "Profile updated successfully!");
-
-                getProfileData();
-                setIsEditing(false); 
-                setUpdateForm(prev => ({ 
-                    ...prev,
-                    password: '',
-                    password_confirmation: ''
-                }));
+                // Update user in context and local storage
+                const updatedUser = { 
+                    ...user, 
+                    first_name: firstName, 
+                    last_name: lastName, 
+                    email: email,
+                    identity_number: identityNumber,
+                    phone: phone,
+                    physical_address: physicalAddress,
+                    post_address: postAddress,
+                    district: district,
+                    village: village
+                };
+                setUser(updatedUser); // Update context
+                localStorage.setItem('user', JSON.stringify(updatedUser)); // Update local storage
+                setProfileMessage(data.message || "Profile updated successfully!");
             } else {
-                // Backend validation errors will be in data.errors
-                if (response.status === 422 && data.errors) {
-                    setUpdateError(data.errors);
-                    setError(data.message || "Validation errors occurred.");
-                } else if (response.status === 401 || response.status === 403) {
-                    alert("Your session has expired or you are unauthorized. Please log in again.");
-                    setUser(null);
-                    navigate('/login');
-                } else {
-                    setError(data.message || 'Failed to update profile.');
-                }
+                setProfileError(data.message || "Failed to update profile.");
             }
         } catch (err) {
-            setError('A network error occurred during update: ' + err.message);
+            console.error("Profile update error:", err);
+            setProfileError("An error occurred during profile update. Please try again.");
+        } finally {
+            setProfileLoading(false);
         }
     };
 
-    // --- Render Logic ---
-    if (loading) {
-        return (
-            <div className="profile-container">
-                <p>Loading your profile details...</p>
-            </div>
-        );
-    }
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        setPasswordLoading(true);
+        setPasswordMessage('');
+        setPasswordError('');
 
-    if (error && !isEditing) { 
-        return (
-            <div className="profile-container">
-                <p className="profile-error">Error: {error}</p>
-                <button onClick={() => navigate('/login')}>Go to Login</button>
-            </div>
-        );
-    }
+        if (!token) {
+            setPasswordError("Authentication required. Please log in.");
+            setPasswordLoading(false);
+            return;
+        }
 
-    if (!profileData) {
+        if (newPassword !== confirmNewPassword) {
+            setPasswordError("New passwords do not match.");
+            setPasswordLoading(false);
+            return;
+        }
+        if (newPassword.length < 8) { // Basic validation
+            setPasswordError("New password must be at least 8 characters long.");
+            setPasswordLoading(false);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/user/password', { 
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    password: newPassword,
+                    password_confirmation: confirmNewPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setPasswordMessage(data.message || "Password updated successfully!");
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmNewPassword('');
+            } else {
+                console.error("Password change failed:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+                
+                // Handle validation errors specifically
+                if (response.status === 422 && data.errors) {
+                    const errorMessages = Object.values(data.errors).flat().join(', ');
+                    setPasswordError(`${errorMessages}`);
+                } else {
+                    setPasswordError(data.message || "Failed to change password.");
+                }
+            }
+        } catch (err) {
+            console.error("Password change error:", err);
+            setPasswordError("An error occurred during password change. Please try again.");
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login'); // Redirect to login page after logout
+    };
+
+    if (!user) {
         return (
-            <div className="profile-container">
-                <p className="no-profile-data">No profile data available. Please try logging in again.</p>
+            <div className="settings-container">
+                <p className="loading-message">Please log in to view settings.</p>
             </div>
         );
     }
 
     return (
+        <div className="settings-container">
+            <h1>Profile</h1>
+            <div className='settings-items'>
+                
+            {/* Profile Settings */}
+            <section className="settings-section">
+                <h2>Profile Information</h2>
+                <form onSubmit={handleProfileUpdate} className="settings-form">
+                    <div className="form-group">
+                        <label htmlFor="firstName">First Name:</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            disabled={profileLoading}
+                            readOnly
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="lastName">Last Name:</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            disabled={profileLoading}
+                            readOnly
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="email">Email:</label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={profileLoading}
+                            readOnly
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="identityNumber">
+                            {user?.user_type === 'student' ? 'Registration Number:' : 
+                             'Employee Number:' }
+                        </label>
+                        <input
+                            type="text"
+                            id="identityNumber"
+                            value={identityNumber}
+                            onChange={(e) => setIdentityNumber(e.target.value)}
+                            maxLength={255}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="phone">Phone:</label>
+                        <input
+                            type="tel"
+                            id="phone"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            maxLength={30}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="physicalAddress">Physical Address:</label>
+                        <textarea
+                            id="physicalAddress"
+                            value={physicalAddress}
+                            onChange={(e) => setPhysicalAddress(e.target.value)}
+                            disabled={profileLoading}
+                            rows={3}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="postAddress">Post Address:</label>
+                        <textarea
+                            id="postAddress"
+                            value={postAddress}
+                            onChange={(e) => setPostAddress(e.target.value)}
+                            disabled={profileLoading}
+                            rows={3}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="district">District:</label>
+                        <input
+                            type="text"
+                            id="district"
+                            value={district}
+                            onChange={(e) => setDistrict(e.target.value)}
+                            maxLength={255}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="village">Village:</label>
+                        <input
+                            type="text"
+                            id="village"
+                            value={village}
+                            onChange={(e) => setVillage(e.target.value)}
+                            maxLength={255}
+                            disabled={profileLoading}
+                        />
+                    </div>
+                    {profileMessage && <p className="success-message">{profileMessage}</p>}
+                    {profileError && <p className="error-message">{profileError}</p>}
+                    <button type="submit" disabled={profileLoading}>
+                        {profileLoading ? 'Updating...' : 'Update Profile'}
+                    </button>
+                </form>
+            </section>
+
+            {/* Password Change */}
+            <section className="settings-section">
+                <h2>Change Password</h2>
+                <form onSubmit={handlePasswordChange} className="settings-form">
+                    <div className="form-group">
+                        <label htmlFor="currentPassword">Current Password:</label>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            id="currentPassword"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                            disabled={passwordLoading}
+                        />
+                        <span 
+                            className="password-toggle-icon" 
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: 'absolute',
+                                right: '10px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                cursor: 'pointer',
+                                color: '#666',
+                                fontSize: '16px',
+                                zIndex: 10
+                            }}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="newPassword">New Password:</label>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            id="newPassword"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                            disabled={passwordLoading}
+                        />
+                        <span 
+                            className="password-toggle-icon" 
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: 'absolute',
+                                right: '10px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                cursor: 'pointer',
+                                color: '#666',
+                                fontSize: '16px',
+                                zIndex: 10
+                            }}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="confirmNewPassword">Confirm New Password:</label>
+                        <input
+                            type={showPassword ? "text" : "password"}   
+                            id="confirmNewPassword"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            required
+                            disabled={passwordLoading}
+                        />
+                        <span 
+                            className="password-toggle-icon" 
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: 'absolute',
+                                right: '10px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                cursor: 'pointer',
+                                color: '#666',
+                                fontSize: '16px',
+                                zIndex: 10
+                            }}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                    {passwordMessage && <p className="success-message">{passwordMessage}</p>}
+                    {passwordError && <p className="error-message">{passwordError}</p>}
+                    <button type="submit" disabled={passwordLoading}>
+                        {passwordLoading ? 'Changing...' : 'Change Password'}
+                    </button>
+                </form>
+            </section>
+
         
-        <div className="profile-container">
-            <div className="profile-card">
-                <h2 className="profile-title">Your Profile</h2>
-
-                {updateSuccess && <p className="profile-success-message">{updateSuccess}</p>}
-                {error && <p className="profile-error-message">{error}</p>} {/* Display update-specific errors */}
-
-
-                {!isEditing ? (
-                    // --- View Mode ---
-                    <>
-                        <div className="profile-detail">
-                            <strong className="detail-label">First Name:</strong>
-                            <span className="detail-value">{profileData.first_name}</span>
-                        </div>
-
-                        <div className="profile-detail">
-                            <strong className="detail-label">Last Name:</strong>
-                            <span className="detail-value">{profileData.last_name}</span>
-                        </div>
-
-                        <div className="profile-detail">
-                            <strong className="detail-label">Email:</strong>
-                            <span className="detail-value">{profileData.email}</span>
-                        </div>
-
-                        <div className="profile-detail">
-                            <strong className="detail-label">User Type:</strong>
-                            <span className="detail-value">{profileData.user_type}</span>
-                        </div>
-
-                        {profileData.created_at && (
-                            <div className="profile-detail">
-                                <strong className="detail-label">Member Since:</strong>
-                                <span className="detail-value">{new Date(profileData.created_at).toLocaleDateString()}</span>
-                            </div>
-                        )}
-
-                        <div className="profile-actions">
-                            <button onClick={() => setIsEditing(true)} className="edit-profile-button">
-                                Edit Profile
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    // --- Edit Mode ---
-                    <form onSubmit={handleUpdateSubmit} className="profile-edit-form">
-                        <div className="form-group">
-                            <label htmlFor="first_name">First Name:</label>
-                            <input
-                                type="text"
-                                id="first_name"
-                                name="first_name"
-                                value={updateForm.first_name}
-                                onChange={handleFormChange}
-                                className={updateError.first_name ? 'input-error' : ''}
-                            />
-                            {updateError.first_name && <p className="input-error-text">{updateError.first_name}</p>}
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="last_name">Last Name:</label>
-                            <input
-                                type="text"
-                                id="last_name"
-                                name="last_name"
-                                value={updateForm.last_name}
-                                onChange={handleFormChange}
-                                className={updateError.last_name ? 'input-error' : ''}
-                            />
-                            {updateError.last_name && <p className="input-error-text">{updateError.last_name}</p>}
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="email">Email:</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={updateForm.email}
-                                onChange={handleFormChange}
-                                className={updateError.email ? 'input-error' : ''}
-                            />
-                            {updateError.email && <p className="input-error-text">{updateError.email}</p>}
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="password">New Password (leave blank to keep current):</label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                value={updateForm.password}
-                                onChange={handleFormChange}
-                                className={updateError.password ? 'input-error' : ''}
-                            />
-                            {updateError.password && <p className="input-error-text">{updateError.password}</p>}
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="password_confirmation">Confirm New Password:</label>
-                            <input
-                                type="password"
-                                id="password_confirmation"
-                                name="password_confirmation"
-                                value={updateForm.password_confirmation}
-                                onChange={handleFormChange}
-                                className={updateError.password_confirmation ? 'input-error' : ''}
-                            />
-                            {updateError.password_confirmation && <p className="input-error-text">{updateError.password_confirmation}</p>}
-                        </div>
-
-                        <div className="form-actions">
-                            <button type="submit" className="save-profile-button">Save Changes</button>
-                            <button type="button" onClick={() => {
-                                setIsEditing(false);
-                                // Reset form to current profile data if user cancels
-                                if (profileData) {
-                                    setUpdateForm({
-                                        first_name: profileData.first_name || '',
-                                        last_name: profileData.last_name || '',
-                                        email: profileData.email || '',
-                                        password: '',
-                                        password_confirmation: '',
-                                    });
-                                }
-                                setUpdateError({}); // Clear errors on cancel
-                                setUpdateSuccess(''); // Clear success message on cancel
-                            }} className="cancel-edit-button">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                )}
             </div>
         </div>
     );

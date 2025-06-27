@@ -1137,8 +1137,8 @@ export default function MyBookings() {
                     }}>
                         <thead>
                             <tr style={{
-                                backgroundColor: 'blue',
-                                color: 'var(--text-light-on-dark)',
+                                backgroundColor: 'green',
+                                color: 'white',
                                 fontWeight: '600'
                             }}>
                                 
@@ -1328,6 +1328,19 @@ export default function MyBookings() {
                                                     transition: 'all 0.2s ease'
                                                 }}>Edit</Link>
                                             )}
+                                            {booking.status === 'approved' && isAdmin && (
+                                                <button onClick={() => handleStatusUpdate(booking.id, 'in_use')} className="action-button in-use-button" style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '11px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: 'var(--accent-green, #28a745)',
+                                                    color: 'var(--text-light-on-dark)',
+                                                    fontWeight: '500',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}>In Use</button>
+                                            )}
 
                                             {booking.status === 'pending' && isAdmin && (
                                                 <>
@@ -1357,6 +1370,7 @@ export default function MyBookings() {
                                             )}
                                             {/* Allow user to cancel their own pending/approved bookings */}
                                             {(booking.user_id === user.id && ['pending', 'approved'].includes(booking.status)) && (
+                                                <>
                                                 <button onClick={() => handleStatusUpdate(booking.id, 'cancel')} className="action-button cancel-button" style={{
                                                     padding: '4px 8px',
                                                     fontSize: '11px',
@@ -1368,6 +1382,9 @@ export default function MyBookings() {
                                                     cursor: 'pointer',
                                                     transition: 'all 0.2s ease'
                                                 }}>Cancel</button>
+                                                
+                                                </>
+                                                
                                             )}
                                             {/* Admin can delete any booking, especially useful for rejected/cancelled/expired ones */}
                                             {isAdmin && (

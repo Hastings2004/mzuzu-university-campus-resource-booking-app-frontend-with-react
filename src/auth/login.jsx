@@ -208,15 +208,10 @@ export default function Login(){
                             </div>
                         </div>
                     </form>
-                    {/* Optional: Add social login buttons here */}
-                    {/* <div className="social-login">
-                        <p>Or login with:</p>
-                        <button className="social-button google">Login with Google</button>
-                        <button className="social-button facebook">Login with Facebook</button>
-                    </div> */}
+                   
                 </div>
             </div>
-            {/* Optional: Add a subtle footer/copyright */}
+           
             <footer className="login-footer">
                 <p>&copy; {new Date().getFullYear()} Resource Booking App. All rights reserved.</p>
             </footer>

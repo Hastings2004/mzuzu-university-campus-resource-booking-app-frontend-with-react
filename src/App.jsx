@@ -59,6 +59,7 @@ export default function App() {
           <Route path='reportIssueForm' element={< ReportIssueForm />} />
           <Route path='news' element={ <NewsCreate /> } />
           <Route path="viewResource" element={<ShowResource />} />
+          
         </Route>
 
         

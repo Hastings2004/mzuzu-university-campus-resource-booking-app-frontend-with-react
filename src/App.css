@@ -5285,6 +5285,7 @@ hr {
 .search-results {
     margin-top: 30px;
     padding: 20px;
+    max-width: 1280px;
     border: 1px solid var(--border-color); 
     border-radius: 5px;
     background-color: var(--bg-card); 
@@ -5304,7 +5305,7 @@ hr {
 }
 
 .resource-item {
-    background-color: var(--bg-item); /* New variable for item background */
+    background-color: gray; 
     border: 1px solid var(--border-color); 
     border-radius: 5px;
     padding: 15px;
@@ -5367,7 +5368,7 @@ body.dark .search-results h3 {
 }
 
 body.dark .resource-item {
-    background: var(--dark-bg-item); 
+    background-color: var(--primary-color); 
     border-color: var(--dark-border-color);
     box-shadow: 0 1px 3px var(--dark-shadow-small); 
 }
@@ -12778,11 +12779,11 @@ p[style*="color: rgb(33, 150, 243)"] {
 }
 
 .bookings-table thead th {
-    background-color: var(--bg-medium); 
+    background-color: var(--primary-color); 
     font-weight: 700;
     text-transform: uppercase;
     font-size: 0.9em;
-    color: var(--primary-color); 
+    color: white; 
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 

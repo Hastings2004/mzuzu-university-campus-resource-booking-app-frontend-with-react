@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import logo from '../assets/logo.png';
 import moment from 'moment';
@@ -378,6 +378,16 @@ export default function Layout() {
                 <span className="text">Home</span>
               </NavLink>
             </li>
+            <li>  
+              <NavLink
+                to="/profile"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                onClick={handleNavLinkClick}
+              >
+                <i className="bx bx-user"></i>
+                <span className="text">Profile</span>
+              </NavLink>
+            </li>
             <li>
               <NavLink
                 to="/booking"
@@ -521,9 +531,7 @@ export default function Layout() {
                 <button type="submit" className="search-btn">
                   <i className="bx bx-search"></i>
                 </button>
-                <button type="button" className="advanced-btn" style={{marginLeft:'6px'}} onClick={()=>setShowAdvanced(v=>!v)}>
-                  {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
-                </button>
+                
               </div>
             </form>
             
@@ -537,7 +545,7 @@ export default function Layout() {
               />
               <label htmlFor="switch-mode" className="switch-mode"></label>
 
-              <a href="/notifications" className="notification" onClick={handleNavLinkClick}>
+              <a href="#" className="notification" onClick={handleNavLinkClick}>
                 <i className="bx bxs-bell"></i>
                 {unreadCount > 0 && <span className="num">{unreadCount}</span>}
               </a>
@@ -615,7 +623,7 @@ export default function Layout() {
                 <br />
                 <ul className="breadcrumb">
                   <li>
-                    <a href="#">Dashboard</a> 
+                    <a href="/">Dashboard</a> 
                   </li>
                   <li>
                     <i className="bx bx-chevron-right"></i>
@@ -736,14 +744,33 @@ export default function Layout() {
                       </div>
                     )}
                     {isAdmin && searchResults.users.length>0 && (
-                      <div className="results-section">
-                        <h4>Users ({searchResults.users.length})</h4>
-                        <ul className="user-list">
+                      <div className="results-section user-results-section" style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
+                        <h4 className="user-results-title">Users ({searchResults.users.length})</h4>
+                        <ul className="user-list" style={{display:'flex', gap:'1rem', marginLeft:'1rem', border:'1px solid #ccc', padding:'1rem', borderRadius:'0.5rem'}}>
                           {searchResults.users.map(userResult=>(
-                            <li key={`user-${userResult.id}`} className="user-item">
-                              <h5>{userResult.first_name} {userResult.last_name}</h5>
-                              <p><strong>Email:</strong> {userResult.email}</p>
-                              <p><strong>User Type:</strong> {userResult.user_type}</p>
+                            <li key={`user-${userResult.id}`} className="user-item user-card" style={{display:'flex', flexDirection:'column', gap:'1rem', border:'1px solid #ccc', padding:'1rem', borderRadius:'0.5rem'}}>
+                              <div className="user-card-header">    
+                                <div className="user-info">
+                                  <h5 className="user-name">{userResult.first_name} {userResult.last_name}
+                                    <span className={`user-type-badge user-type-${userResult.user_type.toLowerCase()}`}>
+                                      {userResult.user_type}
+                                    </span>
+                                  </h5>                                
+                                </div>
+                              </div>
+                              <div className="user-card-body">
+                                <div className="user-detail-row">
+                                  <span className="detail-label">Email:</span>
+                                  <span className="detail-value">{userResult.email}</span>
+                                </div>
+                                <div className="user-detail-row">                                 
+                                  <span className="detail-label">User Type:</span>
+                                  <span className="detail-value">{userResult.user_type}</span>
+                                </div>
+                                <div className="user-detail-row">
+                                  <Link to={`/users/edit/${userResult.id}`} className="text-blue-500 block">View Details</Link>
+                                </div>
+                              </div>
                             </li>
                           ))}
                         </ul>
