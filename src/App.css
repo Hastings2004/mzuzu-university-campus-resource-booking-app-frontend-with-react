@@ -3753,7 +3753,7 @@ hr {
     border-radius: 8px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     max-width: 700px; 
-    margin-left: 20px auto; 
+    margin-left: 0px auto; 
     color: var(--text-primary);
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     width: 90%; 
@@ -6305,4 +6305,270 @@ body {
 .status-expired{
     color: red; 
     font-weight: bold;
+}
+/* Responsive adjustments for Dashboard Layout */
+@media screen and (max-width: 992px) {
+    #sidebar {
+        width: 60px; /* Force collapsed width in this range */
+        left: 0; /* Always visible by default in this range */
+        transition: all 0.3s ease; /* Maintain smooth transition */
+    }
+
+    /* When JS applies 'hide' class in this range (e.g., when toggle is clicked) */
+    #sidebar.hide {
+        left: -60px; /* Slide the 60px sidebar off-screen */
+    }
+
+    /* Brand text will be hidden */
+    #sidebar .brand h3,
+    #sidebar .brand p.text {
+        opacity: 0;
+        visibility: hidden;
+        width: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease;
+    }
+    #sidebar .brand {
+        padding: 15px 0; /* Adjust padding for logo only */
+    }
+
+    /* Menu text will be hidden */
+    #sidebar .side-menu li a .text {
+        display: none;
+    }
+
+    /* Icons will be centered */
+    #sidebar .side-menu li a .bx {
+        margin-right: 0;
+        min-width: unset;
+    }
+    #sidebar .side-menu li a {
+        justify-content: center;
+        padding-left: 0;
+    }
+    #sidebar .side-menu li {
+        border-radius: 50%; /* Circular items */
+        height: 48px;
+        width: 48px;
+        margin: 8px auto; /* Center items */
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    #sidebar .side-menu li.active {
+        border-radius: 50%; /* Maintain circular active state */
+    }
+    #sidebar .side-menu li.active::before,
+    #sidebar .side-menu li.active::after {
+        display: none; /* Hide active state pseudo-elements */
+    }
+
+    /* Adjust content area */
+    #content {
+        width: calc(100% - 60px);
+        left: 60px;
+    }
+
+    #sidebar.hide ~ #content { /* When sidebar slides off-screen */
+        width: 100%;
+        left: 0;
+    }
+
+    #content nav .nav-link {
+        display: none; /* Hide categories link */
+    }
+
+    #content main .box-info {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust card size */
+    }
+}
+
+
+@media screen and (max-width: 768px) {
+    #sidebar {
+        width: 280px; /* Force full width on small screens when open */
+        left: -280px; /* Initially hidden (off-screen) */
+        box-shadow: 2px 0 10px var(--shadow-medium); /* Stronger shadow when opened */
+    }
+
+    /* When the 'hide' class is present (isSidebarOpen is false) */
+    #sidebar.hide {
+        left: -280px; /* Explicitly keep it off-screen */
+        width: 280px;
+    }
+
+    /* When the sidebar is NOT hidden (isSidebarOpen is true) on small screens, slide it in */
+    /* The .dashboard-container selector ensures higher specificity for this scenario. */
+    /* This overrides the general #sidebar.hide rules for this specific breakpoint when open */
+    .dashboard-container #sidebar:not(.hide) {
+        left: 0; /* Slide into view */
+    }
+
+    /* Ensure brand and menu text are visible when sidebar is open */
+    /* These rules apply ONLY when .hide is NOT present on #sidebar at this breakpoint */
+    .dashboard-container #sidebar:not(.hide) .brand h3,
+    .dashboard-container #sidebar:not(.hide) .brand p.text {
+        opacity: 1;
+        visibility: visible;
+        width: auto;
+        height: auto;
+        margin: 5px 0;
+        padding: 0;
+        transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease;
+    }
+    .dashboard-container #sidebar:not(.hide) .brand {
+        padding: 15px 20px 25px; /* Full padding for brand */
+    }
+
+    .dashboard-container #sidebar:not(.hide) .side-menu li a .text {
+        display: inline; /* Show text again */
+    }
+    .dashboard-container #sidebar:not(.hide) .side-menu li a .bx {
+        margin-right: 8px;
+        min-width: 40px;
+    }
+    .dashboard-container #sidebar:not(.hide) .side-menu li a {
+        justify-content: flex-start; /* Align content to start */
+        padding-left: 16px; /* Add padding back */
+    }
+    .dashboard-container #sidebar:not(.hide) .side-menu li {
+        border-radius: 48px 0 0 48px; /* Reset border-radius */
+        height: 48px;
+        width: auto; /* Reset width */
+        margin: 8px 0; /* Reset margin */
+        padding: 4px; /* Reset padding */
+        display: block; /* Reset display */
+    }
+    .dashboard-container #sidebar:not(.hide) .side-menu li.active {
+        border-radius: 48px 0 0 48px; /* Reset border-radius */
+    }
+    .dashboard-container #sidebar:not(.hide) .side-menu li.active::before,
+    .dashboard-container #sidebar:not(.hide) .side-menu li.active::after {
+        display: block; /* Show active state pseudo-elements */
+    }
+
+    /* Content adjustments for small screens */
+    #content {
+        width: 100%;
+        left: 0;
+    }
+
+    #sidebar.hide ~ #content { /* When sidebar is off-screen, content uses full width */
+        width: 100%;
+        left: 0;
+    }
+    /* No additional #content rules needed when sidebar is open, as it's full width and not pushed */
+
+
+    #content nav .bx.bx-menu {
+        display: block; /* Ensure hamburger icon is always visible to toggle sidebar */
+    }
+
+    #content nav form {
+        max-width: none; /* Allow form to expand */
+        margin-right: 50px;
+    }
+
+    #content nav form .form-input {
+        flex-grow: 1; /* Allow search bar to fill space */
+    }
+
+    #content nav form .form-input input {
+        display: none; /* Hide input field */
+    }
+
+    #content nav form .form-input button {
+        width: auto;
+        height: auto;
+        background: transparent;
+        border-radius: 0;
+        color: var(--text-primary); /* Changed from --text-dark */
+        font-size: 24px; /* Larger icon for search button */
+    }
+
+    /* Show search input when form has 'show' class (if you add this JS logic) */
+    #content nav form.show .form-input input {
+        display: block;
+        width: 100%;
+        border-radius: 20px 0 0 20px;
+    }
+    #content nav form.show .form-input button {
+        width: 50px;
+        height: 100%;
+        border-radius: 0 20px 20px 0;
+        color: var(--text-light-on-dark); /* Changed from --text-light */
+        background: var(--primary-color);
+    }
+
+    #content nav form.show ~ .notification,
+    #content nav form.show ~ .profile,
+    #content nav form.show ~ .switch-mode { /* Hide other nav items when search is active */
+        display: none;
+    }
+
+    #content main {
+        padding: 20px 15px;
+    }
+
+    #content main .head-title .left h1 {
+        font-size: 30px;
+    }
+
+    #content main .box-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 576px) { /* Smaller phones */
+    #content nav form .form-input input {
+        display: none; /* Hide input field */
+    }
+
+    #content nav form {
+        margin-right: auto;        
+    }
+    #content nav form .form-input button {
+        width: auto;
+        height: auto;
+        background: transparent;
+        border-radius: 0;
+        color: var(--text-primary); /* Changed from --text-dark */
+        font-size: 24px; /* Larger icon for search button */
+    }
+
+    /* Show search input when form has 'show' class (if you add this JS logic) */
+    #content nav form.show .form-input input {
+        display: block;
+        width: 100%;
+        border-radius: 20px 0 0 20px;
+    }
+    #content nav form.show .form-input button {
+        width: 50px;
+        height: 100%;
+        border-radius: 0 20px 20px 0;
+        color: var(--text-light-on-dark); /* Changed from --text-light */
+        background: var(--primary-color);
+    }
+
+    #content nav form.show ~ .notification,
+    #content nav form.show ~ .profile,
+    #content nav form.show ~ .switch-mode { /* Hide other nav items when search is active */
+        display: none;
+    }
+
+    #content main {
+        padding: 20px 15px;
+    }
+
+    #content main .head-title .left h1 {
+        font-size: 30px;
+    }
+
+    #content main .box-info {
+        grid-template-columns: 1fr;
+    }
 }
