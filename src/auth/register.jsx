@@ -1,10 +1,10 @@
 import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
+import authService from "../services/authService";
 import logo from '../assets/logo.png';
 import '../App.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-
 
 export default function Register() {
     const { setToken } = useContext(AppContext);
@@ -23,50 +23,54 @@ export default function Register() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [successMessage, setSuccessMessage] = useState(null);
+
+    const handleInputChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [id]: value
+        }));
+        // Clear error when user starts typing
+        if (errors[id]) {
+            setErrors(prev => ({ ...prev, [id]: null }));
+        }
+    };
 
     async function handleRegistration(e) {
         e.preventDefault();
         setIsLoading(true);
         setErrors({});
+        setSuccessMessage(null);
 
         try {
-            const response = await fetch("/api/register", {
-                method: "post",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(formData),
+            const data = await authService.register(formData);
+            
+            // Registration successful
+            setSuccessMessage(data.message || "Registration successful! Please check your email to verify your account.");
+            
+            // Clear form data after successful registration
+            setFormData({
+                first_name: "",
+                last_name: "",
+                email: "",
+                user_type: "student",
+                password: "",
+                password_confirmation: "",
             });
-
-            const data = await response.json();
-
-            if (data.errors) {
-                setErrors(data.errors);
-                if (data.message) {
-                    setErrors(prev => ({ ...prev, general: data.message }));
-                }
-            } else {
-                localStorage.setItem("token", data.token);
-                setToken(data.token);
-                navigate("/");
-            }
         } catch (error) {
-            setErrors(prev => ({ ...prev, general: "Network error. Please try again." }));
             console.error("Registration failed:", error);
+            
+            if (error.errors) {
+                setErrors(error.errors);
+            }
+            if (error.message) {
+                setErrors(prev => ({ ...prev, general: error.message }));
+            }
         } finally {
             setIsLoading(false);
         }
     }
-
-    const handleInputChange = (e) => {
-        
-        setFormData({ ...formData, [e.target.id || e.target.name]: e.target.value });
-        setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[e.target.id || e.target.name];
-            return newErrors;
-        });
-    };
 
     const h2Style = {
         fontSize: '1.5rem',
@@ -93,6 +97,7 @@ export default function Register() {
                     <div>
                         <h3>Register</h3>
                         {errors.general && <p className='error general-error'>{errors.general}</p>} {/* General error message */}
+                        {successMessage && <p className='success-message'>{successMessage}</p>}
                     </div>
                     <form onSubmit={handleRegistration} id='form'>
                         <div className='form-content'>
@@ -104,6 +109,7 @@ export default function Register() {
                                     placeholder="First Name"
                                     value={formData.first_name}
                                     onChange={handleInputChange}
+                                    autoComplete="given-name"
                                     required
                                 />
                                 {errors.first_name && <p className='error'>{errors.first_name}</p>}
@@ -116,6 +122,7 @@ export default function Register() {
                                     placeholder="Last Name"
                                     value={formData.last_name}
                                     onChange={handleInputChange}
+                                    autoComplete="family-name"
                                     required
                                 />
                                 {errors.last_name && <p className='error'>{errors.last_name}</p>}
@@ -123,23 +130,23 @@ export default function Register() {
                             <div className='form-details'>
                                 <input 
                                     type="email"
-                                    id='email' 
+                                    id="email"
                                     className={`input ${errors.email ? 'input-error' : ''}`}
-                                    placeholder='Email'
+                                    placeholder="Email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    autoComplete="username"
+                                    autoComplete="email"
                                     required
                                 />
                                 {errors.email && <p className='error'>{errors.email}</p>}
                             </div>
-                            
+                           
                             <div className='form-details password-field'>
                                 <input 
                                     type={showPassword ? "text" : "password"}
-                                    id='password' 
+                                    id="password" 
                                     className={`input ${errors.password ? 'input-error' : ''}`}
-                                    placeholder='Password'
+                                    placeholder="Password"
                                     value={formData.password}
                                     onChange={handleInputChange}
                                     autoComplete="new-password"
@@ -156,9 +163,9 @@ export default function Register() {
                             <div className='form-details password-field'>
                                 <input 
                                     type={showConfirmPassword ? "text" : "password"}
-                                    id='password_confirmation' 
+                                    id="password_confirmation" 
                                     className={`input ${errors.password_confirmation ? 'input-error' : ''}`}
-                                    placeholder='Confirm Password'
+                                    placeholder="Confirm Password"
                                     value={formData.password_confirmation}
                                     onChange={handleInputChange}
                                     autoComplete="new-password"

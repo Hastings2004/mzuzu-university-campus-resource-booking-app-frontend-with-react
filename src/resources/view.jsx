@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/appContext";
+import api from "../services/api";
 import moment from "moment";
 
 export default function View() {
@@ -16,9 +17,9 @@ export default function View() {
         approved: [],
         in_use: []
     });
-    const [bookingOption, setBookingOption] = useState("single_day"); // New state for booking option
-    const [startDate, setStartDate] = useState(""); // New state for start date
-    const [endDate, setEndDate] = useState("");     // New state for end date
+    const [bookingOption, setBookingOption] = useState("single_day");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [purpose, setPurpose] = useState("");
@@ -27,18 +28,13 @@ export default function View() {
     const [bookingMessage, setBookingMessage] = useState("");
     const [validationErrors, setValidationErrors] = useState({});
     const [isResourceAvailable, setIsResourceAvailable] = useState(null);
-    const [supportingDocument, setSupportingDocument] = useState(null); // NEW STATE FOR DOCUMENT
+    const [supportingDocument, setSupportingDocument] = useState(null);
     
     async function getResource() {
-        const res = await fetch(`/api/resources/${id}`, {
-            method: 'get',
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        const data = await res.json();
+        try {
+            const response = await api.get(`/resources/${id}`);
+            const data = response.data;
 
-        if (res.ok) {
             if (data.resource) {
                 setResource(data.resource);
             } else if (data.data) {
@@ -47,57 +43,46 @@ export default function View() {
                 setResource(data);
             }
             setBookingMessage("");
-        } else {
-            console.error("Failed to fetch resource:", data);
+        } catch (error) {
+            console.error("Failed to fetch resource:", error);
             setResource(null);
-            setBookingMessage(`Failed to load resource details: ${data.message || 'Resource not found or unauthorized.'}`);
+            setBookingMessage(`Failed to load resource details: ${error.message || 'Resource not found or unauthorized.'}`);
         }
     }
 
     async function getResourceBookings() {
         try {
-            const res = await fetch(`/api/resources/${id}/bookings`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
+            const response = await api.get(`/resources/${id}/bookings`);
+            const data = response.data;
             console.log(data);
 
-            if (res.ok) {
-                const bookingsByStatus = {
-                    pending: [],
-                    approved: [],
-                    in_use: []
-                };
+            const bookingsByStatus = {
+                pending: [],
+                approved: [],
+                in_use: []
+            };
 
+            if (data.bookings && Array.isArray(data.bookings)) {
+                data.bookings.forEach(booking => {
+                    const currentTime = new Date();
+                    const bookingStartTime = new Date(booking.start_time);
+                    const bookingEndTime = new Date(booking.end_time);
 
-
-                if (data.bookings && Array.isArray(data.bookings)) {
-                    data.bookings.forEach(booking => {
-                        const currentTime = new Date();
-                        const bookingStartTime = new Date(booking.start_time);
-                        const bookingEndTime = new Date(booking.end_time);
-
-                        if (booking.status === 'pending') {
-                            bookingsByStatus.pending.push(booking);
-                        } else if (booking.status === 'approved') {
-                            if (currentTime >= bookingStartTime && currentTime <= bookingEndTime) {
-                                bookingsByStatus.in_use.push(booking);
-                            } else {
-                                bookingsByStatus.approved.push(booking);
-                            }
+                    if (booking.status === 'pending') {
+                        bookingsByStatus.pending.push(booking);
+                    } else if (booking.status === 'approved') {
+                        if (currentTime >= bookingStartTime && currentTime <= bookingEndTime) {
+                            bookingsByStatus.in_use.push(booking);
+                        } else {
+                            bookingsByStatus.approved.push(booking);
                         }
-                    });
-                }
-
-                setResourceBookings(bookingsByStatus);
-            } else {
-                console.error("Failed to fetch resource bookings:", data);
+                    }
+                });
             }
+
+            setResourceBookings(bookingsByStatus);
         } catch (error) {
-            console.error("Error fetching resource bookings:", error);
+            console.error("Failed to fetch resource bookings:", error);
         }
     }
 
@@ -108,21 +93,11 @@ export default function View() {
             recipient_id: user.id
         };
 
-        const res = await fetch('/api/notifications', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(notificationPayload)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
+        try {
+            const response = await api.post('/notifications', notificationPayload);
             console.log(`Notification created and sent successfully!`);
-        } else {
-            setBookingMessage(`Failed to send notification: ${data.message || 'Unknown error'}`);
+        } catch (error) {
+            setBookingMessage(`Failed to send notification: ${error.message || 'Unknown error'}`);
         }
     }
 
@@ -193,28 +168,17 @@ export default function View() {
         const endDateISO = fullEndTime.toISOString();
 
         try {
-            const res = await fetch('/api/bookings/check-availability', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ resource_id: resource.id, start_time: startDateISO, end_time: endDateISO })
+            const response = await api.post('/bookings/check-availability', {
+                resource_id: resource.id,
+                start_time: startDateISO,
+                end_time: endDateISO
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                setBookingMessage(`Resource is available for the selected time.`);
-                setIsResourceAvailable(true);
-            } else {
-                console.error("Availability check failed:", data);
-                setBookingMessage(`Availability check failed: ${data.message || 'Unknown error'}`);
-                setIsResourceAvailable(false);
-            }
+            setBookingMessage(`Resource is available for the selected time.`);
+            setIsResourceAvailable(true);
         } catch (error) {
-            console.error("Network or fetch error during availability check:", error);
-            setBookingMessage(`An error occurred while checking availability: ${error.message}`);
+            console.error("Availability check failed:", error);
+            setBookingMessage(error.message || 'Unknown error');
             setIsResourceAvailable(false);
         }
     }
@@ -234,210 +198,197 @@ export default function View() {
     const requiresDocument = user?.user_type === 'student' &&
         (bookingType === 'student_meeting' || bookingType === 'church_meeting');
 
-        async function handleSubmit(e) {
-            e.preventDefault();
-            setValidationErrors({});
-            setBookingMessage("Submitting...");
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setValidationErrors({});
+        setBookingMessage("Submitting...");
+
+        // Validate user authentication
+        if (!user || !user.id) {
+            setBookingMessage("You must be logged in to make a booking.");
+            return;
+        }
+
+        if (!token) {
+            setBookingMessage("Authentication token missing. Please log in again.");
+            return;
+        }
+
+        // Validate resource
+        if (!resource || !resource.id) {
+            setBookingMessage("Resource not loaded. Please refresh and try again.");
+            return;
+        }
+
+        // Validate booking type
+        if (!bookingType) {
+            setBookingMessage("Please select a booking type.");
+            return;
+        }
+
+        // Date and time validation
+        let startDateTime, endDateTime;
         
-            // Validate user authentication
-            if (!user || !user.id) {
-                setBookingMessage("You must be logged in to make a booking.");
+        if (bookingOption === 'single_day') {
+            if (!startDate || !startTime || !endTime) {
+                setBookingMessage("For single day bookings, please provide a start date, start time, and end time.");
                 return;
             }
-        
-            if (!token) {
-                setBookingMessage("Authentication token missing. Please log in again.");
+            startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
+            endDateTime = moment(`${startDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
+        } else { // multi_day
+            if (!startDate || !startTime || !endDate || !endTime) {
+                setBookingMessage("For multi-day bookings, please provide all start/end dates and times.");
                 return;
             }
+            startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
+            endDateTime = moment(`${endDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
+        }
+
+        if (!startDateTime.isValid() || !endDateTime.isValid()) {
+            setBookingMessage("The dates or times provided are not valid. Please check them.");
+            return;
+        }
+
+        if (!endDateTime.isAfter(startDateTime)) {
+            setBookingMessage("The booking end time must be after the start time.");
+            return;
+        }
+
+        if (startDateTime.isBefore(moment())) {
+            setBookingMessage("Bookings must be for a future time.");
+            return;
+        }
         
-            // Validate resource
-            if (!resource || !resource.id) {
-                setBookingMessage("Resource not loaded. Please refresh and try again.");
-                return;
-            }
+        // Purpose validation
+        const trimmedPurpose = purpose ? purpose.trim() : "";
+        if (trimmedPurpose.length < 10 || trimmedPurpose.length > 500) {
+            setBookingMessage("Please provide a purpose between 10 and 500 characters.");
+            return;
+        }
         
-            // Validate booking type
-            if (!bookingType) {
-                setBookingMessage("Please select a booking type.");
-                return;
-            }
+        // Document validation
+        if (requiresDocument && !supportingDocument) {
+            setBookingMessage("A supporting document is required for this booking type.");
+            return;
+        }
+
+        // Check availability before submitting
+        if (isResourceAvailable === false) {
+            setBookingMessage("Resource is not available for the selected time. Please choose different times.");
+            return;
+        }
+
+        // Create FormData
+        const formData = new FormData();
         
-            // Date and time validation
-            let startDateTime, endDateTime;
-            
-            if (bookingOption === 'single_day') {
-                if (!startDate || !startTime || !endTime) {
-                    setBookingMessage("For single day bookings, please provide a start date, start time, and end time.");
-                    return;
+        // Add required fields with proper conversion
+        formData.append('resource_id', resource.id.toString());
+        formData.append('user_id', user.id.toString());
+        formData.append('start_time', startDateTime.toISOString());
+        formData.append('end_time', endDateTime.toISOString());
+        formData.append('purpose', trimmedPurpose);
+        formData.append('booking_type', bookingType);
+
+        // Add optional fields
+        if (user?.user_type === 'admin' && priority) {
+            formData.append('priority', priority.toString());
+        }
+        
+        if (supportingDocument) {
+            formData.append('supporting_document', supportingDocument);
+        }
+
+        // Debug logging
+        console.log('Submitting booking with data:', {
+            resource_id: resource.id,
+            user_id: user.id,
+            start_time: startDateTime.toISOString(),
+            end_time: endDateTime.toISOString(),
+            purpose: trimmedPurpose,
+            booking_type: bookingType,
+            priority: priority || 'not set',
+            has_document: !!supportingDocument,
+            user_type: user.user_type
+        });
+
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': supportingDocument ? 'multipart/form-data' : 'application/json',
                 }
-                startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
-                endDateTime = moment(`${startDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
-            } else { // multi_day
-                if (!startDate || !startTime || !endDate || !endTime) {
-                    setBookingMessage("For multi-day bookings, please provide all start/end dates and times.");
-                    return;
-                }
-                startDateTime = moment(`${startDate} ${startTime}`, 'YYYY-MM-DD HH:mm');
-                endDateTime = moment(`${endDate} ${endTime}`, 'YYYY-MM-DD HH:mm');
-            }
-        
-            if (!startDateTime.isValid() || !endDateTime.isValid()) {
-                setBookingMessage("The dates or times provided are not valid. Please check them.");
-                return;
-            }
-        
-            if (!endDateTime.isAfter(startDateTime)) {
-                setBookingMessage("The booking end time must be after the start time.");
-                return;
-            }
-        
-            if (startDateTime.isBefore(moment())) {
-                setBookingMessage("Bookings must be for a future time.");
-                return;
-            }
-            
-            // Purpose validation
-            const trimmedPurpose = purpose ? purpose.trim() : "";
-            if (trimmedPurpose.length < 10 || trimmedPurpose.length > 500) {
-                setBookingMessage("Please provide a purpose between 10 and 500 characters.");
-                return;
-            }
-            
-            // Document validation
-            if (requiresDocument && !supportingDocument) {
-                setBookingMessage("A supporting document is required for this booking type.");
-                return;
-            }
-        
-            // Check availability before submitting
-            if (isResourceAvailable === false) {
-                setBookingMessage("Resource is not available for the selected time. Please choose different times.");
-                return;
-            }
-        
-            // Create FormData
-            const formData = new FormData();
-            
-            // Add required fields with proper conversion
-            formData.append('resource_id', resource.id.toString());
-            formData.append('user_id', user.id.toString());
-            formData.append('start_time', startDateTime.toISOString());
-            formData.append('end_time', endDateTime.toISOString());
-            formData.append('purpose', trimmedPurpose);
-            formData.append('booking_type', bookingType);
-        
-            // Add optional fields
-            if (user?.user_type === 'admin' && priority) {
-                formData.append('priority', priority.toString());
-            }
-            
-            if (supportingDocument) {
-                formData.append('supporting_document', supportingDocument);
-            }
-        
-            const headers = {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
             };
-        
-            let body;
-        
+
+            let response;
             if (supportingDocument) {
-                body = formData;
+                response = await api.post('/bookings', formData, config);
             } else {
-                headers['Content-Type'] = 'application/json';
                 const data = {};
                 for (let pair of formData.entries()) {
                     data[pair[0]] = pair[1];
                 }
-                body = JSON.stringify(data);
+                response = await api.post('/bookings', data, config);
             }
-        
-            // Debug logging
-            console.log('Submitting booking with data:', {
-                resource_id: resource.id,
-                user_id: user.id,
-                start_time: startDateTime.toISOString(),
-                end_time: endDateTime.toISOString(),
-                purpose: trimmedPurpose,
-                booking_type: bookingType,
-                priority: priority || 'not set',
-                has_document: !!supportingDocument,
-                user_type: user.user_type
-            });
-        
-            try {
-                const response = await fetch('/api/bookings', {
-                    method: 'POST',
-                    headers: headers,
-                    body: body,
-                });
-        
-                const data = await response.json();
-                
-                console.log('API Response:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    data: data
-                });
-        
-                if (response.ok) {
-                    // Success
-                    setBookingMessage(data.message || "Booking created successfully!");
-                    alert('Booking created successfully!');
 
-                    
-                    // Send notification
-                    await sendNotification(`Your booking for ${resource.name} has been submitted successfully.`);
-                    navigate('/booking');
-                    // Refresh the bookings list
-                    getResourceBookings();
-                    
-                    // Clear form
-                    setStartDate('');
-                    setEndDate('');
-                    setStartTime('');
-                    setEndTime('');
-                    setPurpose('');
-                    setPriority('');
-                    setBookingType('');
-                    setSupportingDocument(null);
-                    setBookingOption('single_day');
-                    setIsResourceAvailable(null);
-                    
-                    // Reset file input
-                    const fileInput = document.getElementById('supportingDocument');
-                    if (fileInput) fileInput.value = '';
-                    
-                } else {
-                    // Handle different error types
-                    console.error('Booking submission failed:', data);
-                    
-                    if (response.status === 422) {
-                        // Validation errors
-                        setBookingMessage(data.message || 'Please fix the validation errors below.');
-                        if (data.errors) {
-                            setValidationErrors(data.errors);
-                        }
-                    } else if (response.status === 401) {
-                        setBookingMessage('Authentication failed. Please log in again.');
-                        // Optionally redirect to login
-                    } else if (response.status === 403) {
-                        setBookingMessage('You do not have permission to book this resource.');
-                    } else if (response.status === 409) {
-                        setBookingMessage('Resource is not available for the selected time. Please choose different times.');
-                        setIsResourceAvailable(false);
-                    } else if (response.status === 500) {
-                        setBookingMessage('Server error occurred. Please try again later.');
-                    } else {
-                        setBookingMessage(data.message || `Error: ${response.status} - ${response.statusText}`);
-                    }
+            const data = response.data;
+            
+            console.log('API Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                data: data
+            });
+
+            // Success
+            setBookingMessage(data.message || "Booking created successfully!");
+            alert('Booking created successfully!');
+
+            // Send notification
+            await sendNotification(`Your booking for ${resource.name} has been submitted successfully.`);
+            navigate('/booking');
+            // Refresh the bookings list
+            getResourceBookings();
+            
+            // Clear form
+            setStartDate('');
+            setEndDate('');
+            setStartTime('');
+            setEndTime('');
+            setPurpose('');
+            setPriority('');
+            setBookingType('');
+            setSupportingDocument(null);
+            setBookingOption('single_day');
+            setIsResourceAvailable(null);
+            
+            // Reset file input
+            const fileInput = document.getElementById('supportingDocument');
+            if (fileInput) fileInput.value = '';
+            
+        } catch (error) {
+            // Handle different error types
+            console.error('Booking submission failed:', error);
+            
+            if (error.response?.status === 422) {
+                // Validation errors
+                setBookingMessage(error.response.data.message || 'Please fix the validation errors below.');
+                if (error.response.data.errors) {
+                    setValidationErrors(error.response.data.errors);
                 }
-            } catch (error) {
-                console.error("Network/Fetch error:", error);
-                setBookingMessage(`Network error: ${error.message}. Please check your connection and try again.`);
+            } else if (error.response?.status === 401) {
+                setBookingMessage('Authentication failed. Please log in again.');
+            } else if (error.response?.status === 403) {
+                setBookingMessage('You do not have permission to book this resource.');
+            } else if (error.response?.status === 409) {
+                setBookingMessage('Resource is not available for the selected time. Please choose different times.');
+                setIsResourceAvailable(false);
+            } else if (error.response?.status === 500) {
+                setBookingMessage('Server error occurred. Please try again later.');
+            } else {
+                setBookingMessage(error.message || `Error: ${error.response?.status} - ${error.response?.statusText}`);
             }
         }
+    }
+
     async function handleDelete(e) {
         e.preventDefault();
 
@@ -465,33 +416,16 @@ export default function View() {
 
             setBookingMessage("Deleting resource...");
             try {
-                const res = await fetch(`/api/resources/${id}`, {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await api.delete(`/resources/${id}`);
+                const data = response.data;
 
-                const contentType = res.headers.get('content-type');
-                let data;
-                if (contentType && contentType.includes('application/json')) {
-                    data = await res.json();
-                } else {
-                    data = { message: await res.text() };
-                }
-
-                if (res.ok) {
-                    setBookingMessage(data.message || "Resource deleted successfully!");
-                    setTimeout(() => {
-                        navigate("/");
-                    }, 1500);
-                } else {
-                    console.error("Failed to delete resource:", data);
-                    setBookingMessage(`Failed to delete resource: ${data.message || 'Unknown error'}`);
-                }
+                setBookingMessage(data.message || "Resource deleted successfully!");
+                setTimeout(() => {
+                    navigate("/");
+                }, 1500);
             } catch (error) {
-                console.error("Network or fetch error during deletion:", error);
-                setBookingMessage(`An error occurred during deletion: ${error.message}`);
+                console.error("Failed to delete resource:", error);
+                setBookingMessage(`Failed to delete resource: ${error.message || 'Unknown error'}`);
             }
         } else {
             console.warn("User not authorized to delete this resource.");

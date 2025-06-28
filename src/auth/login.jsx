@@ -1,11 +1,13 @@
 import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../context/appContext";
+import authService from "../services/authService";
 import logo from '../assets/logo.png';
-import * as fa from 'react-icons/fa'; 
+import '../App.css';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-export default function Login(){
-    const {setToken} = useContext(AppContext);
+export default function Login() {
+    const { setToken } = useContext(AppContext);
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -14,125 +16,75 @@ export default function Login(){
     });
 
     const [errors, setErrors] = useState({});
-    const [isLoading, setIsLoading] = useState(false); 
-    const [showPassword, setShowPassword] = useState(false); 
+    const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [successMessage, setSuccessMessage] = useState(null);
 
-    // Test backend connectivity
-    const testBackendConnection = async () => {
-        try {
-            const response = await fetch("/api/user", {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                }
-            });
-            console.log("Backend connectivity test:", response.status);
-            
-            // Check if response is JSON or HTML
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                console.error("Backend returned HTML instead of JSON - API routes may not be configured");
-                return false;
-            }
-            
-            return response.status !== 404; // Consider 404 as backend not found
-        } catch (error) {
-            console.error("Backend connectivity test failed:", error);
-            return false;
+    const handleInputChange = (e) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [id]: value
+        }));
+        // Clear error when user starts typing
+        if (errors[id]) {
+            setErrors(prev => ({ ...prev, [id]: null }));
         }
     };
 
-    async function handleLogin(e){
+    async function handleRegistration(e) {
         e.preventDefault();
-        setIsLoading(true); 
-        setErrors({}); // Clear previous errors
-
-        console.log("Attempting login with:", { email: formData.email, password: formData.password ? '[HIDDEN]' : 'empty' });
-
-        // Test backend connectivity first
-        const backendAvailable = await testBackendConnection();
-        if (!backendAvailable) {
-            setErrors(prev => ({ ...prev, general: "Cannot connect to server. Please check if the backend is running." }));
-            setIsLoading(false);
-            return;
-        }
+        setIsLoading(true);
+        setErrors({});
+        setSuccessMessage(null);
 
         try {
-            const response = await fetch("/api/login", {
-                method: "post",
-                headers: {
-                    "Content-Type": "application/json", 
-                    "Accept": "application/json" 
-                },
-                body: JSON.stringify(formData),
-            });
-
-            console.log("Login response status:", response.status);
-            console.log("Login response headers:", Object.fromEntries(response.headers.entries()));
-
-            // Check if response is JSON or HTML
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                console.error("Backend returned HTML instead of JSON - API routes may not be configured");
-                setErrors(prev => ({ ...prev, general: "API routes not configured. Please check your Laravel backend setup." }));
-                setIsLoading(false);
-                return;
-            }
-
-            const data = await response.json();
-            console.log("Login response data:", data);
-
-            if(response.status === 401) {
-                // Handle 401 specifically
-                if(data.message) {
-                    setErrors(prev => ({ ...prev, general: data.message }));
-                } else {
-                    setErrors(prev => ({ ...prev, general: "Invalid email or password. Please try again." }));
-                }
-            } else if(data.errors){
-                setErrors(data.errors);
-                
-                if (data.message) {
-                    setErrors(prev => ({ ...prev, general: data.message }));
-                }
-            } else if(response.ok) {
-                // Success case
-                console.log("Login successful, token received:", data.token ? 'Yes' : 'No');
-                localStorage.setItem("token", data.token);
-                setToken(data.token);
-                
-                // Check if user is admin and redirect accordingly
-                if (data.user && data.user.user_type === 'admin') {
-                    console.log("Admin user detected, redirecting to statistical dashboard");
-                    navigate("/statistical");
-                } else {
-                    console.log("Regular user, redirecting to home page");
-                    navigate("/");
-                }
+            const data = await authService.login(formData);
+            
+            // Registration successful
+            setSuccessMessage(data.message || "Login successfully.");
+            console.log("Login successful, token received:", data.token ? 'Yes' : 'No');
+            localStorage.setItem("token", data.token);
+            setToken(data.token);
+            
+            // Check if user is admin and redirect accordingly
+            if (data.user && data.user.user_type === 'admin') {
+                console.log("Admin user detected, redirecting to statistical dashboard");
+                navigate("/statistical");
             } else {
-                // Other error cases
-                setErrors(prev => ({ ...prev, general: data.message || "Login failed. Please try again." }));
+                console.log("Regular user, redirecting to home page");
+                navigate("/");
             }
+            
+            // Clear form data after successful login
+            setFormData({
+                email: "",
+                password: "",
+            });
         } catch (error) {
-            // Handle network errors or unexpected issues
-            console.error("Login network error:", error);
-            setErrors(prev => ({ ...prev, general: "Network error. Please check your connection and try again." }));
+            console.error("Login failed:", error);
+            
+            if (error.errors) {
+                setErrors(error.errors);
+            }
+            if (error.message) {
+                setErrors(prev => ({ ...prev, general: error.message }));
+            }
         } finally {
-            setIsLoading(false); // Always set loading to false when request finishes
+            setIsLoading(false);
         }
     }
 
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.id]: e.target.value });
-        // Optionally clear error for the specific input as user types
-        setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[e.target.id];
-            return newErrors;
-        });
+    const h2Style = {
+        fontSize: '1.5rem',
+        color: '#333',
+        marginBottom: '1rem',
+        textAlign: 'center',
+        color: 'green',
+        fontWeight: 'bold',
     };
-
-    return(
+    return (
         <>
         <div className="auth-container">
             <div className='head'>
@@ -149,55 +101,51 @@ export default function Login(){
                     <div>
                         <h3>Login</h3>
                         {errors.general && <p className='error general-error'>{errors.general}</p>} {/* General error message */}
+                        {successMessage && <p className='success-message'>{successMessage}</p>}
                     </div>
-                    <form onSubmit={handleLogin} id='form'>
+                    <form onSubmit={handleRegistration} id='form'>
                         <div className='form-content'>
+                            
                             <div className='form-details'>
                                 <input 
-                                    type="email" // Use type="email" for better validation
-                                    id='email' 
-                                    className={`input ${errors.email ? 'input-error' : ''}`} // Add class for error styling
-                                    placeholder='Email'
+                                    type="email"
+                                    id="email"
+                                    className={`input ${errors.email ? 'input-error' : ''}`}
+                                    placeholder="Email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    autoComplete="username" // Improve autocomplete
+                                    autoComplete="email"
+                                    required
                                 />
                                 {errors.email && <p className='error'>{errors.email}</p>}
                             </div>
-                            <div className='form-details password-field'> {/* Add a class for styling password field */}
+                            <div className='form-details password-field'>
                                 <input 
-                                    type={showPassword ? "text" : "password"} // Toggle type
-                                    id='password' 
-                                    className={`input ${errors.password ? 'input-error' : ''}`} // Add class for error styling
-                                    placeholder='Password'
+                                    type={showPassword ? "text" : "password"}
+                                    id="password" 
+                                    className={`input ${errors.password ? 'input-error' : ''}`}
+                                    placeholder="Password"
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    autoComplete="current-password" // Improve autocomplete
+                                    autoComplete="new-password"
+                                    required
                                 />
                                 <span 
                                     className="password-toggle-icon" 
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? <fa.FaEyeSlash /> : <fa.FaEye />}
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </span>
                                 {errors.password && <p className='error'>{errors.password}</p>}
                             </div>
-                            <div>
-                                <p className='remember-me-forgot-password'>
-                                    <label>
-                                        <input type="checkbox" className="checkbox-input" /> Remember me
-                                    </label>
-                                    <Link to="/forgot-password" className='link forgot-password-link'>Forget Password?</Link>
-                                </p>
-                            </div>
                             <div className='form-details'>
                                 <button type="submit" disabled={isLoading}>
-                                    {isLoading ? 'Logging in...' : 'Login'}
+                                    {isLoading ? 'Logging...' : 'Login'}
                                 </button>
                             </div>
                             <div className='account'>
                                 <div>
-                                    <p>Don't have an account? 
+                                    <p>Already have an account? 
                                         <span> 
                                             <Link to="/register" className="nav-link">
                                                 Register
@@ -211,7 +159,7 @@ export default function Login(){
                    
                 </div>
             </div>
-           
+            {/* Optional: Add a subtle footer/copyright */}
             <footer className="login-footer">
                 <p>&copy; {new Date().getFullYear()} Resource Booking App. All rights reserved.</p>
             </footer>

@@ -24,6 +24,52 @@ export default function Home() {
         { name: "Cars", value: "cars" },
     ];
 
+    const [news, setNews] = useState([]);
+
+    const getNews = useCallback(async () => {
+        try {
+            const response = await fetch('/api/news', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            
+            // Handle different possible response structures
+            if (response.ok) {
+                // Check if data is an array directly
+                if (Array.isArray(data)) {
+                    setNews(data);
+                }
+                // Check if data has a 'data' property that's an array (common Laravel pattern)
+                else if (data.data && Array.isArray(data.data)) {
+                    setNews(data.data);
+                }
+                // Check if data has a 'news' property that's an array
+                else if (data.news && Array.isArray(data.news)) {
+                    setNews(data.news);
+                }
+                // If none of the above, set empty array to prevent errors
+                else {
+                    console.warn('Unexpected news API response format:', data);
+                    setNews([]);
+                }
+            } else {
+                console.error('Failed to fetch news:', data);
+                setNews([]);
+            }
+        } catch (error) {
+            console.error('Error fetching news:', error);
+            setNews([]);
+        }
+    }, []);
+
+    useEffect(() => {
+        getNews();
+    }, [getNews]);
+
     const getResources = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -93,8 +139,10 @@ export default function Home() {
 
     return (
         <>
-            <div className="home-dashboard-section">
-                <h1>Available Resources</h1>
+            <div className="home-dashboard-section">                
+                <div>
+                    <h1>Available Resources</h1>
+               </div>               
 
                 {/* Category Filter Section */}
                 <div className="category-filter-container">

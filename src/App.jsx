@@ -3,6 +3,8 @@ import Home from './components/home';
 import Layout from './components/layout';
 import Login from './auth/login';
 import Register from './auth/register';
+import EmailVerificationPage from './auth/EmailVerificationPage';
+import EmailVerifyRequiredPage from './auth/EmailVerifyRequiredPage';
 import { useContext } from 'react';
 import { AppContext } from './context/appContext';
 import View from './resources/view';
@@ -36,6 +38,8 @@ export default function App() {
         
         <Route path="/login" element={user ? <Home /> : <Login />} />
         <Route path="/register" element={user ? <Home /> : <Register />} />
+        <Route path="/email-verification-required" element={<EmailVerifyRequiredPage />} />
+        <Route path="/verify-email/:id/:hash" element={<EmailVerificationPage />} />
         <Route path="/document-view/:id" element={<DocumentViewPlaceholder />} />
         <Route path="/" element={user ? <Layout /> : <Login />}>
           
@@ -62,7 +66,6 @@ export default function App() {
           
         </Route>
 
-        
       </Routes>
     </BrowserRouter>
   );

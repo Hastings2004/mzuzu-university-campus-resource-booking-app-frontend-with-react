@@ -1,11 +1,13 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { AppContext } from '../context/appContext';
+import authService from '../services/authService';
 
 export default function EmailVerificationPage() {
-    const { id, hash } = useParams(); // Get ID and hash from URL parameters
+    const { id, hash } = useParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { setUser, setToken } = useContext(AppContext); // Access context to update user/token
+    const { setUser, setToken } = useContext(AppContext);
 
     const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'failed'
     const [message, setMessage] = useState('');
@@ -13,31 +15,39 @@ export default function EmailVerificationPage() {
 
     const verifyEmail = useCallback(async () => {
         try {
-            // Your backend /api/email/verify/{id}/{hash} endpoint
-            const response = await fetch(`/api/email/verify/${id}/${hash}`, {
-                method: 'GET', // Or POST if your backend expects POST for verification. Laravel's default is GET.
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                setStatus('success');
-                setMessage(data.message || 'Your email has been successfully verified!');
-                // If backend provides a token on verification, you can set it here
-                // If not, prompt user to log in again.
-            } else {
-                setStatus('failed');
-                setMessage(data.message || 'Email verification failed. The link might be invalid or expired.');
+            // Get query parameters
+            const expires = searchParams.get('expires');
+            const signature = searchParams.get('signature');
+            
+            console.log('=== Email Verification Debug ===');
+            console.log('URL Parameters:', { id, hash, expires, signature });
+            console.log('Full URL:', window.location.href);
+            console.log('===============================');
+            
+            // Construct the verification URL with query parameters
+            let verificationUrl = `/email/verify/${id}/${hash}`;
+            if (expires && signature) {
+                verificationUrl += `?expires=${expires}&signature=${signature}`;
             }
-        } catch (err) {
+            
+            const data = await authService.verifyEmail(id, hash, expires, signature);
+            
+            setStatus('success');
+            setMessage(data.message || 'Your email has been successfully verified!');
+            
+            // If backend provides a token on verification, set it
+            if (data.token) {
+                setToken(data.token);
+                if (data.user) {
+                    setUser(data.user);
+                }
+            }
+        } catch (error) {
             setStatus('failed');
-            setMessage('Network error during verification. Please try again.');
-            console.error("Email verification network error:", err);
+            setMessage(error.message || 'Email verification failed. The link might be invalid or expired.');
+            console.error("Email verification error:", error);
         }
-    }, [id, hash]);
+    }, [id, hash, searchParams, setToken, setUser]);
 
     useEffect(() => {
         if (id && hash) {
@@ -53,63 +63,80 @@ export default function EmailVerificationPage() {
         setMessage('');
 
         try {
-            // The user must be authenticated to resend the email via this API route
-            // For this to work, the user needs to have been logged in.
-            // If the user lands here directly from a *fresh* registration email link without logging in,
-            // this `sendVerificationEmail` route in Laravel might not find `Auth::user()`.
-            // In that case, you'd need a public endpoint that takes an email address.
-            // For now, assuming if they are on this page, they might have a token from a previous login attempt.
-            const currentToken = localStorage.getItem('token');
-            if (!currentToken) {
+            // For resend, we need the user's email
+            // This could be stored in localStorage or passed as a parameter
+            const storedUser = authService.getStoredUser();
+            const email = storedUser?.email;
+            
+            if (!email) {
                 setMessage("Please log in first to resend a verification email.");
                 setLoadingResend(false);
                 return;
             }
 
-            const response = await fetch('/api/email/verification-notification', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentToken}`, // Requires user to be logged in (even if unverified)
-                },
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                setMessage(data.message || 'Verification email sent! Please check your inbox.');
-            } else {
-                setMessage(data.message || 'Failed to send verification email. Please try again.');
-            }
-        } catch (err) {
-            setMessage('Network error. Failed to send verification email.');
-            console.error("Resend verification network error:", err);
+            const data = await authService.resendVerificationEmail(email);
+            setMessage(data.message || 'Verification email sent! Please check your inbox.');
+        } catch (error) {
+            setMessage(error.message || 'Failed to send verification email. Please try again.');
         } finally {
             setLoadingResend(false);
         }
     };
 
+    const handleGoToLogin = () => {
+        navigate('/login');
+    };
+
+    const handleGoToHome = () => {
+        navigate('/');
+    };
+
     return (
-        <div className="auth-container"> {/* Reusing auth-container styles */}
-            <h1 className="auth-title">Email Verification</h1>
-            {status === 'verifying' && (
-                <p className="loading-message">Verifying your email address...</p>
-            )}
-            {status === 'success' && (
-                <div className="success-message">
-                    <p>{message}</p>
-                    <p>You can now <Link to="/login">log in</Link> to your account.</p>
-                </div>
-            )}
-            {status === 'failed' && (
-                <div className="error-message">
-                    <p>{message}</p>
-                    <p>If you believe this is an error, you can try to resend the verification email.</p>
-                    <button onClick={handleResendVerification} disabled={loadingResend} className="action-button primary-button">
-                        {loadingResend ? 'Sending...' : 'Resend Verification Email'}
-                    </button>
-                    <p>Already verified? Go to <Link to="/login">Login</Link>.</p>
-                </div>
-            )}
+        <div className="verification-container">
+            <div className="verification-content">
+                <h2>Email Verification</h2>
+                
+                {status === 'verifying' && (
+                    <div className="verification-status">
+                        <p>Verifying your email address...</p>
+                        <div className="loading-spinner"></div>
+                    </div>
+                )}
+                
+                {status === 'success' && (
+                    <div className="verification-status success">
+                        <h3>✅ Verification Successful!</h3>
+                        <p>{message}</p>
+                        <div className="verification-actions">
+                            <button onClick={handleGoToLogin} className="btn btn-primary">
+                                Go to Login
+                            </button>
+                            <button onClick={handleGoToHome} className="btn btn-secondary">
+                                Go to Home
+                            </button>
+                        </div>
+                    </div>
+                )}
+                
+                {status === 'failed' && (
+                    <div className="verification-status error">
+                        <h3>❌ Verification Failed</h3>
+                        <p>{message}</p>
+                        <div className="verification-actions">
+                            <button 
+                                onClick={handleResendVerification} 
+                                disabled={loadingResend}
+                                className="btn btn-primary"
+                            >
+                                {loadingResend ? 'Sending...' : 'Resend Verification Email'}
+                            </button>
+                            <Link to="/login" className="btn btn-secondary">
+                                Go to Login
+                            </Link>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

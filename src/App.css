@@ -561,12 +561,9 @@ body {
     line-height: 1.4;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    max-width: 100%; 
 }
 
 .resource-card .resource-description strong,
@@ -6571,4 +6568,41 @@ body {
     #content main .box-info {
         grid-template-columns: 1fr;
     }
+}
+.availability-message {
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.availability-message.available {
+    color: var(--accent-green);
+    background-color: #d4edda;
+}
+
+.availability-message.not-available {
+    color: var(--accent-red);
+    background-color: #f8d7da;
+}
+
+.availability-message.checking {
+    color: var(--accent-blue);
+    background-color: #e9ecef;
+}
+
+body.dark .availability-message.available {
+    background-color: #2e7d32;
+    color: #fff;
+}
+
+body.dark .availability-message.not-available {
+    background-color: #c62828;
+    color: #fff;
+}
+
+body.dark .availability-message.checking {
+    background-color: #455a64;
+    color: #fff;
 }
