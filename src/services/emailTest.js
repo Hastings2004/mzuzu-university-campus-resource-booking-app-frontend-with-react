@@ -2,7 +2,6 @@ import api from './api';
 
 export const testEmailConfiguration = async () => {
     try {
-        // Test if the email verification endpoint exists
         const response = await api.get('/email/test');
         return response.data;
     } catch (error) {

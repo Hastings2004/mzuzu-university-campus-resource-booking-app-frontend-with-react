@@ -13,6 +13,7 @@ export default function Login() {
     const [formData, setFormData] = useState({
         email: "",
         password: "",
+        rememberMe: false,
     });
 
     const [errors, setErrors] = useState({});
@@ -42,7 +43,7 @@ export default function Login() {
         try {
             const data = await authService.login(formData);
             
-            // Registration successful
+            //login successful
             setSuccessMessage(data.message || "Login successfully.");
             console.log("Login successful, token received:", data.token ? 'Yes' : 'No');
             localStorage.setItem("token", data.token);
@@ -61,12 +62,13 @@ export default function Login() {
             setFormData({
                 email: "",
                 password: "",
+                rememberMe: false,
             });
         } catch (error) {
             console.error("Login failed:", error);
             
             if (error.errors) {
-                setErrors(error.errors);
+                setErrors(error.errors);                              
             }
             if (error.message) {
                 setErrors(prev => ({ ...prev, general: error.message }));
@@ -76,14 +78,6 @@ export default function Login() {
         }
     }
 
-    const h2Style = {
-        fontSize: '1.5rem',
-        color: '#333',
-        marginBottom: '1rem',
-        textAlign: 'center',
-        color: 'green',
-        fontWeight: 'bold',
-    };
     return (
         <>
         <div className="auth-container">
@@ -138,6 +132,25 @@ export default function Login() {
                                 </span>
                                 {errors.password && <p className='error'>{errors.password}</p>}
                             </div>
+                            <div className='form-details remember-forgot'>
+                                <div className='remember-me'>
+                                    <input 
+                                        type="checkbox"
+                                        id="rememberMe"
+                                        checked={formData.rememberMe}
+                                        onChange={(e) => setFormData(prev => ({
+                                            ...prev,
+                                            rememberMe: e.target.checked
+                                        }))}
+                                    />
+                                    <label htmlFor="rememberMe">Remember me</label>
+                                </div>
+                                <div className='forgot-password'>
+                                    <Link to="/forget-password" className="nav-link">
+                                        Forgot Password?
+                                    </Link>
+                                </div>
+                            </div>
                             <div className='form-details'>
                                 <button type="submit" disabled={isLoading}>
                                     {isLoading ? 'Logging...' : 'Login'}
@@ -145,7 +158,7 @@ export default function Login() {
                             </div>
                             <div className='account'>
                                 <div>
-                                    <p>Already have an account? 
+                                    <p>Don't have an account? 
                                         <span> 
                                             <Link to="/register" className="nav-link">
                                                 Register
@@ -158,11 +171,13 @@ export default function Login() {
                     </form>
                    
                 </div>
+                
             </div>
-            {/* Optional: Add a subtle footer/copyright */}
-            <footer className="login-footer">
+            <footer className="login-footer" >
                 <p>&copy; {new Date().getFullYear()} Resource Booking App. All rights reserved.</p>
-            </footer>
+                </footer>
+           
+            
         </div>
         </>
     );

@@ -43,7 +43,7 @@ export default function EmailVerifyRequiredPage() {
                 <div className="auth-content">
                     <div>
                         <img src={logo} alt="logo" width={110} height={110} />
-                        <h2>Resource Booking App</h2>
+                        <h2>Mzuzu University Resource Booking App</h2>
                     </div>
                     
                     <div className="verification-required">

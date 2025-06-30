@@ -86,20 +86,20 @@ export default function View() {
         }
     }
 
-    async function sendNotification(message) {
-        const notificationPayload = {
-            title: title,
-            message: message,
-            recipient_id: user.id
-        };
+    // async function sendNotification(message) {
+    //     const notificationPayload = {
+    //         title: title,
+    //         message: message,
+    //         recipient_id: user.id
+    //     };
 
-        try {
-            const response = await api.post('/notifications', notificationPayload);
-            console.log(`Notification created and sent successfully!`);
-        } catch (error) {
-            setBookingMessage(`Failed to send notification: ${error.message || 'Unknown error'}`);
-        }
-    }
+    //     try {
+    //         const response = await api.post('/notifications', notificationPayload);
+    //         console.log(`Notification created and sent successfully!`);
+    //     } catch (error) {
+    //         setBookingMessage(`Failed to send notification: ${error.message || 'Unknown error'}`);
+    //     }
+    // }
 
     async function handleAvailabilityCheck() {
         setBookingMessage("");
@@ -300,17 +300,19 @@ export default function View() {
         }
 
         // Debug logging
-        console.log('Submitting booking with data:', {
-            resource_id: resource.id,
-            user_id: user.id,
-            start_time: startDateTime.toISOString(),
-            end_time: endDateTime.toISOString(),
-            purpose: trimmedPurpose,
-            booking_type: bookingType,
-            priority: priority || 'not set',
-            has_document: !!supportingDocument,
-            user_type: user.user_type
+        console.log('=== BOOKING SUBMISSION DEBUG ===');
+        console.log('FormData contents:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+        console.log('Config:', {
+            headers: {
+                'Content-Type': supportingDocument ? 'multipart/form-data' : 'application/json',
+            }
         });
+        console.log('User:', user);
+        console.log('Token:', token ? 'Present' : 'Missing');
+        console.log('===============================');
 
         try {
             const config = {
@@ -343,7 +345,7 @@ export default function View() {
             alert('Booking created successfully!');
 
             // Send notification
-            await sendNotification(`Your booking for ${resource.name} has been submitted successfully.`);
+            //await sendNotification(`Your booking for ${resource.name} has been submitted successfully.`);
             navigate('/booking');
             // Refresh the bookings list
             getResourceBookings();
@@ -365,8 +367,14 @@ export default function View() {
             if (fileInput) fileInput.value = '';
             
         } catch (error) {
-            // Handle different error types
-            console.error('Booking submission failed:', error);
+            // Enhanced error handling
+            console.error('=== BOOKING SUBMISSION ERROR ===');
+            console.error('Error object:', error);
+            console.error('Error response:', error.response);
+            console.error('Error message:', error.message);
+            console.error('Error status:', error.response?.status);
+            console.error('Error data:', error.response?.data);
+            console.error('===============================');
             
             if (error.response?.status === 422) {
                 // Validation errors
@@ -382,7 +390,14 @@ export default function View() {
                 setBookingMessage('Resource is not available for the selected time. Please choose different times.');
                 setIsResourceAvailable(false);
             } else if (error.response?.status === 500) {
-                setBookingMessage('Server error occurred. Please try again later.');
+                setBookingMessage(`Server error occurred. Please try again later. Error details: ${error.response?.data?.message || error.message}`);
+                // Log additional details for debugging
+                console.error('500 Error Details:', {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    data: error.config?.data,
+                    headers: error.config?.headers
+                });
             } else {
                 setBookingMessage(error.message || `Error: ${error.response?.status} - ${error.response?.statusText}`);
             }
@@ -483,7 +498,6 @@ export default function View() {
                                 {/* Resource Image */}
                                 <div className="resource-image-container">
                                     {(() => {
-                                        // Prioritize image_url since it contains the full URL
                                         const imageUrl = resource.image_url || resource.image || resource.photo || resource.photo_url || resource.image_path;
                                         
                                         if (imageUrl) {
@@ -627,27 +641,32 @@ export default function View() {
                                                     required
                                                 >
                                                     <option value="">-------------------Booking type---------------------</option>
-                                                    <option value="university_activity">University Activity</option>
-                                                    <option value="staff_meeting">Staff Meeting</option>
+                                                    { user && user.user_type != 'student' && (
+                                                        <>
+                                                            <option value="university_activity">University Activity</option>
+                                                            <option value="staff_meeting">Staff Meeting</option>
+                                                        </>
+                                                    )}
+                                                    <option value="church_meeting">Church meeting</option>
                                                     <option value="class">Student Class</option>
-                                                    <option value="student_meeting">Student Activity</option>
+                                                    <option value="student_meeting">Student Meetings</option>
                                                     <option value="other">Other</option>
                                                 </select>
                                                 {displayError('booking_type')}
                                             </div>
                                              {user?.user_type === 'student' &&
-                                             (bookingType === 'student_meeting' || bookingType === 'church_meeting') && (
+                                             (bookingType === 'student_meeting' || bookingType === 'other' || bookingType === 'church_meeting') && (
                                                 <div className="form-group">
                                                     <label htmlFor="supportingDocument">Supporting Document (PDF, Image):</label>
                                                     <input
                                                         type="file"
                                                         id="supportingDocument"
                                                         onChange={(e) => setSupportingDocument(e.target.files[0])}
-                                                        accept=".pdf,.jpg,.jpeg,.png" // Limit accepted file types
-                                                        required // Make it required when conditions met
+                                                        accept=".pdf,.jpg,.jpeg,.png" 
+                                                        required
                                                         className="form-input"
                                                     />
-                                                    <small className="form-text-muted">Required for Student Meeting</small>
+                                                    <small className="form-text-muted">Please attach supporting document</small>
                                                     {displayError('supporting_document')}
                                                 </div>
                                             )}

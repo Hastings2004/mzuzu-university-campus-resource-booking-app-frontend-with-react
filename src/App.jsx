@@ -5,6 +5,9 @@ import Login from './auth/login';
 import Register from './auth/register';
 import EmailVerificationPage from './auth/EmailVerificationPage';
 import EmailVerifyRequiredPage from './auth/EmailVerifyRequiredPage';
+import VerificationResult from './auth/VerificationResult';
+import EmailTemplatePreview from './components/EmailTemplatePreview';
+import BookingDebug from './components/BookingDebug';
 import { useContext } from 'react';
 import { AppContext } from './context/appContext';
 import View from './resources/view';
@@ -28,6 +31,8 @@ import ReportIssueForm from './components/ReportIssueForm';
 import NewsCreate from './admin/news';
 
 import DocumentViewPlaceholder from './components/DocumentViewPlaceholder';
+import ForgetPassword from './auth/forgetPassword ';
+
 
 export default function App() {
   const { user } = useContext(AppContext);
@@ -40,6 +45,10 @@ export default function App() {
         <Route path="/register" element={user ? <Home /> : <Register />} />
         <Route path="/email-verification-required" element={<EmailVerifyRequiredPage />} />
         <Route path="/verify-email/:id/:hash" element={<EmailVerificationPage />} />
+        <Route path="/verify-email" element={<VerificationResult />} />
+        <Route path="/email-template-preview" element={<EmailTemplatePreview />} />
+        <Route path="/booking-debug" element={<BookingDebug />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/document-view/:id" element={<DocumentViewPlaceholder />} />
         <Route path="/" element={user ? <Layout /> : <Login />}>
           

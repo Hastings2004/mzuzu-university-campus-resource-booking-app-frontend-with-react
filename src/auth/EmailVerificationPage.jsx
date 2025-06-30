@@ -9,7 +9,7 @@ export default function EmailVerificationPage() {
     const navigate = useNavigate();
     const { setUser, setToken } = useContext(AppContext);
 
-    const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'failed'
+    const [status, setStatus] = useState('verifying'); 
     const [message, setMessage] = useState('');
     const [loadingResend, setLoadingResend] = useState(false);
 
@@ -64,7 +64,6 @@ export default function EmailVerificationPage() {
 
         try {
             // For resend, we need the user's email
-            // This could be stored in localStorage or passed as a parameter
             const storedUser = authService.getStoredUser();
             const email = storedUser?.email;
             
@@ -105,7 +104,7 @@ export default function EmailVerificationPage() {
                 
                 {status === 'success' && (
                     <div className="verification-status success">
-                        <h3>✅ Verification Successful!</h3>
+                        <h3>Verification Successful!</h3>
                         <p>{message}</p>
                         <div className="verification-actions">
                             <button onClick={handleGoToLogin} className="btn btn-primary">
@@ -120,7 +119,7 @@ export default function EmailVerificationPage() {
                 
                 {status === 'failed' && (
                     <div className="verification-status error">
-                        <h3>❌ Verification Failed</h3>
+                        <h3>Verification Failed</h3>
                         <p>{message}</p>
                         <div className="verification-actions">
                             <button 

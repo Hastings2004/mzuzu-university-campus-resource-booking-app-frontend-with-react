@@ -185,12 +185,8 @@ body {
     font-size: 0.85em;
     margin-top: 5px;
     text-align: left;
-    position: absolute;
-    left: 0;
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    position: static;
 }
 
 .general-error {
@@ -1758,6 +1754,17 @@ p[style*="color: rgb(33, 150, 243)"] {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
+    }
+    
+    .auth-container .remember-forgot {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .auth-container .forgot-password {
+        text-align: left;
+        width: 100%;
     }
 }
 
@@ -5569,957 +5576,6 @@ hr {
     }
 }
 
-.bookings-table thead th {
-    background-color: var(--primary-color); 
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.9em;
-    color: white; 
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.search-results {
-    margin-top: 30px;
-    padding: 20px;
-    border: 1px solid var(--border-color); 
-    border-radius: 5px;
-    background-color: var(--bg-card); 
-}
-
-.resource-item {
-    background-color: var(--bg-item); /* New variable for item background */
-    border: 1px solid var(--border-color); 
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 1px 3px var(--shadow-small); 
-}
-
-#content nav form .form-input {
-    display: flex;
-    align-items: center;    
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    overflow: hidden;
-   
-}
-
-#content nav form .form-input input {
-    flex-grow: 1;
-    padding: 0 10px;
-    height: 100%;
-    border: none;
-    background: var(--bg-grey);
-    
-    outline: none;
-    width: 100%;
-    color: var(--text-primary);
-    font-family: var(--poppins);
-}
-
-#content nav form .form-input button {
-    width: 50px;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--primary-color);
-    color: var(--text-light-on-dark);
-    font-size: 20px;
-    border: none;
-    outline: none;
-    border-radius: 0 10px 10px 0;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
-
-/* --- Base Styles & Resets --- */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
-li {
-    list-style: none;
-}
-
-/* --- Global CSS Variables (Light Mode Defaults) --- */
-:root {
-    --poppins: 'Poppins', sans-serif;
-    --lato: 'Lato', sans-serif;
-
-    /* Primary & Accent Colors */
-    --primary-color: #4CAF50; 
-    --primary-light: #81C784;
-    --primary-dark: #388E3C;
-    --accent-blue: #2196F3;
-    --accent-yellow: #FFC107;
-    --accent-red: #F44336;
-    --accent-green: #4CAF50; 
-    --accent-orange: #e65100; 
-
-    /* Text Colors */
-    --text-primary: #333333; 
-    --text-secondary: #666666;
-    --text-light-on-dark: #F9F9F9; 
-
-    /* Background Colors */
-    --bg-light: #FFFFFF; 
-    --bg-grey: #F0F2F5; 
-    --bg-hover: #e0e0e0; 
-    --bg-secondary-card: #f9f9f9; 
-    --bg-tertiary-row: #f2f2f2; 
-
-    /* Borders & Shadows */
-    --border-color: #E0E0E0;
-    --shadow-light: rgba(0, 0, 0, 0.08);
-    --shadow-medium: rgba(0, 0, 0, 0.12);
-
-    /* Table Specific Colors (Light Mode) */
-    --table-header-bg: #4CAF50;
-    --table-header-text: white;
-
-    /* Message Box Colors (Light Mode) */
-    --message-bg-info: #e0f7fa;
-    --message-border-info: #b2ebf2;
-    --message-bg-error: #ffebee;
-    --message-border-error: #ef9a9a;
-    --message-bg-warning: #fff3e0;
-    --message-border-warning: #ffcc80;
-}
-
-/* --- Dark Mode Overrides (Applied when body has 'dark' class) --- */
-body.dark {
-    /* Text Colors */
-    --text-primary: #FBFBFB;
-    --text-secondary: #B0B0B0;
-    --text-light-on-dark: #0C0C1E;
-
-    /* Background Colors */
-    --bg-light: #1A1A2E;
-    --bg-grey: #0F0F2A;
-    --bg-hover: #4a4a4a;
-    --bg-secondary-card: #2c2c2c;
-    --bg-tertiary-row: #3a3a3a;
-
-    /* Borders & Shadows */
-    --border-color: #2F3640;
-    --shadow-light: rgba(0, 0, 0, 0.2);
-    --shadow-medium: rgba(0, 0, 0, 0.3);
-
-    /* Primary & Accent Colors (adjust for dark mode readability) */
-    --primary-color: #66BB6A; 
-    --accent-blue: #64b5f6;
-    --accent-red: #ef5350;
-    --accent-green: #66bb6a;
-    --accent-orange: #ffa726;
-
-    /* Table Specific Colors (Dark Mode) */
-    --table-header-bg: #1e88e5; /* Darker blue for headers in dark mode */
-    --table-header-text: #e0e0e0;
-
-    /* Message Box Colors (Dark Mode) */
-    --message-bg-info: #004d40;
-    --message-border-info: #00796b;
-    --message-bg-error: #b71c1c;
-    --message-border-error: #d32f2f;
-    --message-bg-warning: #ff6f00;
-    --message-border-warning: #ff8f00;
-}
-
-/* --- Global Body Styling --- */
-html {
-    overflow-x: hidden; /* Prevent horizontal scroll */
-}
-
-body {
-    font-family: var(--poppins);
-    background: var(--bg-grey);
-    color: var(--text-primary); /* Use primary text color */
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-
-/* --- AUTHENTICATION PAGE STYLES --- */
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    position: absolute; /* Allows it to overlay other content if needed */
-    top: 0;
-    left: 0;
-    z-index: 3000;
-    background-color: var(--bg-grey); /* Ensure it has its own background */
-}
-
-.auth-container .head {
-    background-color: var(--bg-light);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px var(--shadow-medium);
-    padding: 30px;
-    width: 100%;
-    max-width: 450px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-
-.auth-container .slogan-banner {
-    background-color: var(--primary-color);
-    color: var(--text-light-on-dark);
-    padding: 10px 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    font-size: 0.95em;
-    font-weight: 500;
-    box-shadow: 0 2px 5px var(--shadow-light);
-}
-
-.auth-container .auth-content {
-    border: none;
-    width: 100%;
-    height: fit-content;
-    padding: 0;
-    background-color: transparent;
-}
-
-.auth-container .auth-content > div:first-child {
-    margin-bottom: 25px;
-}
-
-.auth-container .auth-content img {
-    margin-bottom: 15px;
-}
-
-.auth-container .auth-content h2 {
-    color: var(--primary-color);
-    font-size: 1.8em;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
-
-.auth-container .auth-content h3 {
-    text-align: center;
-    font-size: 1.7em;
-    color: var(--text-primary);
-    margin-bottom: 25px;
-    font-weight: 600;
-}
-
-.auth-container #form {
-    width: 100%;
-}
-
-.auth-container .form-content {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.auth-container .form-details {
-    position: relative;
-    width: 100%;
-}
-
-.auth-container .input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1em;
-    color: var(--text-primary);
-    background-color: var(--bg-grey);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    box-sizing: border-box;
-}
-
-.auth-container .input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-}
-
-.error {
-    color: var(--accent-red);
-    font-size: 0.85em;
-    margin-top: 5px;
-    text-align: left;
-    position: absolute;
-    left: 0;
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.general-error {
-    position: static;
-    margin-bottom: 15px;
-    padding: 10px;
-    background-color: var(--message-bg-error);
-    border-left: 5px solid var(--message-border-error);
-    border-radius: 5px;
-    text-align: center;
-}
-
-.input-error {
-    border-color: var(--accent-red) !important;
-}
-
-.auth-container .password-field {
-    position: relative;
-}
-
-.auth-container .password-toggle-icon {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 1.1em;
-    transition: color 0.2s ease;
-}
-.auth-container .password-toggle-icon:hover {
-    color: var(--primary-color);
-}
-
-.auth-container .remember-me-forgot-password {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9em;
-    color: var(--text-primary);
-    margin-top: 5px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.auth-container .checkbox-input {
-    margin-right: 8px;
-    accent-color: var(--primary-color);
-}
-
-.auth-container .forgot-password-link {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.2s ease, text-decoration 0.2s ease;
-}
-.auth-container .forgot-password-link:hover {
-    text-decoration: underline;
-    color: var(--primary-dark);
-}
-
-.auth-container button {
-    width: 100%;
-    padding: 12px 20px;
-    background-color: var(--primary-color);
-    color: var(--text-light-on-dark);
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 4px 8px var(--shadow-light);
-}
-
-.auth-container button:hover:not(:disabled) {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-}
-
-.auth-container button:disabled {
-    background-color: var(--border-color);
-    cursor: not-allowed;
-    opacity: 0.8;
-    box-shadow: none;
-    transform: none;
-}
-
-.auth-container .account {
-    margin-top: 20px;
-    font-size: 0.95em;
-    color: var(--text-primary);
-    text-align: center;
-}
-
-.auth-container .account .nav-link {
-    color: var(--primary-color);
-    font-weight: 600;
-    text-decoration: none;
-    margin-left: 5px;
-    transition: color 0.2s ease, text-decoration 0.2s ease;
-}
-.auth-container .account .nav-link:hover {
-    text-decoration: underline;
-    color: var(--primary-dark);
-}
-
-.social-login {
-    margin-top: 30px;
-    border-top: 1px solid var(--border-color);
-    padding-top: 25px;
-    width: 100%;
-}
-.social-login p {
-    margin-bottom: 15px;
-    color: var(--text-primary);
-    font-size: 0.9em;
-}
-.social-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-light);
-    color: var(--text-primary);
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.login-footer {
-    width: 100%;
-
-    text-align: center;
-    margin-top: 40px;
-    font-size: 0.8em;
-    color: var(--primary-color);
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-}
-
-/* --- DASHBOARD LAYOUT STYLES --- */
-
-.dashboard-container {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
-}
-
-/* SIDEBAR */
-#sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100%;
-    background: var(--bg-light);
-    z-index: 2000;
-    font-family: var(--lato);
-    transition: all 0.3s ease;
-    box-shadow: 0 0 10px var(--shadow-light);
-    display: flex;
-    flex-direction: column;
-}
-
-#sidebar::-webkit-scrollbar {
-    display: none;
-}
-
-#sidebar.hide {
-    width: 60px;
-}
-
-#sidebar.hide .brand h3,
-#sidebar.hide .brand p.text {
-    opacity: 0;
-    visibility: hidden;
-    width: 0;
-    height: 0;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease;
-}
-
-#sidebar.hide .brand {
-    padding: 15px 0;
-}
-
-#sidebar.hide .side-menu li a .text {
-    display: none;
-}
-
-#sidebar.hide .side-menu li a .bx {
-    margin-right: 0;
-    min-width: unset;
-}
-
-#sidebar.hide .side-menu li a {
-    justify-content: center;
-    padding-left: 0;
-}
-
-#sidebar.hide .side-menu li {
-    border-radius: 50%;
-    height: 48px;
-    width: 48px;
-    margin: 8px auto;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#sidebar.hide .side-menu li a.active {
-    border-radius: 50%;
-    color: var(--primary-color);
-    background: var(--bg-grey);
-}
-
-#sidebar.hide .side-menu li a.active i {
-    color: var(--primary-color);
-}
-
-#sidebar.hide .side-menu li.active::before,
-#sidebar.hide .side-menu li.active::after {
-    display: none;
-}
-
-
-#sidebar .brand {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--primary-color);
-    position: sticky;
-    top: 0;
-    left: 0;
-    background: var(--bg-light);
-    z-index: 500;
-    padding: 15px 20px 25px;
-    box-sizing: border-box;
-    border-bottom: 1px solid var(--border-color);
-    height: auto;
-    flex-shrink: 0;
-}
-
-#sidebar .brand img {
-    margin-right: 0;
-    margin-bottom: 10px;
-    vertical-align: middle;
-}
-
-#sidebar .brand h3 {
-    margin: 5px 0;
-    color: var(--text-primary);
-    text-align: center;
-    transition: opacity 0.3s ease;
-}
-
-#sidebar .brand p.text {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin: 0;
-    text-align: center;
-    transition: opacity 0.3s ease;
-}
-
-#sidebar .side-menu {
-    width: 100%;
-    margin-top: 20px;
-    padding-left: 10px;
-    flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--bg-grey);
-}
-
-#sidebar .side-menu::-webkit-scrollbar {
-    width: 8px;
-}
-
-
-#sidebar .side-menu::-webkit-scrollbar-track {
-    background: var(--bg-grey);
-    border-radius: 10px;
-}
-
-#sidebar .side-menu::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 10px;
-    border: 2px solid var(--bg-grey);
-}
-
-#sidebar .side-menu::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark);
-}
-
-
-#sidebar .side-menu li {
-    height: 48px;
-    background: transparent;
-    margin-bottom: 8px;
-    border-radius: 48px 0 0 48px;
-    padding: 4px;
-    transition: background 0.2s ease;
-}
-
-#sidebar .side-menu li.active {
-    background: var(--bg-grey);
-    position: relative;
-    box-shadow: -2px 0 5px var(--shadow-light);
-}
-
-
-#sidebar .side-menu.top li .active {
-    color: var(--blue); 
-    background: var(--primary-dark); 
-    position: relative; 
-}
-
-#sidebar .side-menu.top li.active a {
-    color: var(--blue);
-}
-
-#sidebar .side-menu.top li.active a i {
-    color: var(--blue); 
-}
-
-/* Active item corner styling (mimics curved corners) */
-#sidebar .side-menu li.active::before {
-    content: '';
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    top: -40px;
-    right: 0;
-    box-shadow: 20px 20px 0 var(--bg-grey);
-    z-index: -1;
-}
-
-#sidebar .side-menu li.active::after {
-    content: '';
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    bottom: -40px;
-    right: 0;
-    box-shadow: 20px -20px 0 var(--bg-grey);
-    z-index: -1;
-}
-
-#sidebar .side-menu li a {
-    width: 100%;
-    height: 100%;
-    background: var(--bg-light);
-    display: flex;
-    align-items: center;
-    border-radius: 48px;
-    font-size: 16px;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow-x: hidden;
-    padding-left: 16px;
-    transition: all 0.2s ease;
-}
-
-#sidebar .side-menu.top li.active a {
-    color: var(--primary-color);
-}
-
-#sidebar .side-menu li a:hover {
-    color: var(--primary-color);
-    background: var(--bg-grey);
-}
-
-#sidebar .side-menu li a .bx {
-    min-width: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    margin-right: 8px;
-}
-
-/* Specific Logout button styling (already well-defined) */
-#sidebar .side-menu li[onClick] {
-    padding: 0;
-    margin-bottom: 15px;
-}
-#sidebar .side-menu li[onClick] a {
-    height: 100%;
-    border-radius: 48px;
-}
-#sidebar .side-menu li[onClick] a .text {
-    margin-left: 8px;
-}
-.status-approved {
-    color: var(--primary-color); /* Match update button green */
-    font-weight: bold;
-}
-
-.status-pending {
-    color: var(--accent-yellow); /* A clear amber/orange for pending */
-    font-weight: bold;
-}
-
-.status-rejected {
-    color: var(--accent-red); /* Match delete button red */
-    font-weight: bold;
-}
-.status-completed{
-    color: var(--primary-color); /* Match update button green */
-    font-weight: bold;
-}
-.status-in-use{
-    color: var(--primary-color); /* Match update button green */
-    font-weight: bold;
-}
-.status-canceled{
-    color: var(--accent-red); /* Match delete button red */
-    font-weight: bold;
-}
-.status-expired{
-    color: red; 
-    font-weight: bold;
-}
-/* Responsive adjustments for Dashboard Layout */
-@media screen and (max-width: 992px) {
-    #sidebar {
-        width: 60px; /* Force collapsed width in this range */
-        left: 0; /* Always visible by default in this range */
-        transition: all 0.3s ease; /* Maintain smooth transition */
-    }
-
-    /* When JS applies 'hide' class in this range (e.g., when toggle is clicked) */
-    #sidebar.hide {
-        left: -60px; /* Slide the 60px sidebar off-screen */
-    }
-
-    /* Brand text will be hidden */
-    #sidebar .brand h3,
-    #sidebar .brand p.text {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        height: 0;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease;
-    }
-    #sidebar .brand {
-        padding: 15px 0; /* Adjust padding for logo only */
-    }
-
-    /* Menu text will be hidden */
-    #sidebar .side-menu li a .text {
-        display: none;
-    }
-
-    /* Icons will be centered */
-    #sidebar .side-menu li a .bx {
-        margin-right: 0;
-        min-width: unset;
-    }
-    #sidebar .side-menu li a {
-        justify-content: center;
-        padding-left: 0;
-    }
-    #sidebar .side-menu li {
-        border-radius: 50%; /* Circular items */
-        height: 48px;
-        width: 48px;
-        margin: 8px auto; /* Center items */
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    #sidebar .side-menu li.active {
-        border-radius: 50%; /* Maintain circular active state */
-    }
-    #sidebar .side-menu li.active::before,
-    #sidebar .side-menu li.active::after {
-        display: none; /* Hide active state pseudo-elements */
-    }
-
-    /* Adjust content area */
-    #content {
-        width: calc(100% - 60px);
-        left: 60px;
-    }
-
-    #sidebar.hide ~ #content { /* When sidebar slides off-screen */
-        width: 100%;
-        left: 0;
-    }
-
-    #content nav .nav-link {
-        display: none; /* Hide categories link */
-    }
-
-    #content main .box-info {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust card size */
-    }
-}
-
-
-@media screen and (max-width: 768px) {
-    #sidebar {
-        width: 280px; /* Force full width on small screens when open */
-        left: -280px; /* Initially hidden (off-screen) */
-        box-shadow: 2px 0 10px var(--shadow-medium); /* Stronger shadow when opened */
-    }
-
-    /* When the 'hide' class is present (isSidebarOpen is false) */
-    #sidebar.hide {
-        left: -280px; /* Explicitly keep it off-screen */
-        width: 280px;
-    }
-
-    /* When the sidebar is NOT hidden (isSidebarOpen is true) on small screens, slide it in */
-    /* The .dashboard-container selector ensures higher specificity for this scenario. */
-    /* This overrides the general #sidebar.hide rules for this specific breakpoint when open */
-    .dashboard-container #sidebar:not(.hide) {
-        left: 0; /* Slide into view */
-    }
-
-    /* Ensure brand and menu text are visible when sidebar is open */
-    /* These rules apply ONLY when .hide is NOT present on #sidebar at this breakpoint */
-    .dashboard-container #sidebar:not(.hide) .brand h3,
-    .dashboard-container #sidebar:not(.hide) .brand p.text {
-        opacity: 1;
-        visibility: visible;
-        width: auto;
-        height: auto;
-        margin: 5px 0;
-        padding: 0;
-        transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease;
-    }
-    .dashboard-container #sidebar:not(.hide) .brand {
-        padding: 15px 20px 25px; /* Full padding for brand */
-    }
-
-    .dashboard-container #sidebar:not(.hide) .side-menu li a .text {
-        display: inline; /* Show text again */
-    }
-    .dashboard-container #sidebar:not(.hide) .side-menu li a .bx {
-        margin-right: 8px;
-        min-width: 40px;
-    }
-    .dashboard-container #sidebar:not(.hide) .side-menu li a {
-        justify-content: flex-start; /* Align content to start */
-        padding-left: 16px; /* Add padding back */
-    }
-    .dashboard-container #sidebar:not(.hide) .side-menu li {
-        border-radius: 48px 0 0 48px; /* Reset border-radius */
-        height: 48px;
-        width: auto; /* Reset width */
-        margin: 8px 0; /* Reset margin */
-        padding: 4px; /* Reset padding */
-        display: block; /* Reset display */
-    }
-    .dashboard-container #sidebar:not(.hide) .side-menu li.active {
-        border-radius: 48px 0 0 48px; /* Reset border-radius */
-    }
-    .dashboard-container #sidebar:not(.hide) .side-menu li.active::before,
-    .dashboard-container #sidebar:not(.hide) .side-menu li.active::after {
-        display: block; /* Show active state pseudo-elements */
-    }
-
-    /* Content adjustments for small screens */
-    #content {
-        width: 100%;
-        left: 0;
-    }
-
-    #sidebar.hide ~ #content { /* When sidebar is off-screen, content uses full width */
-        width: 100%;
-        left: 0;
-    }
-    /* No additional #content rules needed when sidebar is open, as it's full width and not pushed */
-
-
-    #content nav .bx.bx-menu {
-        display: block; /* Ensure hamburger icon is always visible to toggle sidebar */
-    }
-
-    #content nav form {
-        max-width: none; /* Allow form to expand */
-        margin-right: 50px;
-    }
-
-    #content nav form .form-input {
-        flex-grow: 1; /* Allow search bar to fill space */
-    }
-
-    #content nav form .form-input input {
-        display: none; /* Hide input field */
-    }
-
-    #content nav form .form-input button {
-        width: auto;
-        height: auto;
-        background: transparent;
-        border-radius: 0;
-        color: var(--text-primary); /* Changed from --text-dark */
-        font-size: 24px; /* Larger icon for search button */
-    }
-
-    /* Show search input when form has 'show' class (if you add this JS logic) */
-    #content nav form.show .form-input input {
-        display: block;
-        width: 100%;
-        border-radius: 20px 0 0 20px;
-    }
-    #content nav form.show .form-input button {
-        width: 50px;
-        height: 100%;
-        border-radius: 0 20px 20px 0;
-        color: var(--text-light-on-dark); /* Changed from --text-light */
-        background: var(--primary-color);
-    }
-
-    #content nav form.show ~ .notification,
-    #content nav form.show ~ .profile,
-    #content nav form.show ~ .switch-mode { /* Hide other nav items when search is active */
-        display: none;
-    }
-
-    #content main {
-        padding: 20px 15px;
-    }
-
-    #content main .head-title .left h1 {
-        font-size: 30px;
-    }
-
-    #content main .box-info {
-        grid-template-columns: 1fr;
-    }
-}
-
 @media screen and (max-width: 576px) { /* Smaller phones */
     #content nav form .form-input input {
         display: none; /* Hide input field */
@@ -6606,3 +5662,400 @@ body.dark .availability-message.checking {
     background-color: #455a64;
     color: #fff;
 }
+
+.loading-message { color: var(--primary-color); }
+.error-message { color: var(--message-bg-warning); background-color: var(--accent-red); }
+.success-message { color: white; background-color: var(--primary-color); }
+.no-bookings-message { color: var(--text-primary);}
+
+
+/* Email Verification Result Page Styles */
+
+.verification-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.verification-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInUp 0.6s ease-out;
+}
+
+.verification-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.verification-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+/* Loading State */
+.verification-loading {
+    text-align: center;
+}
+
+.loading-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+}
+
+.spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+}
+
+.spinner-ring:nth-child(2) {
+    border-top-color: #764ba2;
+    animation-delay: 0.4s;
+}
+
+.spinner-ring:nth-child(3) {
+    border-top-color: #f093fb;
+    animation-delay: 0.8s;
+}
+
+.loading-text {
+    color: #6b7280;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Success State */
+.verification-success {
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.success-icon-container {
+    margin-bottom: 32px;
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.checkmark {
+    width: 100%;
+    height: 100%;
+    animation: checkmarkAnimation 0.6s ease-in-out 0.4s both;
+}
+
+.checkmark-circle {
+    stroke: #10b981;
+    stroke-width: 2;
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+    stroke: #10b981;
+    stroke-width: 2;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+.success-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 16px 0;
+    animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.success-message {
+    font-size: 1.125rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin: 0 0 24px 0;
+    animation: fadeInUp 0.6s ease-out 0.8s both;
+}
+
+.success-info {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 1px solid #10b981;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 32px;
+    animation: fadeInUp 0.6s ease-out 1s both;
+}
+
+.success-info p {
+    color: #065f46;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.success-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    animation: fadeInUp 0.6s ease-out 1.2s both;
+}
+
+.success-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.success-button:active {
+    transform: translateY(0);
+}
+
+.button-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.success-button:hover .button-icon {
+    transform: translateX(4px);
+}
+
+/* Error State */
+.verification-error {
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.error-icon-container {
+    margin-bottom: 24px;
+}
+
+.error-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    animation: pulse 2s infinite;
+}
+
+.error-svg {
+    width: 40px;
+    height: 40px;
+    color: #dc2626;
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 16px 0;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.error-message {
+    color: #6b7280;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0 0 32px 0;
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.error-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.error-button {
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.error-button.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.error-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.error-button.secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.error-button.secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes checkmarkAnimation {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .verification-card {
+        padding: 24px;
+        margin: 10px;
+    }
+    
+    .verification-title {
+        font-size: 2rem;
+    }
+    
+    .success-title {
+        font-size: 1.875rem;
+    }
+    
+    .error-title {
+        font-size: 1.75rem;
+    }
+    
+    .success-button {
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .verification-card {
+        background: rgba(17, 24, 39, 0.95);
+        border-color: rgba(75, 85, 99, 0.3);
+    }
+    
+    .verification-title {
+        background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .success-title,
+    .error-title {
+        color: #f9fafb;
+    }
+    
+    .success-message,
+    .error-message,
+    .loading-text {
+        color: #d1d5db;
+    }
+    
+    .error-button.secondary {
+        background: #374151;
+        color: #f9fafb;
+        border-color: #4b5563;
+    }
+    
+    .error-button.secondary:hover {
+        background: #4b5563;
+    }
+} 

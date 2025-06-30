@@ -38,6 +38,13 @@ export default function MyBookings() {
     const [cancelNotes, setCancelNotes] = useState('');
     const [cancellingBookingId, setCancellingBookingId] = useState(null);
     const [cancelLoading, setCancelLoading] = useState(false);
+    
+
+    // --- NEW STATES FOR APPROVE MODAL ---
+    const [showApproveModal, setShowApproveModal] = useState(false);
+    const [approveNotes, setApproveNotes] = useState('');
+    const [approvingBookingId, setApprovingBookingId] = useState(null);
+    const [approveLoading, setApproveLoading] = useState(false);
     // --- END NEW STATES ---
 
     const fetchBookings = useCallback(async () => {
@@ -50,7 +57,7 @@ export default function MyBookings() {
             filterStatus,
             currentPage 
         });
-        
+
         if (!token) {
             console.log("No token found, redirecting to login");
             setLoading(false);
@@ -64,10 +71,8 @@ export default function MyBookings() {
             setError(null);
             setMessage('');
 
-            // --- CONSTRUCT URL WITH QUERY PARAMETERS ---
             const queryParams = new URLSearchParams();
             
-            // Priority filter
             if (filterPriority !== 'all') {
                 queryParams.append('priority', filterPriority);
             }
@@ -77,12 +82,10 @@ export default function MyBookings() {
                 queryParams.append('status', filterStatus);
             }
             
-            // Sorting - backend expects 'sort_by' and 'order'
-            queryParams.append('sort_by', 'created_at'); // Default sort by created_at
+            queryParams.append('sort_by', 'created_at');
             queryParams.append('order', sortOrder);
             
-            // Pagination
-            queryParams.append('per_page', '15'); // Match backend default
+            queryParams.append('per_page', '15');
             queryParams.append('page', currentPage.toString());
             
             const url = `/api/bookings?${queryParams.toString()}`;
@@ -106,7 +109,6 @@ export default function MyBookings() {
                 if (data.success) {
                     console.log("Data has success flag, checking bookings array...");
                     
-                    // Handle paginated response from Laravel backend
                     if (data.bookings && Array.isArray(data.bookings)) {
                         console.log("Found bookings array with", data.bookings.length, "bookings");
                         setBookings(data.bookings);
@@ -132,7 +134,6 @@ export default function MyBookings() {
                 console.error("Failed to fetch bookings:", data);
 
                 if (res.status === 401 || res.status === 403) {
-                    // Using a modal or notification instead of alert for better UX
                     alert("Your session has expired or is invalid. Please log in again.");
                     setUser(null);
                     navigate('/login');
@@ -170,7 +171,6 @@ export default function MyBookings() {
             return;
         }
 
-        // For user cancellations, we might need to use a different endpoint or approach
         // Let's try using a PATCH request to update the status directly
         if (!window.confirm("Are you sure you want to cancel this booking?")) {
             return;
@@ -178,7 +178,7 @@ export default function MyBookings() {
 
         try {
             const res = await fetch(`/api/bookings/${bookingId}`, {
-                method: 'PATCH',
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -192,12 +192,10 @@ export default function MyBookings() {
 
             if (res.ok) {
                 setMessage(data.message || "Booking cancelled successfully!");
-                fetchBookings(); // Re-fetch bookings to update list
+                fetchBookings();
             } else {
-                // If PATCH doesn't work, try alternative approach
                 console.log("PATCH failed, trying alternative approach:", data);
                 
-                // Alternative: Try using a different endpoint or method
                 const altRes = await fetch(`/api/bookings/${bookingId}/user-cancel`, {
                     method: 'POST',
                     headers: {
@@ -269,8 +267,7 @@ export default function MyBookings() {
                 
                 setMessage("Document downloaded successfully!");
             } else if (res.status === 404) {
-                // API endpoint doesn't exist yet - show fallback message
-                setMessage("Document download feature is not yet available. Please contact the administrator.");
+                setMessage("Document download feature is not yet available");
                 console.warn("Document download API endpoint not implemented yet");
             } else {
                 const data = await res.json();
@@ -357,6 +354,13 @@ export default function MyBookings() {
             return;
         }
 
+        // Special handling for approve - show modal for admin approvals
+        if (newStatus === 'approve' && user.user_type === 'admin') {
+            setApprovingBookingId(bookingId);
+            setShowApproveModal(true);
+            return;
+        }
+
         // Special handling for cancel - show modal for admin cancellations
         if (newStatus === 'cancel' && user.user_type === 'admin') {
             setCancellingBookingId(bookingId);
@@ -376,21 +380,98 @@ export default function MyBookings() {
         }
 
         try {
-            const res = await fetch(`/api/bookings/${bookingId}/${newStatus}`, {
-                method: 'POST',
+            // First, get the current booking data to include all required fields
+            console.log(`Fetching current booking data for ${bookingId}...`);
+            const getBookingRes = await fetch(`/api/bookings/${bookingId}`, {
+                method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                },
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
             });
 
-            const data = await res.json();
+            if (!getBookingRes.ok) {
+                throw new Error(`Failed to fetch booking data: ${getBookingRes.status}`);
+            }
+
+            const bookingData = await getBookingRes.json();
+            const currentBooking = bookingData.booking || bookingData.data || bookingData;
+
+            console.log('Current booking data:', currentBooking);
+
+            // Prepare the update data with all required fields plus the new status
+            const updateData = {
+                resource_id: currentBooking.resource_id || currentBooking.resource?.id,
+                user_id: currentBooking.user_id || currentBooking.user?.id,
+                start_time: currentBooking.start_time,
+                end_time: currentBooking.end_time,
+                purpose: currentBooking.purpose,
+                booking_type: currentBooking.booking_type,
+                status: newStatus === 'approve' ? 'approved' : newStatus === 'in_use' ? 'in_use' : newStatus
+            };
+
+            // Add optional fields if they exist
+            if (currentBooking.priority) {
+                updateData.priority = currentBooking.priority;
+            }
+            if (currentBooking.supporting_document) {
+                updateData.supporting_document = currentBooking.supporting_document;
+            }
+
+            console.log(`Updating booking ${bookingId} with data:`, updateData);
+
+            // Try the specific action endpoint first
+            let res = await fetch(`/api/bookings/${bookingId}/${newStatus}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            let data = await res.json();
+
+            // If that fails, try updating the booking directly
+            if (!res.ok) {
+                console.log("Action endpoint failed, trying direct update...");
+                
+                res = await fetch(`/api/bookings/${bookingId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                data = await res.json();
+            }
 
             if (res.ok) {
                 setMessage(data.message || `Booking ${newStatus}d successfully!`);
                 fetchBookings(); // Re-fetch bookings to update list
             } else {
-                setMessage(data.message || `Failed to ${newStatus} booking.`);
-                console.error(`Failed to ${newStatus} booking:`, data);
+                // Enhanced error handling
+                let errorMessage = `Failed to ${newStatus} booking.`;
+                
+                if (data.message) {
+                    errorMessage = data.message;
+                } else if (data.error) {
+                    errorMessage = data.error;
+                } else if (data.errors) {
+                    // Handle validation errors
+                    const errorMessages = Object.values(data.errors).flat().join(', ');
+                    errorMessage = `Validation failed: ${errorMessages}`;
+                }
+                
+                setMessage(errorMessage);
+                console.error(`Failed to ${newStatus} booking:`, {
+                    status: res.status,
+                    statusText: res.statusText,
+                    data: data
+                });
             }
         } catch (err) {
             setMessage(`An error occurred while trying to ${newStatus} the booking.`);
@@ -407,42 +488,205 @@ export default function MyBookings() {
 
         setRejectLoading(true);
         try {
-            const res = await fetch(`/api/bookings/${rejectingBookingId}/reject`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+            console.log(`Attempting to reject booking ${rejectingBookingId}...`);
+
+            // Try multiple approaches with different data formats
+            const approaches = [
+                // Approach 1: Simple rejection data
+                {
+                    name: "Simple rejection data",
+                    data: {
+                        reason: rejectReason.trim(),
+                        notes: rejectNotes.trim() || null
+                    }
                 },
-                body: JSON.stringify({
-                    reason: rejectReason.trim(),
-                    notes: rejectNotes.trim() || null
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setMessage(data.message || "Booking rejected successfully!");
-                setShowRejectModal(false);
-                setRejectReason('');
-                setRejectNotes('');
-                setRejectingBookingId(null);
-                fetchBookings(); // Re-fetch bookings to update list
-            } else {
-                if (data.errors) {
-                    // Handle validation errors
-                    const errorMessages = Object.values(data.errors).flat().join(', ');
-                    setMessage(`Validation failed: ${errorMessages}`);
-                } else {
-                    setMessage(data.message || "Failed to reject booking.");
+                // Approach 2: Alternative field names
+                {
+                    name: "Alternative field names",
+                    data: {
+                        rejection_reason: rejectReason.trim(),
+                        rejection_notes: rejectNotes.trim() || null
+                    }
+                },
+                // Approach 3: With status
+                {
+                    name: "With status",
+                    data: {
+                        status: 'rejected',
+                        reason: rejectReason.trim(),
+                        notes: rejectNotes.trim() || null
+                    }
                 }
-                console.error("Failed to reject booking:", data);
+            ];
+
+            let success = false;
+            let lastError = null;
+
+            for (const approach of approaches) {
+                console.log(`Trying approach: ${approach.name}`, approach.data);
+                
+                try {
+                    const res = await fetch(`/api/bookings/${rejectingBookingId}/reject`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(approach.data)
+                    });
+
+                    const data = await res.json();
+                    console.log(`Response for ${approach.name}:`, { status: res.status, data });
+
+                    if (res.ok) {
+                        setMessage(data.message || "Booking rejected successfully!");
+                        setShowRejectModal(false);
+                        setRejectReason('');
+                        setRejectNotes('');
+                        setRejectingBookingId(null);
+                        fetchBookings();
+                        success = true;
+                        break;
+                    } else {
+                        lastError = { status: res.status, data };
+                    }
+                } catch (err) {
+                    console.error(`Error with ${approach.name}:`, err);
+                    lastError = { error: err.message };
+                }
+            }
+
+            if (!success) {
+                // If all approaches fail, show the last error
+                let errorMessage = "Failed to reject booking.";
+                
+                if (lastError.data?.message) {
+                    errorMessage = lastError.data.message;
+                } else if (lastError.data?.error) {
+                    errorMessage = lastError.data.error;
+                } else if (lastError.data?.errors) {
+                    const errorMessages = Object.values(lastError.data.errors).flat().join(', ');
+                    errorMessage = `Validation failed: ${errorMessages}`;
+                }
+                
+                setMessage(errorMessage);
+                console.error("All reject approaches failed:", lastError);
             }
         } catch (err) {
             setMessage("An error occurred while trying to reject the booking.");
             console.error("Network error during reject:", err);
         } finally {
             setRejectLoading(false);
+        }
+    };
+
+    // --- NEW FUNCTION FOR HANDLING APPROVE SUBMISSION ---
+    const handleApproveSubmit = async () => {
+        setApproveLoading(true);
+        try {
+            // First, get the current booking data to include all required fields
+            console.log(`Fetching current booking data for ${approvingBookingId}...`);
+            const getBookingRes = await fetch(`/api/bookings/${approvingBookingId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!getBookingRes.ok) {
+                throw new Error(`Failed to fetch booking data: ${getBookingRes.status}`);
+            }
+
+            const bookingData = await getBookingRes.json();
+            const currentBooking = bookingData.booking || bookingData.data || bookingData;
+
+            console.log('Current booking data:', currentBooking);
+
+            // Prepare the update data with all required fields plus the new status
+            const updateData = {
+                resource_id: currentBooking.resource_id || currentBooking.resource?.id,
+                user_id: currentBooking.user_id || currentBooking.user?.id,
+                start_time: currentBooking.start_time,
+                end_time: currentBooking.end_time,
+                purpose: currentBooking.purpose,
+                booking_type: currentBooking.booking_type,
+                status: 'approved',
+                approval_notes: approveNotes.trim() || null
+            };
+
+            // Add optional fields if they exist
+            if (currentBooking.priority) {
+                updateData.priority = currentBooking.priority;
+            }
+            if (currentBooking.supporting_document) {
+                updateData.supporting_document = currentBooking.supporting_document;
+            }
+
+            console.log(`Approving booking ${approvingBookingId} with data:`, updateData);
+
+            // Try the specific action endpoint first
+            let res = await fetch(`/api/bookings/${approvingBookingId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            let data = await res.json();
+
+            // If that fails, try updating the booking directly
+            if (!res.ok) {
+                console.log("Action endpoint failed, trying direct update...");
+                
+                res = await fetch(`/api/bookings/${approvingBookingId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                data = await res.json();
+            }
+
+            if (res.ok) {
+                setMessage(data.message || "Booking approved successfully!");
+                setShowApproveModal(false);
+                setApproveNotes('');
+                setApprovingBookingId(null);
+                fetchBookings(); // Re-fetch bookings to update list
+            } else {
+                // Enhanced error handling
+                let errorMessage = "Failed to approve booking.";
+                
+                if (data.message) {
+                    errorMessage = data.message;
+                } else if (data.error) {
+                    errorMessage = data.error;
+                } else if (data.errors) {
+                    // Handle validation errors
+                    const errorMessages = Object.values(data.errors).flat().join(', ');
+                    errorMessage = `Validation failed: ${errorMessages}`;
+                }
+                
+                setMessage(errorMessage);
+                console.error("Failed to approve booking:", {
+                    status: res.status,
+                    statusText: res.statusText,
+                    data: data
+                });
+            }
+        } catch (err) {
+            setMessage("An error occurred while trying to approve the booking.");
+            console.error("Network error during approve:", err);
+        } finally {
+            setApproveLoading(false);
         }
     };
 
@@ -882,6 +1126,162 @@ export default function MyBookings() {
                 </div>
             )}
             {/* --- END REJECT MODAL --- */}
+
+            {/* --- APPROVE MODAL --- */}
+            {showApproveModal && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'var(--modal-overlay-bg, rgba(0, 0, 0, 0.5))',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="modal-content" style={{
+                        backgroundColor: 'var(--bg-light)',
+                        color: 'var(--text-primary)',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        maxHeight: '80vh',
+                        overflow: 'auto',
+                        border: '1px solid var(--border-color)',
+                        boxShadow: '0 4px 20px var(--shadow-medium)'
+                    }}>
+                        <h3 style={{ 
+                            color: 'var(--text-primary)', 
+                            marginBottom: '15px',
+                            borderBottom: '2px solid var(--border-color)',
+                            paddingBottom: '10px'
+                        }}>Approve Booking</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                            You can add optional notes that will be sent to the user via email:
+                        </p>
+                        
+                        <div style={{ marginBottom: '20px' }}>
+                            <label htmlFor="approve-notes" style={{ 
+                                display: 'block', 
+                                marginBottom: '5px', 
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)'
+                            }}>
+                                Approval Notes (Optional):
+                            </label>
+                            <textarea
+                                id="approve-notes"
+                                value={approveNotes}
+                                onChange={(e) => setApproveNotes(e.target.value)}
+                                placeholder="Add any notes or instructions for the user..."
+                                style={{
+                                    width: '100%',
+                                    minHeight: '100px',
+                                    padding: '12px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    resize: 'vertical',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                                }}
+                                maxLength={500}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-color)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--primary-color-light)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'var(--border-color)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            />
+                            <small style={{ 
+                                color: 'var(--text-secondary)', 
+                                fontSize: '12px',
+                                marginTop: '5px',
+                                display: 'block'
+                            }}>
+                                These notes will be included in the approval email sent to the user.
+                            </small>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    setShowApproveModal(false);
+                                    setApproveNotes('');
+                                    setApprovingBookingId(null);
+                                }}
+                                style={{
+                                    padding: '10px 20px',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--bg-light)',
+                                    color: 'var(--text-primary)',
+                                    cursor: approveLoading ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    transition: 'all 0.2s ease',
+                                    opacity: approveLoading ? 0.6 : 1
+                                }}
+                                disabled={approveLoading}
+                                onMouseEnter={(e) => {
+                                    if (!approveLoading) {
+                                        e.target.style.backgroundColor = 'var(--bg-hover)';
+                                        e.target.style.borderColor = 'var(--primary-color)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!approveLoading) {
+                                        e.target.style.backgroundColor = 'var(--bg-light)';
+                                        e.target.style.borderColor = 'var(--border-color)';
+                                    }
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleApproveSubmit}
+                                style={{
+                                    padding: '10px 20px',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--accent-green, #28a745)',
+                                    color: 'var(--text-light-on-dark)',
+                                    cursor: approveLoading ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'var(--lato, inherit)',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    transition: 'all 0.2s ease',
+                                    opacity: approveLoading ? 0.7 : 1
+                                }}
+                                disabled={approveLoading}
+                                onMouseEnter={(e) => {
+                                    if (!approveLoading) {
+                                        e.target.style.backgroundColor = 'var(--accent-green-dark, #1e7e34)';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!approveLoading) {
+                                        e.target.style.backgroundColor = 'var(--accent-green, #28a745)';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                {approveLoading ? 'Approving...' : 'Approve Booking'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* --- END APPROVE MODAL --- */}
 
             {/* --- CANCEL MODAL --- */}
             {showCancelModal && (

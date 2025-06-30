@@ -176,7 +176,7 @@ export default function ShowProfile() {
 
     const handleLogout = () => {
         logout();
-        navigate('/login'); // Redirect to login page after logout
+        navigate('/login'); 
     };
 
     if (!user) {
