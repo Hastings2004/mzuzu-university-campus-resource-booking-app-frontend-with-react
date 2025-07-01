@@ -218,7 +218,7 @@ export default function MyBookings() {
                 console.log("PATCH failed, trying alternative approach:", data);
                 
                 const altRes = await fetch(`/api/bookings/${bookingId}/user-cancel`, {
-                    method: 'POST',
+                    method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'

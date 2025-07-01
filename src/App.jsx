@@ -33,6 +33,7 @@ import NewsCreate from './admin/news';
 import DocumentViewPlaceholder from './components/DocumentViewPlaceholder';
 import ForgetPassword from './auth/forgetPassword ';
 import ResetPassword from './auth/ResetPassword';
+import BookingSummaryReport from './admin/BookingSummaryReport';
 
 
 export default function App() {
@@ -75,6 +76,7 @@ export default function App() {
           <Route path='reportIssueForm' element={< ReportIssueForm />} />
           <Route path='news' element={ <NewsCreate /> } />
           <Route path="viewResource" element={<ShowResource />} />
+          <Route path="booking-summary-report" element={<BookingSummaryReport />} />
           
         </Route>
 
