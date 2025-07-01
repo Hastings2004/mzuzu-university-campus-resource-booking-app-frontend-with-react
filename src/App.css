@@ -2444,6 +2444,16 @@ p[style*="color: rgb(33, 150, 243)"] {
     }
 }
 
+/* Input validation styles */
+.input-error {
+    border-color: var(--accent-red) !important;
+}
+
+.input-success {
+    border-color: #4CAF50 !important;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
 /* MyBookings.css - Additions for Table View */
 
 /* General container and title (from previous iterations) */
@@ -2473,6 +2483,15 @@ p[style*="color: rgb(33, 150, 243)"] {
 .error-message { color: var(--error-text); background-color: var(--error-bg); }
 
 .success-message { color: var(--success-text); background-color: var(--success-bg); }
+
+.info-message { 
+    color: var(--primary-color); 
+    background-color: rgba(0, 123, 255, 0.1); 
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 15px;
+}
 
 /* Changed from --text-dark */
 

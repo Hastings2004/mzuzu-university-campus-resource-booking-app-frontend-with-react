@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import logo from '../assets/logo.png';
 import { Link } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+import authService from '../services/authService';
 
 export default function ForgetPassword() {
     const [email, setEmail] = useState('');
@@ -17,21 +16,10 @@ export default function ForgetPassword() {
         setError('');
         setSuccess('');
         try {
-            const response = await fetch(`${API_URL}/forgot-password`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setSuccess(data.message || 'Password reset email sent!');
-            } else {
-                setError(data.message || 'Failed to send reset email.');
-            }
+            const data = await authService.forgotPassword(email);
+            setSuccess(data.message || 'Password reset email sent!');
         } catch (err) {
-            setError('An error occurred. Please try again.');
+            setError(err.message || 'An error occurred. Please try again.');
         } finally {
             setLoading(false);
         }

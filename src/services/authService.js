@@ -119,6 +119,45 @@ class AuthService {
     }
   }
 
+  // Forgot password
+  async forgotPassword(email) {
+    try {
+      console.log('Requesting password reset for:', email);
+      const response = await api.post('/forgot-password', { email });
+      console.log('Forgot password response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  // Check reset token validity
+  async checkResetToken(email, token) {
+    try {
+      console.log('Checking reset token validity');
+      const response = await api.post('/check-reset-token', { email, token });
+      console.log('Check reset token response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Check reset token error:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  // Reset password
+  async resetPassword(data) {
+    try {
+      console.log('Resetting password');
+      const response = await api.post('/reset-password', data);
+      console.log('Reset password response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw this.handleError(error);
+    }
+  }
+
   // Check if user is authenticated
   isAuthenticated() {
     const token = localStorage.getItem('token');

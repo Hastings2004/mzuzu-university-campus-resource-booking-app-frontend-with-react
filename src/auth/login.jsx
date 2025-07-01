@@ -45,6 +45,25 @@ export default function Login() {
             
             //login successful
             setSuccessMessage(data.message || "Login successfully.");
+            
+            // Wait 5 seconds before navigation
+            setTimeout(() => {
+                // Check if user is admin and redirect accordingly
+                if (data.user && data.user.user_type === 'admin') {
+                    console.log("Admin user detected, redirecting to statistical dashboard");
+                    navigate("/statistical");
+                } else {
+                    console.log("Regular user, redirecting to home page");
+                    navigate("/");
+                }
+                
+                // Clear form data after successful login
+                setFormData({
+                    email: "",
+                    password: "",
+                    rememberMe: false,
+                });
+            }, 10000);
             console.log("Login successful, token received:", data.token ? 'Yes' : 'No');
             localStorage.setItem("token", data.token);
             setToken(data.token);
@@ -95,7 +114,7 @@ export default function Login() {
                     <div>
                         <h3>Login</h3>
                         {errors.general && <p className='error general-error'>{errors.general}</p>} {/* General error message */}
-                        {successMessage && <p className='success-message'>{successMessage}</p>}
+                        {successMessage && <div className="success-message">{successMessage}</div>}
                     </div>
                     <form onSubmit={handleRegistration} id='form'>
                         <div className='form-content'>
