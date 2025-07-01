@@ -6388,3 +6388,64 @@ body.dark .availability-message.checking {
     background-color: #004d40;
     font-weight: bold;
 }
+
+/* --- Enhanced styles for login form details --- */
+.form-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.form-details.remember-forgot {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.97em;
+  color: var(--text-primary, #222);
+}
+
+.remember-me input[type="checkbox"] {
+  accent-color: var(--primary-color, #007bff);
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.remember-me label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.forgot-password {
+  font-size: 0.97em;
+}
+
+.forgot-password .nav-link {
+  color: var(--primary-color, #007bff);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+.forgot-password .nav-link:hover {
+  color: var(--primary-dark, #0056b3);
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .form-details.remember-forgot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

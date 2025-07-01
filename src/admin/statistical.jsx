@@ -26,6 +26,22 @@ export default function Statistical() {
     const [generatingExcel, setGeneratingExcel] = useState(false);
     const [generatingWord, setGeneratingWord] = useState(false);
 
+    const [bookingsByResourceType, setBookingsByResourceType] = useState([]);
+    const [loadingResourceType, setLoadingResourceType] = useState(true);
+    const [errorResourceType, setErrorResourceType] = useState(null);
+
+    const [bookingDurationDistribution, setBookingDurationDistribution] = useState([]);
+    const [loadingDurationDist, setLoadingDurationDist] = useState(true);
+    const [errorDurationDist, setErrorDurationDist] = useState(null);
+
+    const [cancellationRate, setCancellationRate] = useState(null);
+    const [loadingCancellationRate, setLoadingCancellationRate] = useState(true);
+    const [errorCancellationRate, setErrorCancellationRate] = useState(null);
+
+    const [cancellationTrends, setCancellationTrends] = useState([]);
+    const [loadingCancellationTrends, setLoadingCancellationTrends] = useState(true);
+    const [errorCancellationTrends, setErrorCancellationTrends] = useState(null);
+
     // Refs for each chart container for capturing with html2canvas
 
     const bookingsByStatusChartRef = useRef(null);
@@ -41,6 +57,12 @@ export default function Statistical() {
     const myBookingsChartRef = useRef(null);
 
     const currentResourceAvailabilityChartRef = useRef(null); 
+
+    const bookingsByResourceTypeChartRef = useRef(null);
+
+    const bookingDurationChartRef = useRef(null);
+
+    const cancellationTrendsChartRef = useRef(null);
 
     useEffect(() => {
 
@@ -112,6 +134,111 @@ export default function Statistical() {
 
         fetchDashboardData();
 
+    }, [user, token]);
+
+    useEffect(() => {
+        const fetchBookingsByResourceType = async () => {
+            if (user?.user_type !== 'admin') return;
+            setLoadingResourceType(true);
+            try {
+                const response = await fetch('/api/dashboard/bookings-by-resource-type', {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    setBookingsByResourceType(result.data);
+                } else {
+                    setErrorResourceType(result.message || "Failed to fetch bookings by resource type.");
+                }
+            } catch (err) {
+                setErrorResourceType("Network error or server unavailable.");
+            } finally {
+                setLoadingResourceType(false);
+            }
+        };
+        fetchBookingsByResourceType();
+    }, [user, token]);
+
+    useEffect(() => {
+        const fetchBookingDurationDistribution = async () => {
+            if (user?.user_type !== 'admin') return;
+            setLoadingDurationDist(true);
+            try {
+                const response = await fetch('/api/dashboard/booking-duration-distribution', {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    setBookingDurationDistribution(result.data);
+                } else {
+                    setErrorDurationDist(result.message || "Failed to fetch booking duration distribution.");
+                }
+            } catch (err) {
+                setErrorDurationDist("Network error or server unavailable.");
+            } finally {
+                setLoadingDurationDist(false);
+            }
+        };
+        fetchBookingDurationDistribution();
+    }, [user, token]);
+
+    useEffect(() => {
+        const fetchCancellationRate = async () => {
+            if (user?.user_type !== 'admin') return;
+            setLoadingCancellationRate(true);
+            try {
+                const response = await fetch('/api/dashboard/cancellation-rate', {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    setCancellationRate(result.cancellation_rate);
+                } else {
+                    setErrorCancellationRate(result.message || "Failed to fetch cancellation rate.");
+                }
+            } catch (err) {
+                setErrorCancellationRate("Network error or server unavailable.");
+            } finally {
+                setLoadingCancellationRate(false);
+            }
+        };
+        const fetchCancellationTrends = async () => {
+            if (user?.user_type !== 'admin') return;
+            setLoadingCancellationTrends(true);
+            try {
+                const response = await fetch('/api/dashboard/cancellation-trends', {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    setCancellationTrends(result.trends);
+                } else {
+                    setErrorCancellationTrends(result.message || "Failed to fetch cancellation trends.");
+                }
+            } catch (err) {
+                setErrorCancellationTrends("Network error or server unavailable.");
+            } finally {
+                setLoadingCancellationTrends(false);
+            }
+        };
+        fetchCancellationRate();
+        fetchCancellationTrends();
     }, [user, token]);
 
     // --- Chart Data Preparation (Common & Admin Specific) ---
@@ -262,6 +389,60 @@ export default function Statistical() {
 
         }],
 
+    };
+
+    const bookingsByResourceTypeChartData = {
+        labels: bookingsByResourceType.map(item => item.resource_type || item.category),
+        datasets: [{
+            label: 'Total Bookings',
+            data: bookingsByResourceType.map(item => item.total_bookings),
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1,
+        }],
+    };
+
+    function createHistogramData(data, binSize = 1) {
+        if (!data || data.length === 0) return { labels: [], counts: [] };
+        const min = Math.floor(Math.min(...data));
+        const max = Math.ceil(Math.max(...data));
+        const bins = [];
+        const counts = [];
+        for (let i = min; i < max; i += binSize) {
+            bins.push(`${i} - ${i + binSize}h`);
+            counts.push(data.filter(d => d >= i && d < i + binSize).length);
+        }
+        return { labels: bins, counts };
+    }
+
+    const { labels: durationBins, counts: durationCounts } = createHistogramData(bookingDurationDistribution, 1);
+
+    const bookingDurationChartData = {
+        labels: durationBins,
+        datasets: [{
+            label: 'Number of Bookings',
+            data: durationCounts,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1,
+        }],
+    };
+
+    const cancellationTrendsChartData = {
+        labels: cancellationTrends.map(item => item.month),
+        datasets: [{
+            label: 'Cancellation Rate (%)',
+            data: cancellationTrends.map(item => item.cancellation_rate),
+            fill: false,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.3,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+        }],
     };
 
     // Helper function to capture and add chart to PDF
@@ -881,6 +1062,10 @@ export default function Statistical() {
             
             yOffset = await addChartToPdf(doc, resourceUtilizationChartRef, 'Resource Utilization (Booked Hours) Over Time', yOffset);
             
+            yOffset = await addChartToPdf(doc, bookingsByResourceTypeChartRef, 'Bookings by Resource Type', yOffset);
+            yOffset = await addChartToPdf(doc, bookingDurationChartRef, 'Booking Duration Distribution (Hours)', yOffset);
+            yOffset = await addChartToPdf(doc, cancellationTrendsChartRef, 'Cancellation Rate Trends (Monthly)', yOffset);
+            
         } else {
             yOffset = await addChartToPdf(doc, myBookingsChartRef, 'My Personal Booking Trends', yOffset);
             
@@ -1147,6 +1332,87 @@ export default function Statistical() {
 
                             }} />
 
+                        </div>
+
+                        <div className="chart-container" ref={bookingsByResourceTypeChartRef}>
+                            <h3>Bookings by Resource Type</h3>
+                            {loadingResourceType ? (
+                                <div>Loading...</div>
+                            ) : errorResourceType ? (
+                                <div style={{ color: 'red' }}>{errorResourceType}</div>
+                            ) : (
+                                <Bar
+                                    data={bookingsByResourceTypeChartData}
+                                    options={{
+                                        responsive: true,
+                                        plugins: { legend: { display: false }, title: { display: false } },
+                                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of Bookings' } }, x: { title: { display: true, text: 'Resource Type' } } }
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        <div className="chart-container" ref={bookingDurationChartRef}>
+                            <h3>Booking Duration Distribution (Hours)</h3>
+                            {loadingDurationDist ? (
+                                <div>Loading...</div>
+                            ) : errorDurationDist ? (
+                                <div style={{ color: 'red' }}>{errorDurationDist}</div>
+                            ) : (
+                                <Bar
+                                    data={bookingDurationChartData}
+                                    options={{
+                                        responsive: true,
+                                        plugins: { legend: { display: false }, title: { display: false } },
+                                        scales: {
+                                            y: { beginAtZero: true, title: { display: true, text: 'Number of Bookings' } },
+                                            x: { title: { display: true, text: 'Duration (hours)' } }
+                                        }
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        <div className="cancellation-rate-gauge">
+                            <h3>Current Cancellation Rate</h3>
+                            {loadingCancellationRate ? (
+                                <div>Loading...</div>
+                            ) : errorCancellationRate ? (
+                                <div style={{ color: 'red' }}>{errorCancellationRate}</div>
+                            ) : (
+                                <div style={{
+                                    width: 120, height: 120, borderRadius: '50%',
+                                    background: `conic-gradient(
+                                        #ff6384 ${cancellationRate || 0}%,
+                                        #e0e0e0 ${cancellationRate || 0}% 100%
+                                    )`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 28, fontWeight: 700, color: '#ff6384', margin: '0 auto'
+                                }}>
+                                    <span>{cancellationRate != null ? `${cancellationRate}%` : 'N/A'}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="chart-container" ref={cancellationTrendsChartRef}>
+                            <h3>Cancellation Rate Trends (Monthly)</h3>
+                            {loadingCancellationTrends ? (
+                                <div>Loading...</div>
+                            ) : errorCancellationTrends ? (
+                                <div style={{ color: 'red' }}>{errorCancellationTrends}</div>
+                            ) : (
+                                <Line
+                                    data={cancellationTrendsChartData}
+                                    options={{
+                                        responsive: true,
+                                        plugins: { legend: { position: 'top' } },
+                                        scales: {
+                                            y: { beginAtZero: true, title: { display: true, text: 'Cancellation Rate (%)' }, max: 100 },
+                                            x: { title: { display: true, text: 'Month' } }
+                                        }
+                                    }}
+                                />
+                            )}
                         </div>
 
                     </>
