@@ -247,7 +247,7 @@ export default function ResourceUtilizationReport() {
 
     return (
         <div className="report-container">
-            <h1>Resource Utilization Report</h1>
+            <h1>Monthly Resource Utilization Report</h1>
 
             <div className="date-filters">
                 <label htmlFor="startDate">Start Date:</label>
