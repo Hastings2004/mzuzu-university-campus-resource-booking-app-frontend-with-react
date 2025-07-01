@@ -32,6 +32,7 @@ import NewsCreate from './admin/news';
 
 import DocumentViewPlaceholder from './components/DocumentViewPlaceholder';
 import ForgetPassword from './auth/forgetPassword ';
+import ResetPassword from './auth/ResetPassword';
 
 
 export default function App() {
@@ -50,6 +51,8 @@ export default function App() {
         <Route path="/booking-debug" element={<BookingDebug />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/document-view/:id" element={<DocumentViewPlaceholder />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/" element={user ? <Layout /> : <Login />}>
           
           <Route index element={user ? <Home /> : <Login />} /> 

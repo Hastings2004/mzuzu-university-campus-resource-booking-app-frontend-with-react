@@ -45,13 +45,14 @@ export default function Register() {
         if (id === 'email') {
             const validation = validateMzuniEmail(value);
             setEmailValidation(validation);
-        } else if (id === 'password') {
-            const validation = validatePassword(value);
-            setPasswordValidation(validation);
-        } else if (id === 'password_confirmation') {
-            const validation = validateConfirmPassword(formData.password, value);
-            setConfirmPasswordValidation(validation);
         }
+        // } else if (id === 'password') {
+        //     const validation = validatePassword(value);
+        //     setPasswordValidation(validation);
+        // } else if (id === 'password_confirmation') {
+        //     const validation = validateConfirmPassword(formData.password, value);
+        //     setConfirmPasswordValidation(validation);
+        // }
     };
 
     async function handleRegistration(e) {
@@ -70,12 +71,12 @@ export default function Register() {
         if (!emailValidation.isValid) {
             validationErrors.email = emailValidation.message;
         }
-        if (!passwordValidation.isValid) {
-            validationErrors.password = passwordValidation.message;
-        }
-        if (!confirmPasswordValidation.isValid) {
-            validationErrors.password_confirmation = confirmPasswordValidation.message;
-        }
+        // if (!passwordValidation.isValid) {
+        //     validationErrors.password = passwordValidation.message;
+        // }
+        // if (!confirmPasswordValidation.isValid) {
+        //     validationErrors.password_confirmation = confirmPasswordValidation.message;
+        // }
         
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);

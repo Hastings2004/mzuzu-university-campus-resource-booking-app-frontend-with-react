@@ -1152,7 +1152,8 @@ body {
 
 /* Existing status styles (ensure these are also present in your CSS) */
 .status-approved {
-    color: var(--primary-color); /* Match update button green */
+    color: var(--primary-color); 
+    
     font-weight: bold;
 }
 

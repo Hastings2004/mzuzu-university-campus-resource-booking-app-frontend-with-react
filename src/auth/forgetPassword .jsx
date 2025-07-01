@@ -1,6 +1,9 @@
+
 import { useState } from 'react';
 import logo from '../assets/logo.png';
 import { Link } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export default function ForgetPassword() {
     const [email, setEmail] = useState('');
@@ -14,7 +17,7 @@ export default function ForgetPassword() {
         setError('');
         setSuccess('');
         try {
-            const response = await fetch('/forgot-password', {
+            const response = await fetch(`${API_URL}/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

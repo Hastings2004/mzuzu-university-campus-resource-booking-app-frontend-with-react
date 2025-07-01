@@ -47,6 +47,11 @@ export default function MyBookings() {
     const [approveLoading, setApproveLoading] = useState(false);
     // --- END NEW STATES ---
 
+    // --- NEW STATE FOR DOCUMENT METADATA ---
+    const [documentMetadata, setDocumentMetadata] = useState({});
+    const [metadataLoading, setMetadataLoading] = useState({});
+    // --- END NEW STATE FOR DOCUMENT METADATA ---
+
     const fetchBookings = useCallback(async () => {
         console.log("fetchBookings called with:", { 
             token: !!token, 
@@ -163,6 +168,22 @@ export default function MyBookings() {
             }
         }
     }, [user, token, fetchBookings]);
+
+    // --- NEW USEFFECT FOR CLEARING DOCUMENT METADATA ---
+    useEffect(() => {
+        // Clear metadata when bookings change
+        setDocumentMetadata({});
+        setMetadataLoading({});
+    }, [bookings]);
+
+    // Cleanup metadata on component unmount
+    useEffect(() => {
+        return () => {
+            setDocumentMetadata({});
+            setMetadataLoading({});
+        };
+    }, []);
+    // --- END NEW USEFFECT ---
 
     // --- NEW FUNCTION FOR HANDLING USER CANCELLATIONS ---
     const handleUserCancel = async (bookingId) => {
@@ -329,6 +350,107 @@ export default function MyBookings() {
         } catch (err) {
             setMessage("An error occurred while opening the document.");
             console.error("Network error during document view:", err);
+        }
+    };
+
+    // --- NEW FUNCTION FOR FETCHING DOCUMENT METADATA ---
+    const fetchDocumentMetadata = async (bookingId) => {
+        if (!user) {
+            return null;
+        }
+
+        // Set loading state for this specific booking
+        setMetadataLoading(prev => ({ ...prev, [bookingId]: true }));
+
+        try {
+            const res = await fetch(`/api/bookings/${bookingId}/document-metadata`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const metadata = await res.json();
+                console.log(`Document metadata for booking ${bookingId}:`, metadata);
+                
+                // Store metadata for this booking
+                setDocumentMetadata(prev => ({
+                    ...prev,
+                    [bookingId]: metadata
+                }));
+                
+                return metadata;
+            } else if (res.status === 404) {
+                // Document doesn't exist or metadata endpoint not implemented
+                console.warn(`Document metadata not available for booking ${bookingId}`);
+                setDocumentMetadata(prev => ({
+                    ...prev,
+                    [bookingId]: { exists: false, error: 'Document not found' }
+                }));
+                return null;
+            } else {
+                const errorData = await res.json();
+                console.error(`Failed to fetch document metadata for booking ${bookingId}:`, errorData);
+                setDocumentMetadata(prev => ({
+                    ...prev,
+                    [bookingId]: { exists: false, error: errorData.message || 'Failed to fetch metadata' }
+                }));
+                return null;
+            }
+        } catch (err) {
+            console.error(`Network error fetching document metadata for booking ${bookingId}:`, err);
+            setDocumentMetadata(prev => ({
+                ...prev,
+                [bookingId]: { exists: false, error: 'Network error' }
+            }));
+            return null;
+        } finally {
+            // Clear loading state for this specific booking
+            setMetadataLoading(prev => ({ ...prev, [bookingId]: false }));
+        }
+    };
+
+    // --- NEW FUNCTION FOR FORMATTING FILE SIZE ---
+    const formatFileSize = (bytes) => {
+        if (!bytes || bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    // --- NEW FUNCTION FOR GETTING FILE ICON ---
+    const getFileIcon = (filename) => {
+        if (!filename) return '📄';
+        
+        const extension = filename.split('.').pop()?.toLowerCase();
+        
+        switch (extension) {
+            case 'pdf':
+                return '📕';
+            case 'doc':
+            case 'docx':
+                return '📘';
+            case 'xls':
+            case 'xlsx':
+                return '📗';
+            case 'ppt':
+            case 'pptx':
+                return '📙';
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif':
+            case 'bmp':
+                return '🖼️';
+            case 'txt':
+                return '📄';
+            default:
+                return '📄';
         }
     };
 
@@ -1591,88 +1713,229 @@ export default function MyBookings() {
                                     <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', wordBreak: 'break-word', maxWidth: '200px' }} className="purpose">{booking.purpose}</td>
                                     <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px' }}>
                                         {booking.supporting_document ? (
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <span style={{ 
-                                                    fontSize: '12px', 
-                                                    color: 'var(--text-secondary)',
-                                                    fontWeight: '500'
-                                                }}>
-                                                    📄 Document Available
-                                                </span>
-                                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                                                    <button 
-                                                        onClick={(e) => handleDocumentView(booking.id, e)}
-                                                        className="document-link"
-                                                        style={{
-                                                            color: 'var(--primary-color)',
-                                                            textDecoration: 'none',
-                                                            fontWeight: '500',
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '3px',
-                                                            padding: '3px 6px',
-                                                            borderRadius: '4px',
-                                                            backgroundColor: 'var(--primary-color-light, rgba(0, 123, 255, 0.1))',
-                                                            transition: 'all 0.2s ease',
-                                                            fontSize: '11px',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            fontFamily: 'inherit'
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            e.target.style.backgroundColor = 'var(--primary-color, #007bff)';
-                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
-                                                            e.target.style.transform = 'translateY(-1px)';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.target.style.backgroundColor = 'var(--primary-color-light, rgba(0, 123, 255, 0.1))';
-                                                            e.target.style.color = 'var(--primary-color)';
-                                                            e.target.style.transform = 'translateY(0)';
-                                                        }}
-                                                    >
-                                                        👁️ View
-                                                    </button>
-                                                    <button 
-                                                        onClick={(e) => handleDocumentDownload(booking.id, e)}
-                                                        className="document-link"
-                                                        style={{
-                                                            color: 'var(--accent-green, #28a745)',
-                                                            textDecoration: 'none',
-                                                            fontWeight: '500',
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '3px',
-                                                            padding: '3px 6px',
-                                                            borderRadius: '4px',
-                                                            backgroundColor: 'var(--accent-green-light, rgba(40, 167, 69, 0.1))',
-                                                            transition: 'all 0.2s ease',
-                                                            fontSize: '11px',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            fontFamily: 'inherit'
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            e.target.style.backgroundColor = 'var(--accent-green, #28a745)';
-                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
-                                                            e.target.style.transform = 'translateY(-1px)';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.target.style.backgroundColor = 'var(--accent-green-light, rgba(40, 167, 69, 0.1))';
-                                                            e.target.style.color = 'var(--accent-green, #28a745)';
-                                                            e.target.style.transform = 'translateY(0)';
-                                                        }}
-                                                    >
-                                                        📥 Download
-                                                    </button>
-                                                </div>
-                                                <small style={{ 
-                                                    fontSize: '10px', 
-                                                    color: 'var(--text-secondary)',
-                                                    fontStyle: 'italic'
-                                                }}>
-                                                    {booking.supporting_document.split('/').pop() || 'Document'}
-                                                </small>
-                                            </div>
+                                            (() => {
+                                                const metadata = documentMetadata[booking.id];
+                                                const isLoading = metadataLoading[booking.id];
+                                                
+                                                // Fetch metadata if not already loaded and not currently loading
+                                                if (!metadata && !isLoading) {
+                                                    // Use setTimeout to avoid blocking the render
+                                                    setTimeout(() => fetchDocumentMetadata(booking.id), 0);
+                                                }
+                                                
+                                                return (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        {isLoading ? (
+                                                            <span style={{ 
+                                                                fontSize: '12px', 
+                                                                color: 'var(--text-secondary)',
+                                                                fontStyle: 'italic'
+                                                            }}>
+                                                                🔄 Loading document info...
+                                                            </span>
+                                                        ) : metadata && metadata.exists ? (
+                                                            <>
+                                                                <div style={{ 
+                                                                    display: 'flex', 
+                                                                    alignItems: 'center', 
+                                                                    gap: '6px',
+                                                                    fontSize: '12px',
+                                                                    color: 'var(--text-primary)',
+                                                                    fontWeight: '500'
+                                                                }}>
+                                                                    {getFileIcon(metadata.filename || booking.supporting_document)}
+                                                                    <span>Document Available</span>
+                                                                </div>
+                                                                
+                                                                {/* Document Info */}
+                                                                <div style={{ 
+                                                                    fontSize: '11px', 
+                                                                    color: 'var(--text-secondary)',
+                                                                    marginBottom: '4px'
+                                                                }}>
+                                                                    <div style={{ marginBottom: '2px' }}>
+                                                                        <strong>File:</strong> {metadata.filename || booking.supporting_document.split('/').pop() || 'Document'}
+                                                                    </div>
+                                                                    {metadata.size && (
+                                                                        <div style={{ marginBottom: '2px' }}>
+                                                                            <strong>Size:</strong> {formatFileSize(metadata.size)}
+                                                                        </div>
+                                                                    )}
+                                                                    {metadata.mime_type && (
+                                                                        <div style={{ marginBottom: '2px' }}>
+                                                                            <strong>Type:</strong> {metadata.mime_type}
+                                                                        </div>
+                                                                    )}
+                                                                    {metadata.uploaded_at && (
+                                                                        <div>
+                                                                            <strong>Uploaded:</strong> {moment(metadata.uploaded_at).format('YYYY-MM-DD HH:mm')}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                
+                                                                {/* Action Buttons */}
+                                                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                                                    <button 
+                                                                        onClick={(e) => handleDocumentView(booking.id, e)}
+                                                                        className="document-link"
+                                                                        style={{
+                                                                            color: 'var(--primary-color)',
+                                                                            textDecoration: 'none',
+                                                                            fontWeight: '500',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '3px',
+                                                                            padding: '3px 6px',
+                                                                            borderRadius: '4px',
+                                                                            backgroundColor: 'var(--primary-color-light, rgba(0, 123, 255, 0.1))',
+                                                                            transition: 'all 0.2s ease',
+                                                                            fontSize: '11px',
+                                                                            border: 'none',
+                                                                            cursor: 'pointer',
+                                                                            fontFamily: 'inherit'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--primary-color, #007bff)';
+                                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
+                                                                            e.target.style.transform = 'translateY(-1px)';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--primary-color-light, rgba(0, 123, 255, 0.1))';
+                                                                            e.target.style.color = 'var(--primary-color)';
+                                                                            e.target.style.transform = 'translateY(0)';
+                                                                        }}
+                                                                    >
+                                                                        👁️ View
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={(e) => handleDocumentDownload(booking.id, e)}
+                                                                        className="document-link"
+                                                                        style={{
+                                                                            color: 'var(--accent-green, #28a745)',
+                                                                            textDecoration: 'none',
+                                                                            fontWeight: '500',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '3px',
+                                                                            padding: '3px 6px',
+                                                                            borderRadius: '4px',
+                                                                            backgroundColor: 'var(--accent-green-light, rgba(40, 167, 69, 0.1))',
+                                                                            transition: 'all 0.2s ease',
+                                                                            fontSize: '11px',
+                                                                            border: 'none',
+                                                                            cursor: 'pointer',
+                                                                            fontFamily: 'inherit'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--accent-green, #28a745)';
+                                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
+                                                                            e.target.style.transform = 'translateY(-1px)';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--accent-green-light, rgba(40, 167, 69, 0.1))';
+                                                                            e.target.style.color = 'var(--accent-green, #28a745)';
+                                                                            e.target.style.transform = 'translateY(0)';
+                                                                        }}
+                                                                    >
+                                                                        📥 Download
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        ) : metadata && metadata.error ? (
+                                                            <div style={{ 
+                                                                fontSize: '12px', 
+                                                                color: 'var(--accent-orange, #fd7e14)',
+                                                                fontStyle: 'italic'
+                                                            }}>
+                                                                ⚠️ {metadata.error}
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <span style={{ 
+                                                                    fontSize: '12px', 
+                                                                    color: 'var(--text-secondary)',
+                                                                    fontWeight: '500'
+                                                                }}>
+                                                                    📄 Document Available
+                                                                </span>
+                                                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                                                    <button 
+                                                                        onClick={(e) => handleDocumentView(booking.id, e)}
+                                                                        className="document-link"
+                                                                        style={{
+                                                                            color: 'var(--primary-color)',
+                                                                            textDecoration: 'none',
+                                                                            fontWeight: '500',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '3px',
+                                                                            padding: '3px 6px',
+                                                                            borderRadius: '4px',
+                                                                            backgroundColor: 'var(--primary-color-light, rgba(0, 123, 255, 0.1))',
+                                                                            transition: 'all 0.2s ease',
+                                                                            fontSize: '11px',
+                                                                            border: 'none',
+                                                                            cursor: 'pointer',
+                                                                            fontFamily: 'inherit'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--primary-color, #007bff)';
+                                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
+                                                                            e.target.style.transform = 'translateY(-1px)';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--primary-color-light, rgba(0, 123, 255, 0.1))';
+                                                                            e.target.style.color = 'var(--primary-color)';
+                                                                            e.target.style.transform = 'translateY(0)';
+                                                                        }}
+                                                                    >
+                                                                        👁️ View
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={(e) => handleDocumentDownload(booking.id, e)}
+                                                                        className="document-link"
+                                                                        style={{
+                                                                            color: 'var(--accent-green, #28a745)',
+                                                                            textDecoration: 'none',
+                                                                            fontWeight: '500',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '3px',
+                                                                            padding: '3px 6px',
+                                                                            borderRadius: '4px',
+                                                                            backgroundColor: 'var(--accent-green-light, rgba(40, 167, 69, 0.1))',
+                                                                            transition: 'all 0.2s ease',
+                                                                            fontSize: '11px',
+                                                                            border: 'none',
+                                                                            cursor: 'pointer',
+                                                                            fontFamily: 'inherit'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--accent-green, #28a745)';
+                                                                            e.target.style.color = 'var(--text-light-on-dark, white)';
+                                                                            e.target.style.transform = 'translateY(-1px)';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.target.style.backgroundColor = 'var(--accent-green-light, rgba(40, 167, 69, 0.1))';
+                                                                            e.target.style.color = 'var(--accent-green, #28a745)';
+                                                                            e.target.style.transform = 'translateY(0)';
+                                                                        }}
+                                                                    >
+                                                                        📥 Download
+                                                                    </button>
+                                                                </div>
+                                                                <small style={{ 
+                                                                    fontSize: '10px', 
+                                                                    color: 'var(--text-secondary)',
+                                                                    fontStyle: 'italic'
+                                                                }}>
+                                                                    {booking.supporting_document.split('/').pop() || 'Document'}
+                                                                </small>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()
                                         ) : (
                                             <span style={{ 
                                                 color: 'var(--text-secondary)', 

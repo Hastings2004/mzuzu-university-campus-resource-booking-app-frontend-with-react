@@ -518,7 +518,7 @@ export default function ReportIssueForm({ resourceId, name, onClose, onIssueRepo
                             id="subject"
                             value={formData.subject}
                             onChange={handleInputChange}
-                            placeholder="e.g., Projector not working"
+                            placeholder="e.g., Room is not clean"
                             className={errors.subject ? 'error' : ''}
                             disabled={loading}
                         />

@@ -29,6 +29,9 @@ export default function VerificationResult() {
                 } else if (status === 'invalid_signature') {
                     setVerificationStatus('error');
                     setError('The verification link is invalid or has expired. Please request a new verification email.');
+                } else if (status === 'already_verified') {
+                    setVerificationStatus('success');
+                    setMessage('Your email is already verified. You can log in to your account.');
                 }
                 return;
             }

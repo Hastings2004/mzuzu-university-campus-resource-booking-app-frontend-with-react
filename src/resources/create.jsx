@@ -25,7 +25,7 @@ export default function CreateResource() {
     // Effect to check if the user is an admin on component mount
     useEffect(() => {
         if (!user || user.user_type !== 'admin') {
-            //alert("Unauthorized access. Only administrators can create resources.");
+            alert("Unauthorized access. Only administrators can create resources.");
             navigate('/');
         }
     }, [user, navigate]);
@@ -79,8 +79,7 @@ export default function CreateResource() {
         setMessage('');
 
         // Client-side validation (optional, but good for immediate feedback)
-        // This client-side validation is basic. Your backend validation (StoreResourceRequest)
-        // will be the definitive source of truth and more robust.
+        
         if (!formData.name.trim()) {
             setErrors({ name: ['Resource name is required.'] });
             return;
@@ -130,17 +129,14 @@ export default function CreateResource() {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    // REMOVE THE 'Content-Type': 'application/json' HEADER!
-                    // The browser will automatically set 'multipart/form-data'
                 },
-                body: dataToSend, // **CORRECTION: Send dataToSend, not formData**
+                body: dataToSend, 
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 setMessage(data.message || "Resource created successfully!");
-                // Optionally clear the form after success
                 setFormData({
                     name: "",
                     description: "",
@@ -151,11 +147,10 @@ export default function CreateResource() {
                     image: null,
                 });
                 if (imageInputRef.current) {
-                    imageInputRef.current.value = ""; // Clear file input
+                    imageInputRef.current.value = ""; 
                 }
-                setImagePreview(null); // Clear image preview
+                setImagePreview(null); 
                 setErrors({});
-                // Navigate after a short delay to allow message to be seen
                 setTimeout(() => navigate("/"), 2000);
             } else {
                 if (response.status === 422 && data.errors) {
@@ -164,7 +159,7 @@ export default function CreateResource() {
                 } else {
                     setMessage(data.message || "Failed to create resource. Please try again.");
                 }
-                console.error("API Error (backend response data):", data); // Log the full error from backend
+                console.error("API Error (backend response data):", data); 
             }
         } catch (error) {
             setMessage("An unexpected error occurred. Please check your network and try again.");
@@ -172,8 +167,6 @@ export default function CreateResource() {
         }
     }
 
-    // This check should be placed after the imports and before the return statement
-    // so that the component doesn't render if unauthorized.
     if (!user || user.user_type !== 'admin') {
         return null;
     }
@@ -248,7 +241,7 @@ export default function CreateResource() {
                                     className={`input ${errors.capacity ? 'input-error' : ''}`}
                                     value={formData.capacity}
                                     onChange={handleChange}
-                                    min="1" // Capacity should be at least 1
+                                    min="1" 
                                 />
                                 {errors.capacity && <p className="error-text">{errors.capacity[0]}</p>}
                             </div>
@@ -274,20 +267,20 @@ export default function CreateResource() {
                             
                             {/* Image Upload */}
                             <div className="form-detail">
-                                <label htmlFor="image">Resource Image (Optional)</label>
+                                <label htmlFor="image">Resource Image</label>
                                 <input
                                     type="file"
                                     id="image"
                                     name="image"
-                                    accept="image/*" // Only allow image files
+                                    accept="image/*" 
                                     className={`input ${errors.image ? 'input-error' : ''}`}
                                     onChange={handleImageChange}
-                                    ref={imageInputRef} // Attach ref to clear input
+                                    ref={imageInputRef} 
                                 />
                                 <p className="help-text">Supported formats: JPG, PNG, GIF. Maximum size: 5MB</p>
                                 {errors.image && <p className="error-text">{errors.image[0]}</p>}
                                 
-                                {/* Image Preview */}
+                                {/*Image Preview */}
                                 {imagePreview && (
                                     <div className="image-preview-container">
                                         <img 
