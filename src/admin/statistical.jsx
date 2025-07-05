@@ -1001,7 +1001,7 @@ export default function Statistical() {
         doc.text(`User Type: ${user?.user_type === 'admin' ? 'Administrator' : 'Regular User'}`, 14, 90);
         doc.text(`Report Type: ${user?.user_type === 'admin' ? 'Admin Dashboard Statistics' : 'Personal Usage Statistics'}`, 14, 100);
 
-        let yOffset = 120; // Start after header content
+        let yOffset = 120; 
 
         // Add KPIs as simple text instead of table
         doc.setFontSize(12);
@@ -1293,15 +1293,6 @@ export default function Statistical() {
                             <Bar data={topBookedResourcesChartData} options={{ responsive: true, indexAxis: 'y', plugins: { legend: { display: false }, title: { display: false } }, scales: { x: { beginAtZero: true } } }} />
 
                         </div>
-
-                        <div className="chart-container" ref={resourcesAvailabilityChartRef}>
-
-                            <h3>Resource Availability Overview</h3>
-
-                            <Doughnut data={resourcesAvailabilityChartData} options={{ responsive: true, plugins: { legend: { position: 'right' }, title: { display: false } } }} />
-
-                        </div>
-
                         <div className="chart-container" ref={monthlyBookingsChartRef}>
 
                             <h3>Monthly Overall Booking Trends</h3>
@@ -1317,6 +1308,15 @@ export default function Statistical() {
                             }} />
 
                         </div>
+
+                        <div className="chart-container" ref={resourcesAvailabilityChartRef}>
+
+                            <h3>Resource Availability Overview</h3>
+
+                            <Doughnut data={resourcesAvailabilityChartData} options={{ responsive: true, plugins: { legend: { position: 'right' }, title: { display: false } } }} />
+
+                        </div>
+                        
 
                         <div className="chart-container" ref={resourceUtilizationChartRef}>
 

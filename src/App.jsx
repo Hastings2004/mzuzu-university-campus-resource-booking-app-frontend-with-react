@@ -29,11 +29,13 @@ import TimetableImport from './components/TimetableImport';
 import IssueManagementDashboard from './admin/IssueManagementDashboard';
 import ReportIssueForm from './components/ReportIssueForm';
 import NewsCreate from './admin/news';
+import RecommendationEngine from './components/RecommendationEngine';
 
 import DocumentViewPlaceholder from './components/DocumentViewPlaceholder';
 import ForgetPassword from './auth/forgetPassword ';
 import ResetPassword from './auth/ResetPassword';
 import BookingSummaryReport from './admin/BookingSummaryReport';
+import ApiDebug from './components/ApiDebug';
 
 
 export default function App() {
@@ -41,6 +43,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {/* <ApiDebug /> */}
       <Routes>
         
         <Route path="/login" element={user ? <Home /> : <Login />} />
@@ -77,6 +80,7 @@ export default function App() {
           <Route path='news' element={ <NewsCreate /> } />
           <Route path="viewResource" element={<ShowResource />} />
           <Route path="booking-summary-report" element={<BookingSummaryReport />} />
+          <Route path="recommendations" element={<RecommendationEngine />} />
           
         </Route>
 

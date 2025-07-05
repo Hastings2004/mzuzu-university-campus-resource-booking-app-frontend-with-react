@@ -1,0 +1,338 @@
+.smart-search-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    color: #6c757d;
+    font-size: 1.2rem;
+    z-index: 2;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 45px 12px 45px;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    font-size: 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+}
+
+.clear-button {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-button:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e9ecef;
+    margin-top: 8px;
+    z-index: 1000;
+    max-height: 400px;
+    overflow-y: auto;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-loading {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.dropdown-section {
+    padding: 15px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.dropdown-section:last-child {
+    border-bottom: none;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.section-title {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 20px;
+}
+
+.section-title i {
+    color: #667eea;
+    font-size: 1rem;
+}
+
+.clear-recent-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    margin-right: 20px;
+}
+
+.clear-recent-btn:hover {
+    background: #fee;
+}
+
+.suggestions-list,
+.recent-searches-list,
+.popular-searches-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.suggestion-item,
+.recent-search-item,
+.popular-search-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.suggestion-item:hover,
+.recent-search-item:hover,
+.popular-search-item:hover {
+    background: #f8f9fa;
+    color: #2c3e50;
+    transform: translateX(4px);
+}
+
+.suggestion-item i,
+.recent-search-item i,
+.popular-search-item i {
+    color: #667eea;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.suggestion-item span,
+.recent-search-item span,
+.popular-search-item span {
+    flex: 1;
+}
+
+.dropdown-empty {
+    padding: 30px 20px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.dropdown-empty i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #dee2e6;
+}
+
+.dropdown-empty p {
+    margin: 0 0 15px 0;
+    font-size: 0.9rem;
+}
+
+.search-anyway-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-anyway-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Scrollbar styling */
+.search-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .smart-search-container {
+        max-width: 100%;
+    }
+
+    .search-input {
+        padding: 10px 40px 10px 40px;
+        font-size: 0.95rem;
+    }
+
+    .search-icon {
+        left: 12px;
+        font-size: 1.1rem;
+    }
+
+    .clear-button {
+        right: 12px;
+    }
+
+    .search-dropdown {
+        max-height: 300px;
+    }
+
+    .suggestion-item,
+    .recent-search-item,
+    .popular-search-item {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    .section-title {
+        padding: 0 15px;
+        font-size: 0.85rem;
+    }
+
+    .clear-recent-btn {
+        margin-right: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-input {
+        padding: 8px 35px 8px 35px;
+        font-size: 0.9rem;
+    }
+
+    .search-icon {
+        left: 10px;
+        font-size: 1rem;
+    }
+
+    .clear-button {
+        right: 10px;
+    }
+
+    .search-dropdown {
+        margin-top: 5px;
+        border-radius: 8px;
+    }
+
+    .dropdown-section {
+        padding: 10px 0;
+    }
+
+    .suggestion-item,
+    .recent-search-item,
+    .popular-search-item {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .section-title {
+        padding: 0 12px;
+        font-size: 0.8rem;
+    }
+
+    .clear-recent-btn {
+        margin-right: 12px;
+        font-size: 0.75rem;
+    }
+} 

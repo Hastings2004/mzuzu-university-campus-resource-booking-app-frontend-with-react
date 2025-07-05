@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/appContext";
 import api from "../services/api";
 import moment from "moment";
+import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 export default function View() {
     const { id } = useParams();
@@ -29,7 +31,13 @@ export default function View() {
     const [validationErrors, setValidationErrors] = useState({});
     const [isResourceAvailable, setIsResourceAvailable] = useState(null);
     const [supportingDocument, setSupportingDocument] = useState(null);
+    const [filter, setFilter] = useState('all');
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [calendarView, setCalendarView] = useState('month');
     
+    const localizer = momentLocalizer(moment);
+
     async function getResource() {
         try {
             const response = await api.get(`/resources/${id}`);
@@ -486,48 +494,84 @@ export default function View() {
         );
     };
 
+    // Helper for calendar event styling
+    const eventStyleGetter = (event) => {
+        let backgroundColor = '#3174ad'; // default
+        if (event.status === 'pending') backgroundColor = '#f0ad4e';
+        if (event.status === 'approved') backgroundColor = '#5cb85c';
+        if (event.status === 'in_use') backgroundColor = '#d9534f';
+        return {
+            style: {
+                backgroundColor,
+                borderRadius: '4px',
+                opacity: 0.9,
+                color: 'white',
+                border: '0px',
+                display: 'block',
+            },
+        };
+    };
+
+    const calendarEvents = [
+        ...resourceBookings.pending,
+        ...resourceBookings.approved,
+        ...resourceBookings.in_use,
+    ].map(booking => ({
+        title: booking.purpose || booking.booking_type || 'Booking',
+        start: new Date(booking.start_time),
+        end: new Date(booking.end_time),
+        status: booking.status,
+    }));
+
+    const filteredEvents = calendarEvents.filter(event =>
+        filter === 'all' ? true : event.status === filter
+    );
+
+    const handleSelectEvent = (event) => {
+        setSelectedEvent(event);
+        setShowModal(true);
+    };
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedEvent(null);
+    };
+
     return (
         <>
+            {showModal && selectedEvent && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                    background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }} onClick={closeModal}>
+                    <div style={{ background: 'white', padding: 24, borderRadius: 8, minWidth: 300, maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+                        <h3>Booking Details</h3>
+                        <p><strong>Purpose:</strong> {selectedEvent.title}</p>
+                        <p><strong>Status:</strong> {selectedEvent.status}</p>
+                        <p><strong>Start:</strong> {selectedEvent.start.toLocaleString()}</p>
+                        <p><strong>End:</strong> {selectedEvent.end.toLocaleString()}</p>
+                        <button onClick={closeModal} style={{ marginTop: 12 }}>Close</button>
+                    </div>
+                </div>
+            )}
             <div className="single-resource-container">
                 <div className="resource-content">
                     <div className="resource-main">
                         {resource ? (
                             <div key={resource.id} className="single-resource-card">
                                 <h2 className="single-resource-title">{resource.name}</h2>
+                                {/* Filter dropdown */}
                                 
-                                {/* Resource Image */}
-                                <div className="resource-image-container">
-                                    {(() => {
-                                        const imageUrl = resource.image_url || resource.image || resource.photo || resource.photo_url || resource.image_path;
-                                        
-                                        if (imageUrl) {
-                                            return (
-                                                <img 
-                                                    src={imageUrl} 
-                                                    alt={resource.name} 
-                                                    className="single-resource-image"
-                                                    onError={(e) => {
-                                                        e.target.style.display = 'none';
-                                                        e.target.nextSibling.style.display = 'block';
-                                                    }}
-                                                />
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-                                    {(() => {
-                                        const imageUrl = resource.image_url || resource.image || resource.photo || resource.photo_url || resource.image_path;
-                                        if (!imageUrl || imageUrl === '') {
-                                            return (
-                                                <div className="resource-image-placeholder">
-                                                    <span className="placeholder-icon">📷</span>
-                                                    <span className="placeholder-text">No Image Available</span>
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-                                </div>
+                                
+                                <iframe
+                                    width="400"
+                                    height="300"
+                                    style={{ border: 0 }}
+                                    loading="lazy"
+                                    allowFullScreen
+                                    src="https://www.google.com/maps?q=HXHW+JFF,+Lubinga+Rd,+Mzuzu&z=17&output=embed"
+               
+                                    title="Resource Location"
+                                />                                
                                 
                                 <p className="single-resource-detail"><strong>Description:</strong> {resource.description}</p>
                                 <p className="single-resource-detail"><strong>Location:</strong> {resource.location}</p>
@@ -725,6 +769,40 @@ export default function View() {
                         ) : (
                             <p className="">Loading resource or resource not found!</p>
                         )}
+                    </div>
+                    <div className="resource-calendar-section">
+                        {/* Filter dropdown */}
+                        <div style={{ marginBottom: 12 }}>
+                            <label htmlFor="calendar-filter">Filter bookings: </label>
+                            <select id="calendar-filter" value={filter} onChange={e => setFilter(e.target.value)}>
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="in_use">In Use</option>
+                            </select>
+                        </div>
+                        {/* Calendar view switcher */}
+                        <div style={{ marginBottom: 12 }}>
+                            <button onClick={() => setCalendarView('month')} disabled={calendarView === 'month'}>Month</button>
+                            <button onClick={() => setCalendarView('week')} disabled={calendarView === 'week'} style={{ marginLeft: 8 }}>Week</button>
+                            <button onClick={() => setCalendarView('day')} disabled={calendarView === 'day'} style={{ marginLeft: 8 }}>Day</button>
+                        </div>
+                        {/* Calendar for bookings */}
+                        <div style={{ height: 500, margin: '2rem 0' }}>
+                            <Calendar
+                                localizer={localizer}
+                                events={filteredEvents}
+                                startAccessor="start"
+                                endAccessor="end"
+                                titleAccessor="title"
+                                style={{ height: 500 }}
+                                eventPropGetter={eventStyleGetter}
+                                onSelectEvent={handleSelectEvent}
+                                view={calendarView}
+                                onView={setCalendarView}
+                                views={['month', 'week', 'day']}
+                            />
+                        </div>
                     </div>
                 </div>
                 <div className="booking-status-sidebar">     

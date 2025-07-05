@@ -2444,16 +2444,6 @@ p[style*="color: rgb(33, 150, 243)"] {
     }
 }
 
-/* Input validation styles */
-.input-error {
-    border-color: var(--accent-red) !important;
-}
-
-.input-success {
-    border-color: #4CAF50 !important;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-}
-
 /* MyBookings.css - Additions for Table View */
 
 /* General container and title (from previous iterations) */
@@ -2483,15 +2473,6 @@ p[style*="color: rgb(33, 150, 243)"] {
 .error-message { color: var(--error-text); background-color: var(--error-bg); }
 
 .success-message { color: var(--success-text); background-color: var(--success-bg); }
-
-.info-message { 
-    color: var(--primary-color); 
-    background-color: rgba(0, 123, 255, 0.1); 
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    margin-bottom: 15px;
-}
 
 /* Changed from --text-dark */
 
@@ -3926,6 +3907,133 @@ hr {
     .category-buttons {
         width: 100%;
         justify-content: center; 
+    }
+}
+
+/* Capacity Filter Styles */
+.capacity-filter-container {
+    margin-bottom: 25px;
+    max-width: 1280px;
+    padding: 15px;
+    background-color: var(--bg-medium);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.capacity-filter-label {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.capacity-inputs {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.capacity-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.capacity-input-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.capacity-input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 0.9em;
+    width: 120px;
+    transition: all 0.3s ease;
+}
+
+.capacity-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.capacity-input:hover {
+    border-color: var(--primary-color);
+}
+
+.clear-filters-btn {
+    padding: 8px 16px;
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.clear-filters-btn:hover {
+    background-color: var(--danger-hover-color);
+    transform: translateY(-1px);
+}
+
+.filter-summary {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* Responsive adjustments for capacity filter */
+@media (max-width: 768px) {
+    .capacity-inputs {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .capacity-input-group {
+        width: 100%;
+    }
+
+    .capacity-input {
+        width: 100%;
+    }
+
+    .clear-filters-btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .capacity-filter-container {
+        padding: 12px;
+    }
+
+    .capacity-filter-label {
+        font-size: 1em;
+    }
+
+    .capacity-input {
+        font-size: 0.85em;
+    }
+
+    .clear-filters-btn {
+        font-size: 0.85em;
+        padding: 10px 12px;
     }
 }
 
